@@ -325,11 +325,12 @@ public class ElevenLabsStudio extends JFrame {
         btnExport.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnExport.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnExport.setToolTipText("<html>Write the last video/audio word timestamps to an .xlsx "
-                + "using the fixed template:<br>"
-                + "• cols 1-32 paragraph words, cols 33-64 their timing (start,end)<br>"
-                + "• cols 65-72 selected words, cols 73-80 their start time<br>"
-                + "• cols 81-88 Arabic meaning (left blank to fill in), cols 89-96 same start time<br>"
-                + "• col 97 logo cell<br>"
+                + "using the fixed, colour-coded template:<br>"
+                + "• cols 1-32 paragraph words (text1-32), cols 33-64 their timing (start,end) — blue<br>"
+                + "• cols 65-72 selected words (text33-40), cols 73-80 their start time — green<br>"
+                + "• cols 81-88 Arabic meaning (text41-48, blank), cols 89-96 same start time — yellow<br>"
+                + "• cols 97-104 new group (text49-56, blank), cols 105-112 same start time — purple<br>"
+                + "• col 113 logo cell (text57) — peach<br>"
                 + "Selected words come from \"Find &amp; Set Phrases\" (up to 8).</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
         actionButtons.add(btnExport);
@@ -1479,17 +1480,39 @@ public class ElevenLabsStudio extends JFrame {
     // [ 8 selected words   ][ 8 selected timings (start only) ]
     // [ 8 Arabic meanings  ][ 8 Arabic timings (start only, same as selected) ]
     // [ 1 logo cell ]
-    private static final int PARA_WORDS       = 32;                          // paragraph word slots
-    private static final int SEL_WORDS        = 8;                           // selected-word / Arabic slots
-    private static final int PARA_WORDS_START = 0;                           // cols 1..32
-    private static final int PARA_TIME_START  = PARA_WORDS_START + PARA_WORDS; // cols 33..64
-    private static final int SEL_WORDS_START  = PARA_TIME_START + PARA_WORDS;  // cols 65..72
-    private static final int SEL_TIME_START   = SEL_WORDS_START + SEL_WORDS;   // cols 73..80
-    private static final int AR_WORDS_START   = SEL_TIME_START + SEL_WORDS;    // cols 81..88
-    private static final int AR_TIME_START    = AR_WORDS_START + SEL_WORDS;    // cols 89..96
-    private static final int LOGO_COL         = AR_TIME_START + SEL_WORDS;     // col  97
-    private static final int TOTAL_COLS       = LOGO_COL + 1;                  // 97 columns
+    private static final int PARA_WORDS       = 32;                            // paragraph word slots
+    private static final int SEL_WORDS        = 8;                             // slots per 8-word group
+    private static final int PARA_WORDS_START = 0;                             // cols 1..32
+    private static final int PARA_TIME_START  = PARA_WORDS_START + PARA_WORDS;  // cols 33..64
+    private static final int SEL_WORDS_START  = PARA_TIME_START + PARA_WORDS;   // cols 65..72
+    private static final int SEL_TIME_START   = SEL_WORDS_START + SEL_WORDS;    // cols 73..80
+    private static final int AR_WORDS_START   = SEL_TIME_START + SEL_WORDS;     // cols 81..88
+    private static final int AR_TIME_START    = AR_WORDS_START + SEL_WORDS;     // cols 89..96
+    private static final int NEW_WORDS_START  = AR_TIME_START + SEL_WORDS;      // cols 97..104
+    private static final int NEW_TIME_START   = NEW_WORDS_START + SEL_WORDS;    // cols 105..112
+    private static final int LOGO_COL         = NEW_TIME_START + SEL_WORDS;     // col  113
+    private static final int TOTAL_COLS       = LOGO_COL + 1;                   // 113 columns
     private static final String LOGO_TEXT     = "Logolept  AR · EN   [f]"; // logo placeholder
+
+    // Per-group cell fill styles (indices into the xlsx cellXfs table; 0 = no fill).
+    private static final int STYLE_PARA = 1, STYLE_SEL = 2, STYLE_AR = 3,
+                             STYLE_NEW = 4, STYLE_LOGO = 5;
+
+    /** Map every template column to its group fill style, for coloured export. */
+    private static int[] buildColStyles() {
+        int[] s = new int[TOTAL_COLS];
+        for (int i = 0; i < PARA_WORDS; i++) {
+            s[PARA_WORDS_START + i] = STYLE_PARA;
+            s[PARA_TIME_START + i]  = STYLE_PARA;
+        }
+        for (int i = 0; i < SEL_WORDS; i++) {
+            s[SEL_WORDS_START + i] = STYLE_SEL;  s[SEL_TIME_START + i] = STYLE_SEL;
+            s[AR_WORDS_START + i]  = STYLE_AR;   s[AR_TIME_START + i]  = STYLE_AR;
+            s[NEW_WORDS_START + i] = STYLE_NEW;  s[NEW_TIME_START + i] = STYLE_NEW;
+        }
+        s[LOGO_COL] = STYLE_LOGO;
+        return s;
+    }
 
     private void exportWordsToExcel() {
         List<WordStamp> stamps = lastVideoWords;
@@ -1500,7 +1523,8 @@ public class ElevenLabsStudio extends JFrame {
         }
 
         log("Exporting " + stamps.size() + " word(s) to Excel using the fixed template "
-                + "(32 paragraph + 32 timing · 8 selected + 8 timing · 8 Arabic + 8 timing · 1 logo)…");
+                + "(32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · 1 logo, "
+                + "each group colour-coded)…");
         if (stamps.size() > PARA_WORDS)
             log("Note: paragraph has " + stamps.size() + " words — more than the " + PARA_WORDS
                     + " reserved cells, so it wraps onto additional rows.");
@@ -1525,13 +1549,15 @@ public class ElevenLabsStudio extends JFrame {
                 dataRow.set(SEL_TIME_START + i,  startOnly);  // selected timing (start only)
                 // Arabic-meaning cell (AR_WORDS_START + i) is left EMPTY for you to fill in later.
                 dataRow.set(AR_TIME_START + i,   startOnly);  // Arabic timing = same start time
+                // New-group word cell (NEW_WORDS_START + i) is left EMPTY for you to fill in later.
+                dataRow.set(NEW_TIME_START + i,  startOnly);  // new-group timing = same start time
             }
             log(n + " selected phrase(s) written: "
                     + XlsxWriter.colLetter(SEL_WORDS_START + 1) + "2… (words), "
                     + XlsxWriter.colLetter(SEL_TIME_START + 1) + "2… (start times). "
-                    + "Arabic-meaning cells " + XlsxWriter.colLetter(AR_WORDS_START + 1)
-                    + "2… left blank for you to fill; "
-                    + XlsxWriter.colLetter(AR_TIME_START + 1) + "2… carry the same start times.");
+                    + "Arabic cells " + XlsxWriter.colLetter(AR_WORDS_START + 1)
+                    + "2… and new-group cells " + XlsxWriter.colLetter(NEW_WORDS_START + 1)
+                    + "2… left blank to fill; their timing columns carry the same start times.");
         } else {
             log("No selected phrases set — use \"Find & Set Phrases\" to fill the "
                     + SEL_WORDS + " selected-word slots.");
@@ -1539,7 +1565,7 @@ public class ElevenLabsStudio extends JFrame {
 
         File out = new File(workDir(), (base == null || base.isEmpty() ? "words" : base) + "_words.xlsx");
         try {
-            XlsxWriter.write(out, rows);
+            XlsxWriter.write(out, rows, buildColStyles());
             log("Saved: " + out.getName() + "  (" + (rows.size() - 1) + " paragraph row(s), "
                     + TOTAL_COLS + " columns)");
         } catch (Exception e) {
@@ -1644,14 +1670,17 @@ public class ElevenLabsStudio extends JFrame {
             header.set(PARA_TIME_START + i,  "text" + (i + 1) + "time");
         }
         for (int i = 0; i < SEL_WORDS; i++) {
-            int selN = PARA_WORDS + i + 1;             // selected words continue: text33..text40
-            int arN  = PARA_WORDS + SEL_WORDS + i + 1; // Arabic meaning continues: text41..text48
+            int selN = PARA_WORDS + i + 1;                 // selected:  text33..text40
+            int arN  = PARA_WORDS + SEL_WORDS + i + 1;     // Arabic:    text41..text48
+            int newN = PARA_WORDS + 2 * SEL_WORDS + i + 1; // new group: text49..text56
             header.set(SEL_WORDS_START + i, "text" + selN);
             header.set(SEL_TIME_START + i,  "text" + selN + "time");
             header.set(AR_WORDS_START + i,  "text" + arN);
             header.set(AR_TIME_START + i,   "text" + arN + "time");
+            header.set(NEW_WORDS_START + i, "text" + newN);
+            header.set(NEW_TIME_START + i,  "text" + newN + "time");
         }
-        header.set(LOGO_COL, "logo");
+        header.set(LOGO_COL, "text" + (PARA_WORDS + 3 * SEL_WORDS + 1)); // logo header continues: text57
         rows.add(header);
 
         if (stamps.isEmpty()) {
@@ -1681,7 +1710,35 @@ public class ElevenLabsStudio extends JFrame {
                         "<Default Extension=\"xml\" ContentType=\"application/xml\"/>" +
                         "<Override PartName=\"/xl/workbook.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml\"/>" +
                         "<Override PartName=\"/xl/worksheets/sheet1.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml\"/>" +
+                        "<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>" +
                         "</Types>";
+
+        // One solid fill per group (fill indices 2..6, referenced by cellXfs 1..5).
+        private static final String STYLES =
+                "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
+                        "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
+                        "<fonts count=\"1\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font></fonts>" +
+                        "<fills count=\"7\">" +
+                        "<fill><patternFill patternType=\"none\"/></fill>" +
+                        "<fill><patternFill patternType=\"gray125\"/></fill>" +
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFBDD7EE\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // paragraph  – blue
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFC6E0B4\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // selected   – green
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFF2CC\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // arabic     – yellow
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFCCC0DA\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // new group  – purple
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFF8CBAD\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // logo       – peach
+                        "</fills>" +
+                        "<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>" +
+                        "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>" +
+                        "<cellXfs count=\"6\">" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"2\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"3\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"4\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"5\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"6\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "</cellXfs>" +
+                        "<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles>" +
+                        "</styleSheet>";
 
         private static final String RELS =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
@@ -1700,16 +1757,18 @@ public class ElevenLabsStudio extends JFrame {
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                         "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
                         "<Relationship Id=\"rId1\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet\" Target=\"worksheets/sheet1.xml\"/>" +
+                        "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/>" +
                         "</Relationships>";
 
-        static void write(File file, List<List<String>> rows) throws IOException {
+        static void write(File file, List<List<String>> rows, int[] colStyles) throws IOException {
             try (ZipOutputStream zos = new ZipOutputStream(
                     new BufferedOutputStream(new FileOutputStream(file)))) {
                 putEntry(zos, "[Content_Types].xml", CONTENT_TYPES);
                 putEntry(zos, "_rels/.rels", RELS);
                 putEntry(zos, "xl/workbook.xml", WORKBOOK);
                 putEntry(zos, "xl/_rels/workbook.xml.rels", WORKBOOK_RELS);
-                putEntry(zos, "xl/worksheets/sheet1.xml", sheetXml(rows));
+                putEntry(zos, "xl/styles.xml", STYLES);
+                putEntry(zos, "xl/worksheets/sheet1.xml", sheetXml(rows, colStyles));
             }
         }
 
@@ -1719,7 +1778,7 @@ public class ElevenLabsStudio extends JFrame {
             zos.closeEntry();
         }
 
-        private static String sheetXml(List<List<String>> rows) {
+        private static String sheetXml(List<List<String>> rows, int[] colStyles) {
             StringBuilder sb = new StringBuilder();
             sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n");
             sb.append("<worksheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\"><sheetData>");
@@ -1727,11 +1786,19 @@ public class ElevenLabsStudio extends JFrame {
                 List<String> row = rows.get(r);
                 sb.append("<row r=\"").append(r + 1).append("\">");
                 for (int c = 0; c < row.size(); c++) {
-                    String val = row.get(c);
-                    if (val == null || val.isEmpty()) continue;
-                    sb.append("<c r=\"").append(colLetter(c + 1)).append(r + 1)
-                            .append("\" t=\"inlineStr\"><is><t xml:space=\"preserve\">")
-                            .append(escapeXml(val)).append("</t></is></c>");
+                    String val   = row.get(c);
+                    int    style = (colStyles != null && c < colStyles.length) ? colStyles[c] : 0;
+                    boolean empty = (val == null || val.isEmpty());
+                    if (empty && style == 0) continue;      // nothing to write for this cell
+                    String ref = colLetter(c + 1) + (r + 1);
+                    if (empty) {
+                        sb.append("<c r=\"").append(ref).append("\" s=\"").append(style).append("\"/>");
+                    } else {
+                        sb.append("<c r=\"").append(ref).append("\"");
+                        if (style != 0) sb.append(" s=\"").append(style).append("\"");
+                        sb.append(" t=\"inlineStr\"><is><t xml:space=\"preserve\">")
+                                .append(escapeXml(val)).append("</t></is></c>");
+                    }
                 }
                 sb.append("</row>");
             }
