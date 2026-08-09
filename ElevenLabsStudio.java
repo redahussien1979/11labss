@@ -73,10 +73,7 @@ public class ElevenLabsStudio extends JFrame {
     private volatile String lastVideoBaseName = null;
 
     private final JTextArea  phraseArea  = new JTextArea(4, 12);
-    private final JTextField phraseSlots = new JTextField("0");
-    private final JCheckBox  phraseLegacy = new JCheckBox("also write 1st phrase to Y2/AY2", false);
     private volatile List<PhraseHit> pendingPhrases = new ArrayList<>();
-    private final JTextField exportWordsPerRow = new JTextField("0"); // 0 = whole paragraph on one row
     private final java.util.List<JButton> actionButtons = new ArrayList<>();
 
     private final AudioPlayer player = new AudioPlayer();
@@ -92,9 +89,61 @@ public class ElevenLabsStudio extends JFrame {
         setSize(1180, 760);
         setLocationRelativeTo(null);
         buildUI();
+        setupMediaDropTarget();
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override public void windowClosing(java.awt.event.WindowEvent e) { player.stop(); }
         });
+    }
+
+    /** Let the user drag & drop a video/audio file anywhere on the window to transcribe it. */
+    private void setupMediaDropTarget() {
+        new java.awt.dnd.DropTarget(this, java.awt.dnd.DnDConstants.ACTION_COPY,
+                new java.awt.dnd.DropTargetAdapter() {
+                    @Override public void drop(java.awt.dnd.DropTargetDropEvent ev) {
+                        try {
+                            ev.acceptDrop(java.awt.dnd.DnDConstants.ACTION_COPY);
+                            java.awt.datatransfer.Transferable t = ev.getTransferable();
+                            if (t.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.javaFileListFlavor)) {
+                                @SuppressWarnings("unchecked")
+                                java.util.List<File> files = (java.util.List<File>)
+                                        t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
+                                handleDroppedFiles(files);
+                                ev.dropComplete(true);
+                            } else {
+                                ev.dropComplete(false);
+                            }
+                        } catch (Exception ex) {
+                            log("Drag & drop failed: " + ex.getMessage());
+                            ev.dropComplete(false);
+                        }
+                    }
+                }, true);
+    }
+
+    private void handleDroppedFiles(java.util.List<File> files) {
+        if (files == null || files.isEmpty()) return;
+        File media = null;
+        for (File f : files) {
+            if (f != null && f.isFile() && isMediaFile(f)) { media = f; break; }
+        }
+        if (media == null) {
+            log("Drag & drop: no supported video/audio file found "
+                    + "(accepted: mp4, mov, mkv, webm, avi, m4v, mp3, wav, m4a, aac, flac, ogg).");
+            return;
+        }
+        if (files.size() > 1)
+            log("Drag & drop: multiple files dropped — using \"" + media.getName() + "\".");
+        else
+            log("Drag & drop: \"" + media.getName() + "\" — transcribing…");
+        final File chosen = media;
+        runInBackground(() -> doVideoWordTimestamps(chosen));
+    }
+
+    private static boolean isMediaFile(File f) {
+        String n = f.getName().toLowerCase(Locale.ROOT);
+        return isVideoFile(f)
+                || n.endsWith(".mp3") || n.endsWith(".wav") || n.endsWith(".m4a")
+                || n.endsWith(".aac") || n.endsWith(".flac") || n.endsWith(".ogg");
     }
 
     private void buildUI() {
@@ -266,19 +315,22 @@ public class ElevenLabsStudio extends JFrame {
         actionButtons.add(btnVid);
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnVid);
-        exportWordsPerRow.setToolTipText("<html>Words per exported row.<br>"
-                + "0 (default) = put the whole paragraph on one row, however long it is.<br>"
-                + "A positive number caps each row at that many words and wraps the rest onto new rows.</html>");
-        addRow(vidBox, "words/row", exportWordsPerRow);
+        JLabel dropHint = new JLabel("…or drag & drop a video/audio file onto the window");
+        dropHint.setFont(dropHint.getFont().deriveFont(Font.ITALIC, 11f));
+        dropHint.setAlignmentX(Component.LEFT_ALIGNMENT);
+        vidBox.add(Box.createVerticalStrut(2));
+        vidBox.add(dropHint);
 
         JButton btnExport = new JButton("Export to Excel (.xlsx)");
         btnExport.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnExport.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnExport.setToolTipText("<html>Write the last video/audio word timestamps to an .xlsx.<br>"
-                + "Default (words/row = 0): the whole paragraph goes on a single row "
-                + "text1..textN then text1time..textNtime.<br>"
-                + "words/row &gt; 0 caps each row and wraps extra words onto new rows.<br>"
-                + "Resolved phrases are appended to row 2 right after the time columns.</html>");
+        btnExport.setToolTipText("<html>Write the last video/audio word timestamps to an .xlsx "
+                + "using the fixed template:<br>"
+                + "• cols 1-32 paragraph words, cols 33-64 their timing (start,end)<br>"
+                + "• cols 65-72 selected words, cols 73-80 their start time<br>"
+                + "• cols 81-88 Arabic meaning (left blank to fill in), cols 89-96 same start time<br>"
+                + "• col 97 logo cell<br>"
+                + "Selected words come from \"Find &amp; Set Phrases\" (up to 8).</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
         actionButtons.add(btnExport);
         vidBox.add(Box.createVerticalStrut(4));
@@ -288,27 +340,23 @@ public class ElevenLabsStudio extends JFrame {
 
         west.add(vidBox);
 
-        JPanel phraseBox = settingsBox("Phrase Highlights (row 2, from BA)");
+        JPanel phraseBox = settingsBox("Selected Words (up to 8 → cols 65-72)");
         phraseArea.setFont(mono);
         phraseArea.setLineWrap(false);
-        phraseArea.setToolTipText("<html>One phrase per line, EXACTLY as it appears in the transcript "
-                + "(case + punctuation).<br>A normalized fallback match is attempted automatically.<br>"
-                + "Leave empty and click the button to clear all phrases.</html>");
+        phraseArea.setToolTipText("<html>One selected word/phrase per line, EXACTLY as it appears in the "
+                + "transcript (case + punctuation).<br>A normalized fallback match is attempted automatically.<br>"
+                + "Up to 8 are written to the reserved selected-word columns; extras are ignored.<br>"
+                + "Leave empty and click the button to clear all selections.</html>");
         JScrollPane phraseScroll = new JScrollPane(phraseArea);
         phraseScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
         phraseScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
         phraseScroll.setPreferredSize(new Dimension(180, 90));
         phraseBox.add(phraseScroll);
-        phraseSlots.setToolTipText("Reserved phrase columns. 0 = auto (exactly as many as resolved phrases). "
-                + "Set e.g. 10 to keep the time-block always starting at the same column (BK) across exports.");
-        addRow(phraseBox, "slots", phraseSlots);
-        phraseLegacy.setToolTipText("Backwards compatibility: also overwrite Y2 / AY2 with the first phrase.");
-        phraseBox.add(phraseLegacy);
         JButton btnPhrase = new JButton("Find & Set Phrases");
         btnPhrase.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnPhrase.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnPhrase.setToolTipText("Looks up every phrase as consecutive words in the last transcription "
-                + "and stores its start/end time for the next export.");
+        btnPhrase.setToolTipText("Looks up every selected word/phrase as consecutive words in the last "
+                + "transcription and stores its start time for the next export.");
         btnPhrase.addActionListener(e -> runInBackground(this::setPhraseOverrides));
         actionButtons.add(btnPhrase);
         phraseBox.add(Box.createVerticalStrut(4));
@@ -1426,14 +1474,22 @@ public class ElevenLabsStudio extends JFrame {
     }
 
 
-    /** Resolve how many word columns each exported row holds.
-     *  "words/row" field: 0 / blank / invalid => whole paragraph on one row. */
-    private int resolveWordCols(int wordCount) {
-        int perRow = 0;
-        try { perRow = Integer.parseInt(exportWordsPerRow.getText().trim()); } catch (Exception ignored) {}
-        if (perRow <= 0) return Math.max(1, wordCount); // single row, dynamic width
-        return perRow;                                   // fixed width, wrap onto new rows
-    }
+    // ---- Fixed Excel template layout (0-based column indices) ----
+    // [ 32 paragraph words ][ 32 paragraph timings ]
+    // [ 8 selected words   ][ 8 selected timings (start only) ]
+    // [ 8 Arabic meanings  ][ 8 Arabic timings (start only, same as selected) ]
+    // [ 1 logo cell ]
+    private static final int PARA_WORDS       = 32;                          // paragraph word slots
+    private static final int SEL_WORDS        = 8;                           // selected-word / Arabic slots
+    private static final int PARA_WORDS_START = 0;                           // cols 1..32
+    private static final int PARA_TIME_START  = PARA_WORDS_START + PARA_WORDS; // cols 33..64
+    private static final int SEL_WORDS_START  = PARA_TIME_START + PARA_WORDS;  // cols 65..72
+    private static final int SEL_TIME_START   = SEL_WORDS_START + SEL_WORDS;   // cols 73..80
+    private static final int AR_WORDS_START   = SEL_TIME_START + SEL_WORDS;    // cols 81..88
+    private static final int AR_TIME_START    = AR_WORDS_START + SEL_WORDS;    // cols 89..96
+    private static final int LOGO_COL         = AR_TIME_START + SEL_WORDS;     // col  97
+    private static final int TOTAL_COLS       = LOGO_COL + 1;                  // 97 columns
+    private static final String LOGO_TEXT     = "Logolept  AR · EN   [f]"; // logo placeholder
 
     private void exportWordsToExcel() {
         List<WordStamp> stamps = lastVideoWords;
@@ -1443,104 +1499,52 @@ public class ElevenLabsStudio extends JFrame {
             return;
         }
 
-        int wordCols       = resolveWordCols(stamps.size());
-        int phraseStartCol = 2 * wordCols;
-        boolean singleRow  = wordCols >= stamps.size();
+        log("Exporting " + stamps.size() + " word(s) to Excel using the fixed template "
+                + "(32 paragraph + 32 timing · 8 selected + 8 timing · 8 Arabic + 8 timing · 1 logo)…");
+        if (stamps.size() > PARA_WORDS)
+            log("Note: paragraph has " + stamps.size() + " words — more than the " + PARA_WORDS
+                    + " reserved cells, so it wraps onto additional rows.");
 
-        if (phraseStartCol > 16384)
-            log("Note: " + phraseStartCol + " columns exceeds Excel's 16384-column limit; "
-                    + "set \"words/row\" to a smaller number to wrap onto multiple rows.");
+        List<List<String>> rows = buildExcelRows(stamps);
+        List<String> dataRow = rows.get(1);            // first data row (row 2)
 
-        log("Exporting " + stamps.size() + " word(s) to Excel"
-                + (singleRow ? " (single row of " + wordCols + " word columns)..."
-                : " (" + wordCols + " words per row)..."));
-        List<List<String>> rows = buildExcelRows(stamps, wordCols);
+        // Logo cell (last column of the first data row).
+        dataRow.set(LOGO_COL, LOGO_TEXT);
 
+        // Selected words + their Arabic meanings (row 2), sourced from the resolved phrases.
         List<PhraseHit> phrases = pendingPhrases;
         if (phrases != null && !phrases.isEmpty()) {
-            int slots = 0;
-            try { slots = Math.max(0, Integer.parseInt(phraseSlots.getText().trim())); } catch (Exception ignored) {}
-            if (slots > 0 && slots < phrases.size()) {
-                log("Phrase slots (" + slots + ") is smaller than the number of phrases ("
-                        + phrases.size() + ") — using " + phrases.size() + " instead.");
-                slots = phrases.size();
-            }
-            int n = slots > 0 ? slots : phrases.size();
-            applyPhraseBlock(rows, phrases, n, wordCols, phraseStartCol);
-
-            log("Phrase block written to row 2: "
-                    + XlsxWriter.colLetter(phraseStartCol + 1) + "2 … "
-                    + XlsxWriter.colLetter(phraseStartCol + n) + "2   (texts), "
-                    + XlsxWriter.colLetter(phraseStartCol + n + 1) + "2 … "
-                    + XlsxWriter.colLetter(phraseStartCol + 2 * n) + "2   (start,end)");
-            for (int i = 0; i < phrases.size(); i++) {
+            int n = Math.min(phrases.size(), SEL_WORDS);
+            if (phrases.size() > SEL_WORDS)
+                log("Note: " + phrases.size() + " selected phrases resolved but only " + SEL_WORDS
+                        + " slots are reserved — writing the first " + SEL_WORDS + ".");
+            for (int i = 0; i < n; i++) {
                 PhraseHit p = phrases.get(i);
-                log(String.format(Locale.US, "   %s2 = \"%s\"   %s2 = %.3f,%.3f",
-                        XlsxWriter.colLetter(phraseStartCol + 1 + i), p.text,
-                        XlsxWriter.colLetter(phraseStartCol + n + 1 + i), p.start, p.end));
+                String startOnly = String.format(Locale.US, "%.3f", p.start); // start time only
+                dataRow.set(SEL_WORDS_START + i, p.text);     // selected word / phrase
+                dataRow.set(SEL_TIME_START + i,  startOnly);  // selected timing (start only)
+                // Arabic-meaning cell (AR_WORDS_START + i) is left EMPTY for you to fill in later.
+                dataRow.set(AR_TIME_START + i,   startOnly);  // Arabic timing = same start time
             }
-
-            if (phraseLegacy.isSelected()) {
-                PhraseHit first = phrases.get(0);
-                applyPhraseOverride(rows, first.text, first.start, first.end);
-                log(String.format(Locale.US,
-                        "Legacy override applied to Y2/AY2: \"%s\" -> %.3f,%.3f",
-                        first.text, first.start, first.end));
-            }
+            log(n + " selected phrase(s) written: "
+                    + XlsxWriter.colLetter(SEL_WORDS_START + 1) + "2… (words), "
+                    + XlsxWriter.colLetter(SEL_TIME_START + 1) + "2… (start times). "
+                    + "Arabic-meaning cells " + XlsxWriter.colLetter(AR_WORDS_START + 1)
+                    + "2… left blank for you to fill; "
+                    + XlsxWriter.colLetter(AR_TIME_START + 1) + "2… carry the same start times.");
+        } else {
+            log("No selected phrases set — use \"Find & Set Phrases\" to fill the "
+                    + SEL_WORDS + " selected-word slots.");
         }
 
         File out = new File(workDir(), (base == null || base.isEmpty() ? "words" : base) + "_words.xlsx");
         try {
             XlsxWriter.write(out, rows);
-            log("Saved: " + out.getName() + "  (" + (rows.size() - 1) + " data row(s), up to "
-                    + wordCols + " words each)");
+            log("Saved: " + out.getName() + "  (" + (rows.size() - 1) + " paragraph row(s), "
+                    + TOTAL_COLS + " columns)");
         } catch (Exception e) {
             log("Error writing xlsx: " + e.getMessage());
         }
-    }
-
-    private static void applyPhraseBlock(List<List<String>> rows, List<PhraseHit> phrases,
-                                         int slots, int wordCols, int phraseStartCol) {
-        int extraStart = phraseStartCol + 2 * slots;
-        int needed     = extraStart + 2 * slots;
-        while (rows.size() < 2) rows.add(new ArrayList<>());
-        List<String> header = rows.get(0);
-        List<String> row2   = rows.get(1);
-        pad(header, needed);
-        pad(row2,   needed);
-
-        for (int i = 0; i < slots; i++) {
-            header.set(phraseStartCol + i,         "text" + (wordCols + i + 1));
-            header.set(phraseStartCol + slots + i, "text" + (wordCols + i + 1) + "time");
-        }
-        for (int i = 0; i < phrases.size() && i < slots; i++) {
-            PhraseHit p = phrases.get(i);
-            row2.set(phraseStartCol + i,         p.text);
-            row2.set(phraseStartCol + slots + i, String.format(Locale.US, "%.3f,%.3f", p.start, p.end));
-        }
-
-        for (int i = 0; i < slots; i++) {
-            int serial = wordCols + slots + i + 1;
-            header.set(extraStart + i,         "text" + serial);
-            header.set(extraStart + slots + i, "text" + serial + "time");
-        }
-    }
-
-    private static void pad(List<String> row, int size) {
-        while (row.size() < size) row.add("");
-    }
-
-    private static void applyPhraseOverride(List<List<String>> rows, String phrase, double start, double end) {
-        final int COLS = 26;
-        final int Y_INDEX  = 24;
-        final int AY_INDEX = COLS + 24;
-
-        if (rows.size() < 2) rows.add(new ArrayList<>(Collections.nCopies(COLS * 2, "")));
-        List<String> row2 = rows.get(1);
-        pad(row2, COLS * 2);
-
-        row2.set(Y_INDEX, phrase);
-        row2.set(AY_INDEX, String.format(Locale.US, "%.3f,%.3f", start, end));
     }
 
     private void setPhraseOverrides() {
@@ -1627,26 +1631,44 @@ public class ElevenLabsStudio extends JFrame {
                 .replaceAll("[^\\p{L}\\p{N}']", "");
     }
 
-    private static List<List<String>> buildExcelRows(List<WordStamp> stamps, int cols) {
+    /** Build rows for the fixed template: header + paragraph words (wrapped across the
+     *  32 reserved word columns) with paragraph start,end timings. Selected-word, Arabic
+     *  and logo cells are filled by the caller on the first data row. */
+    private static List<List<String>> buildExcelRows(List<WordStamp> stamps) {
         List<List<String>> rows = new ArrayList<>();
 
-        List<String> header = new ArrayList<>(cols * 2);
-        for (int i = 1; i <= cols; i++) header.add("text" + i);
-        for (int i = 1; i <= cols; i++) header.add("text" + i + "time");
+        // Header row.
+        List<String> header = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
+        for (int i = 0; i < PARA_WORDS; i++) {
+            header.set(PARA_WORDS_START + i, "text" + (i + 1));
+            header.set(PARA_TIME_START + i,  "text" + (i + 1) + "time");
+        }
+        for (int i = 0; i < SEL_WORDS; i++) {
+            header.set(SEL_WORDS_START + i, "sel" + (i + 1));
+            header.set(SEL_TIME_START + i,  "sel" + (i + 1) + "time");
+            header.set(AR_WORDS_START + i,  "ar"  + (i + 1));
+            header.set(AR_TIME_START + i,   "ar"  + (i + 1) + "time");
+        }
+        header.set(LOGO_COL, "logo");
         rows.add(header);
 
-        for (int start = 0; start < stamps.size(); start += cols) {
-            List<String> row = new ArrayList<>(Collections.nCopies(cols * 2, ""));
-            int end = Math.min(start + cols, stamps.size());
+        if (stamps.isEmpty()) {
+            rows.add(new ArrayList<>(Collections.nCopies(TOTAL_COLS, "")));
+            return rows;
+        }
+
+        // Paragraph words wrapped across the PARA_WORDS reserved columns.
+        for (int start = 0; start < stamps.size(); start += PARA_WORDS) {
+            List<String> row = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
+            int end = Math.min(start + PARA_WORDS, stamps.size());
             for (int i = start; i < end; i++) {
                 WordStamp w = stamps.get(i);
                 int col = i - start;
-                row.set(col, w.text);
-                row.set(cols + col, String.format(Locale.US, "%.3f,%.3f", w.start, w.end));
+                row.set(PARA_WORDS_START + col, w.text);
+                row.set(PARA_TIME_START + col, String.format(Locale.US, "%.3f,%.3f", w.start, w.end));
             }
             rows.add(row);
         }
-        if (stamps.isEmpty()) rows.add(new ArrayList<>(Collections.nCopies(cols * 2, "")));
         return rows;
     }
     static final class XlsxWriter {
