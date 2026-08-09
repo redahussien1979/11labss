@@ -72,7 +72,9 @@ public class ElevenLabsStudio extends JFrame {
     private volatile List<WordStamp> lastVideoWords = null;
     private volatile String lastVideoBaseName = null;
 
-    private final JTextArea  phraseArea  = new JTextArea(4, 12);
+    private final JTextArea  phraseArea   = new JTextArea(4, 6); // col1 -> text33..text40 (matched)
+    private final JTextArea  arabicArea   = new JTextArea(4, 6); // col2 -> text41..text48 (typed)
+    private final JTextArea  newGroupArea = new JTextArea(4, 6); // col3 -> text49..text56 (typed)
     private volatile List<PhraseHit> pendingPhrases = new ArrayList<>();
     private final java.util.List<JButton> actionButtons = new ArrayList<>();
 
@@ -341,18 +343,25 @@ public class ElevenLabsStudio extends JFrame {
 
         west.add(vidBox);
 
-        JPanel phraseBox = settingsBox("Selected Words (up to 8 → cols 65-72)");
-        phraseArea.setFont(mono);
-        phraseArea.setLineWrap(false);
-        phraseArea.setToolTipText("<html>One selected word/phrase per line, EXACTLY as it appears in the "
-                + "transcript (case + punctuation).<br>A normalized fallback match is attempted automatically.<br>"
-                + "Up to 8 are written to the reserved selected-word columns; extras are ignored.<br>"
-                + "Leave empty and click the button to clear all selections.</html>");
-        JScrollPane phraseScroll = new JScrollPane(phraseArea);
-        phraseScroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-        phraseScroll.setMaximumSize(new Dimension(Integer.MAX_VALUE, 90));
-        phraseScroll.setPreferredSize(new Dimension(180, 90));
-        phraseBox.add(phraseScroll);
+        JPanel phraseBox = settingsBox("Selected Words (3 cols → text33 · text41 · text49)");
+        phraseArea.setToolTipText("<html><b>Column 1 — selected words.</b> One per line, EXACTLY as in the "
+                + "transcript (case + punctuation).<br>\"Find &amp; Set Phrases\" matches THESE only and writes "
+                + "them to text33-40 with their start times.<br>Up to 8; extras ignored. "
+                + "Leave empty and click the button to clear.</html>");
+        arabicArea.setToolTipText("<html><b>Column 2 — free text → text41-48.</b> One per line, aligned by row "
+                + "with column 1 (line 1 = meaning of selected word 1…).<br>Written verbatim on export; not matched. "
+                + "Up to 8.</html>");
+        newGroupArea.setToolTipText("<html><b>Column 3 — free text → text49-56.</b> One per line, aligned by row "
+                + "with column 1.<br>Written verbatim on export; not matched. Up to 8.</html>");
+
+        JPanel phraseCols = new JPanel(new GridLayout(1, 3, 4, 0));
+        phraseCols.setAlignmentX(Component.LEFT_ALIGNMENT);
+        phraseCols.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
+        phraseCols.setPreferredSize(new Dimension(240, 110));
+        phraseCols.add(labeledArea("1 → text33", phraseArea, mono));
+        phraseCols.add(labeledArea("2 → text41", arabicArea, mono));
+        phraseCols.add(labeledArea("3 → text49", newGroupArea, mono));
+        phraseBox.add(phraseCols);
         JButton btnPhrase = new JButton("Find & Set Phrases");
         btnPhrase.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnPhrase.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -382,6 +391,18 @@ public class ElevenLabsStudio extends JFrame {
         p.setLayout(new BoxLayout(p, BoxLayout.Y_AXIS));
         p.setBorder(new TitledBorder(title));
         p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return p;
+    }
+
+    /** A text area with a small caption above it (for the 3-column selected-words layout). */
+    private JPanel labeledArea(String caption, JTextArea area, Font mono) {
+        area.setFont(mono);
+        area.setLineWrap(false);
+        JPanel p = new JPanel(new BorderLayout());
+        JLabel l = new JLabel(caption, SwingConstants.CENTER);
+        l.setFont(l.getFont().deriveFont(Font.PLAIN, 10f));
+        p.add(l, BorderLayout.NORTH);
+        p.add(new JScrollPane(area), BorderLayout.CENTER);
         return p;
     }
 
@@ -1514,6 +1535,20 @@ public class ElevenLabsStudio extends JFrame {
         return s;
     }
 
+    /** Write up to SEL_WORDS lines of free text into consecutive cells from startCol,
+     *  aligned by line index (blank lines advance the index but write nothing).
+     *  Returns how many non-empty cells were written. */
+    private static int fillWordColumn(List<String> row, int startCol, String text) {
+        if (text == null) return 0;
+        String[] lines = text.split("\\R", -1);
+        int written = 0;
+        for (int i = 0; i < lines.length && i < SEL_WORDS; i++) {
+            String v = lines[i].trim();
+            if (!v.isEmpty()) { row.set(startCol + i, v); written++; }
+        }
+        return written;
+    }
+
     private void exportWordsToExcel() {
         List<WordStamp> stamps = lastVideoWords;
         String base = lastVideoBaseName;
@@ -1535,7 +1570,15 @@ public class ElevenLabsStudio extends JFrame {
         // Logo cell (last column of the first data row).
         dataRow.set(LOGO_COL, LOGO_TEXT);
 
-        // Selected words + their Arabic meanings (row 2), sourced from the resolved phrases.
+        // Columns 2 & 3 of the Selected-Words panel: free text, aligned by line with column 1.
+        int arWritten  = fillWordColumn(dataRow, AR_WORDS_START,  arabicArea.getText());
+        int newWritten = fillWordColumn(dataRow, NEW_WORDS_START, newGroupArea.getText());
+        if (arWritten > 0 || newWritten > 0)
+            log("Typed meanings written: " + arWritten + " → "
+                    + XlsxWriter.colLetter(AR_WORDS_START + 1) + "2… (text41+), "
+                    + newWritten + " → " + XlsxWriter.colLetter(NEW_WORDS_START + 1) + "2… (text49+).");
+
+        // Selected words + their timings (row 2), sourced from the resolved phrases.
         List<PhraseHit> phrases = pendingPhrases;
         if (phrases != null && !phrases.isEmpty()) {
             int n = Math.min(phrases.size(), SEL_WORDS);
@@ -1547,17 +1590,14 @@ public class ElevenLabsStudio extends JFrame {
                 String startOnly = String.format(Locale.US, "%.3f", p.start); // start time only
                 dataRow.set(SEL_WORDS_START + i, p.text);     // selected word / phrase
                 dataRow.set(SEL_TIME_START + i,  startOnly);  // selected timing (start only)
-                // Arabic-meaning cell (AR_WORDS_START + i) is left EMPTY for you to fill in later.
-                dataRow.set(AR_TIME_START + i,   startOnly);  // Arabic timing = same start time
-                // New-group word cell (NEW_WORDS_START + i) is left EMPTY for you to fill in later.
-                dataRow.set(NEW_TIME_START + i,  startOnly);  // new-group timing = same start time
+                // text41 / text49 word cells come from columns 2 & 3; their timing mirrors the start time.
+                dataRow.set(AR_TIME_START + i,   startOnly);  // text41+ timing = same start time
+                dataRow.set(NEW_TIME_START + i,  startOnly);  // text49+ timing = same start time
             }
             log(n + " selected phrase(s) written: "
                     + XlsxWriter.colLetter(SEL_WORDS_START + 1) + "2… (words), "
-                    + XlsxWriter.colLetter(SEL_TIME_START + 1) + "2… (start times). "
-                    + "Arabic cells " + XlsxWriter.colLetter(AR_WORDS_START + 1)
-                    + "2… and new-group cells " + XlsxWriter.colLetter(NEW_WORDS_START + 1)
-                    + "2… left blank to fill; their timing columns carry the same start times.");
+                    + XlsxWriter.colLetter(SEL_TIME_START + 1) + "2… (start times); "
+                    + "text41+ / text49+ timing columns carry the same start times.");
         } else {
             log("No selected phrases set — use \"Find & Set Phrases\" to fill the "
                     + SEL_WORDS + " selected-word slots.");
