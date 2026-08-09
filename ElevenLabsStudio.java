@@ -1644,10 +1644,12 @@ public class ElevenLabsStudio extends JFrame {
             header.set(PARA_TIME_START + i,  "text" + (i + 1) + "time");
         }
         for (int i = 0; i < SEL_WORDS; i++) {
-            header.set(SEL_WORDS_START + i, "sel" + (i + 1));
-            header.set(SEL_TIME_START + i,  "sel" + (i + 1) + "time");
-            header.set(AR_WORDS_START + i,  "ar"  + (i + 1));
-            header.set(AR_TIME_START + i,   "ar"  + (i + 1) + "time");
+            int selN = PARA_WORDS + i + 1;             // selected words continue: text33..text40
+            int arN  = PARA_WORDS + SEL_WORDS + i + 1; // Arabic meaning continues: text41..text48
+            header.set(SEL_WORDS_START + i, "text" + selN);
+            header.set(SEL_TIME_START + i,  "text" + selN + "time");
+            header.set(AR_WORDS_START + i,  "text" + arN);
+            header.set(AR_TIME_START + i,   "text" + arN + "time");
         }
         header.set(LOGO_COL, "logo");
         rows.add(header);
