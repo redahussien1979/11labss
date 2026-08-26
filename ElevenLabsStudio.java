@@ -31,6 +31,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.StringWriter;
+import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 public class ElevenLabsStudio extends JFrame {
 
@@ -63,6 +81,15 @@ public class ElevenLabsStudio extends JFrame {
     private final JTextField tsSim   = new JTextField("0.5");
     private final JTextField tsStyle = new JTextField("0.0");
     private final JCheckBox  tsBoost = new JCheckBox("speaker_boost", true);
+
+    // ---- 7) Excel / CSV batch: a column of text -> audio -> a column of links ----
+    private final JTextField xlFileField  = new JTextField("");
+    private final JTextField xlSheetField = new JTextField("");      // blank = first sheet
+    private final JTextField xlTextCol    = new JTextField("A");
+    private final JTextField xlLinkCol    = new JTextField("B");
+    private final JTextField xlStartRow   = new JTextField("2");
+    private final JTextField xlBaseUrl    = new JTextField("");
+    private final JComboBox<String> xlVoice = voiceCombo("TX3LPaxmHKxFdv7VOQHJ");
 
     private final JComboBox<String> sttModel  = sttModelCombo("scribe_v2");
     private final JCheckBox vidExtract = new JCheckBox("FFmpeg audio extract", true);
@@ -372,6 +399,43 @@ public class ElevenLabsStudio extends JFrame {
         phraseBox.add(Box.createVerticalStrut(4));
         phraseBox.add(btnPhrase);
         west.add(phraseBox);
+
+        JPanel xlBox = settingsBox("7 · Excel / CSV batch");
+        xlFileField.setToolTipText("The .xlsx / .xlsm / .csv / .tsv file holding the text to speak.");
+        addRow(xlBox, "Excel file", xlFileField);
+        JButton xlBrowse = new JButton("Browse file…");
+        xlBrowse.setAlignmentX(Component.LEFT_ALIGNMENT);
+        xlBrowse.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+        xlBrowse.addActionListener(e -> chooseExcelFile());
+        xlBox.add(xlBrowse);
+        xlSheetField.setToolTipText("Sheet name or 1-based number. Blank = the first sheet.");
+        addRow(xlBox, "Sheet", xlSheetField);
+        xlTextCol.setToolTipText("Column the text is read from, e.g. A.");
+        addRow(xlBox, "Text column", xlTextCol);
+        xlLinkCol.setToolTipText("Column the audio links are written into, e.g. B. "
+                + "Each link lands on the same row as its text.");
+        addRow(xlBox, "Link column", xlLinkCol);
+        xlStartRow.setToolTipText("First data row — 2 skips a header row.");
+        addRow(xlBox, "First row", xlStartRow);
+        xlVoice.setToolTipText("Voice used for every row of the batch. "
+                + "Model and voice settings come from box 1.");
+        addRow(xlBox, "Voice", xlVoice);
+        xlBaseUrl.setToolTipText("<html>Optional. Blank writes the full file path.<br>"
+                + "Set e.g. https://my.site/audio to write a web link instead:<br>"
+                + "https://my.site/audio/&lt;new folder&gt;/&lt;file&gt;.mp3</html>");
+        addRow(xlBox, "Link base URL", xlBaseUrl);
+        JButton btnXlLoad = action("Load column → lines", this::doExcelLoadColumn);
+        btnXlLoad.setToolTipText("Copy the text column into the quotes panel, so it can be "
+                + "reviewed or edited before generating.");
+        xlBox.add(Box.createVerticalStrut(4));
+        xlBox.add(btnXlLoad);
+        JButton btnXlRun = action("Generate from Excel", this::doExcelBatch);
+        btnXlRun.setToolTipText("<html>Reads the text column, generates one MP3 per row into a NEW folder "
+                + "named after the first data cell + a timestamp,<br>then writes every file's full link "
+                + "back into the link column.</html>");
+        xlBox.add(Box.createVerticalStrut(4));
+        xlBox.add(btnXlRun);
+        west.add(xlBox);
 
         west.add(Box.createVerticalGlue());
         JScrollPane westScroll = new JScrollPane(west,
@@ -2121,6 +2185,587 @@ public class ElevenLabsStudio extends JFrame {
         if (resp.statusCode() >= 400)
             throw new RuntimeException("HTTP " + resp.statusCode() + " " + resp.body());
         return resp.body();
+    }
+
+    // ---- 7) Excel / CSV batch --------------------------------------------
+    //  Read a column of text, voice every row into a new timestamped folder,
+    //  then write each audio file's full link back into another column.
+
+    private void chooseExcelFile() {
+        String cur = xlFileField.getText().trim();
+        JFileChooser fc = new JFileChooser(cur.isEmpty() ? workDir() : new File(cur).getParentFile());
+        fc.setFileFilter(new FileNameExtensionFilter(
+                "Spreadsheets (*.xlsx, *.xlsm, *.csv, *.tsv)", "xlsx", "xlsm", "csv", "tsv"));
+        if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION)
+            xlFileField.setText(fc.getSelectedFile().getAbsolutePath());
+    }
+
+    /** The spreadsheet chosen in the Excel box, validated. */
+    private File excelFile() {
+        String p = xlFileField.getText().trim();
+        if (p.isEmpty()) throw new IllegalArgumentException("no file selected — click Browse file…");
+        File f = new File(p);
+        if (!f.isFile()) throw new IllegalArgumentException("file not found: " + p);
+        return f;
+    }
+
+    private String sheetSel()   { return xlSheetField.getText().trim(); }
+    private int    xlFirstRow() {
+        try { return Math.max(1, Integer.parseInt(xlStartRow.getText().trim())); }
+        catch (Exception e) { return 1; }
+    }
+
+    /** Copy the text column into the quotes panel so it can be reviewed / edited. */
+    private void doExcelLoadColumn() {
+        List<SheetCell> cells;
+        int textCol;
+        File book;
+        try {
+            book    = excelFile();
+            textCol = colIndex(xlTextCol.getText());
+            cells   = readSheetColumn(book, sheetSel(), textCol, xlFirstRow());
+        } catch (Exception e) { log("Excel: " + e.getMessage()); return; }
+
+        if (cells.isEmpty()) {
+            log("Excel: no text found in column " + XlsxWriter.colLetter(textCol)
+                    + " from row " + xlFirstRow() + " of " + book.getName());
+            return;
+        }
+        String voice = comboVal(xlVoice);
+        SwingUtilities.invokeLater(() -> {
+            clearLineRows();
+            for (SheetCell c : cells) addLineRow(c.text, voice);
+            refreshLines();
+        });
+        log("Excel: loaded " + cells.size() + " rows from column " + XlsxWriter.colLetter(textCol)
+                + " of " + book.getName());
+    }
+
+    /** Read a column, voice every row into a fresh folder, write the links back. */
+    private void doExcelBatch() {
+        log("EXCEL BATCH — text column → audio → link column");
+        log("===============================================");
+
+        File book;
+        List<SheetCell> cells;
+        int textCol, linkCol;
+        try {
+            book    = excelFile();
+            textCol = colIndex(xlTextCol.getText());
+            linkCol = colIndex(xlLinkCol.getText());
+            if (textCol == linkCol)
+                throw new IllegalArgumentException("text column and link column must differ");
+            cells = readSheetColumn(book, sheetSel(), textCol, xlFirstRow());
+        } catch (Exception e) { log("Excel: " + e.getMessage()); return; }
+
+        if (cells.isEmpty()) {
+            log("Excel: no text found in column " + XlsxWriter.colLetter(textCol)
+                    + " from row " + xlFirstRow() + " of " + book.getName());
+            return;
+        }
+        log("File : " + book.getAbsolutePath());
+        log("Found " + cells.size() + " rows of text in column " + XlsxWriter.colLetter(textCol)
+                + " (rows " + cells.get(0).row + "–" + cells.get(cells.size() - 1).row + ")");
+
+        // new folder named after the first data cell + timestamp
+        File outDir = new File(workDir(), batchFolderName(cells.get(0).text));
+        if (!outDir.isDirectory() && !outDir.mkdirs()) {
+            log("Excel: could not create folder " + outDir.getAbsolutePath());
+            return;
+        }
+        log("Output folder: " + outDir.getAbsolutePath());
+        log("");
+
+        String voice    = comboVal(xlVoice);
+        String model    = comboVal(ttsModel);
+        String settings = ttsSettingsJson(model);
+        String prefix   = ttsPrefix.getText().trim();
+        if (prefix.isEmpty()) prefix = "audio";
+
+        Map<Integer, String> links = new LinkedHashMap<>();
+        int ok = 0;
+        for (int i = 0; i < cells.size(); i++) {
+            SheetCell c = cells.get(i);
+            File out = new File(outDir, prefix + (i + 1) + ".mp3");
+            log("Generating audio " + (i + 1) + " (row " + c.row + ") [voice "
+                    + voiceLabel(voice) + "]: \"" + preview(c.text) + "\"");
+            if (generateOneTts(voice, c.text, model, settings, out)) {
+                ok++;
+                links.put(c.row, audioLink(outDir, out));
+            }
+        }
+        log("");
+        log("Generated " + ok + " out of " + cells.size() + " audio files.");
+        if (links.isEmpty()) { log("No links to write back."); return; }
+
+        // always leave a plain-text copy of the links next to the audio
+        try {
+            StringBuilder sb = new StringBuilder();
+            for (Map.Entry<Integer, String> e : links.entrySet())
+                sb.append("row ").append(e.getKey()).append('\t').append(e.getValue()).append('\n');
+            Files.write(new File(outDir, "links.txt").toPath(),
+                    sb.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) { log("Note: could not write links.txt: " + e.getMessage()); }
+
+        try {
+            File backup = backupOf(book);
+            writeSheetColumn(book, sheetSel(), linkCol, links);
+            log("Wrote " + links.size() + " links into column " + XlsxWriter.colLetter(linkCol)
+                    + " of " + book.getName());
+            log("Backup of the original: " + backup.getName());
+        } catch (Exception e) {
+            log("Excel: could not write the links back: " + e.getMessage());
+            log("       (close the file in Excel and try again — links.txt in the "
+                    + "output folder has them all)");
+        }
+    }
+
+    /** Full link written into the sheet: a web URL when a base URL is set, else the file path. */
+    private String audioLink(File dir, File audio) {
+        String base = xlBaseUrl.getText().trim();
+        if (base.isEmpty()) return audio.getAbsolutePath();
+        while (base.endsWith("/")) base = base.substring(0, base.length() - 1);
+        return base + "/" + urlPart(dir.getName()) + "/" + urlPart(audio.getName());
+    }
+
+    /** Percent-encode one path segment so folder / file names survive in a URL. */
+    private static String urlPart(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : s.getBytes(StandardCharsets.UTF_8)) {
+            char c = (char) (b & 0xff);
+            if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')
+                    || c == '-' || c == '.' || c == '_' || c == '~') sb.append(c);
+            else sb.append(String.format("%%%02X", b & 0xff));
+        }
+        return sb.toString();
+    }
+
+    /** Folder name for one batch: first data cell (sanitised) + _yyyyMMdd_HHmmss. */
+    private static String batchFolderName(String firstCell) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : firstCell.trim().toCharArray()) {
+            if (Character.isLetterOrDigit(c)) sb.append(c);
+            else if (sb.length() > 0 && sb.charAt(sb.length() - 1) != '_') sb.append('_');
+            if (sb.length() >= 40) break;
+        }
+        while (sb.length() > 0 && sb.charAt(sb.length() - 1) == '_') sb.setLength(sb.length() - 1);
+        String name = sb.length() == 0 ? "audio" : sb.toString();
+        return name + "_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+    }
+
+    /** Timestamped copy of the workbook, made before it is modified. */
+    private static File backupOf(File f) throws Exception {
+        String name = f.getName();
+        int dot = name.lastIndexOf('.');
+        String stem = dot < 0 ? name : name.substring(0, dot);
+        String ext  = dot < 0 ? ""   : name.substring(dot);
+        File bak = new File(f.getParentFile(), stem + ".backup-"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ext);
+        Files.copy(f.toPath(), bak.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        return bak;
+    }
+
+    // ---- Spreadsheet I/O: .xlsx / .xlsm (zip + XML) and .csv / .tsv -------
+    //  Reads and edits EXISTING workbooks in place, where XlsxWriter above
+    //  writes new ones. Dependency-free, like the rest of this program.
+
+    /** One populated cell of the text column: 1-based sheet row + its text. */
+    private static class SheetCell {
+        final int row; final String text;
+        SheetCell(int row, String text) { this.row = row; this.text = text; }
+    }
+
+    private static boolean isXlsx(File f) {
+        String n = f.getName().toLowerCase(Locale.ROOT);
+        return n.endsWith(".xlsx") || n.endsWith(".xlsm");
+    }
+
+    private static List<SheetCell> readSheetColumn(File f, String sheetSel, int col, int startRow)
+            throws Exception {
+        return isXlsx(f) ? readXlsxColumn(f, sheetSel, col, startRow)
+                         : readCsvColumn(f, col, startRow);
+    }
+
+    private static void writeSheetColumn(File f, String sheetSel, int col, Map<Integer, String> values)
+            throws Exception {
+        if (isXlsx(f)) writeXlsxColumn(f, sheetSel, col, values);
+        else           writeCsvColumn(f, col, values);
+    }
+
+    // ---- column letters ----------------------------------------------------
+
+    /** "A" -> 1, "b" -> 2, "AA" -> 27. Also accepts a plain number. */
+    private static int colIndex(String s) {
+        String t = s == null ? "" : s.trim();
+        if (t.isEmpty()) throw new IllegalArgumentException("empty column");
+        if (t.chars().allMatch(Character::isDigit)) {
+            int n = Integer.parseInt(t);
+            if (n < 1) throw new IllegalArgumentException("bad column: " + s);
+            return n;
+        }
+        int n = 0;
+        for (char c : t.toCharArray()) {
+            char u = Character.toUpperCase(c);
+            if (u < 'A' || u > 'Z') throw new IllegalArgumentException("bad column: " + s);
+            n = n * 26 + (u - 'A' + 1);
+        }
+        return n;
+    }
+
+    // ---- CSV / TSV ---------------------------------------------------------
+
+    private static char csvSep(File f) {
+        return f.getName().toLowerCase(Locale.ROOT).endsWith(".tsv") ? '\t' : ',';
+    }
+
+    private static List<List<String>> readCsvRows(File f) throws Exception {
+        String s = new String(Files.readAllBytes(f.toPath()), StandardCharsets.UTF_8);
+        if (s.startsWith("﻿")) s = s.substring(1);
+        char sep = csvSep(f);
+        List<List<String>> rows = new ArrayList<>();
+        List<String> row = new ArrayList<>();
+        StringBuilder cur = new StringBuilder();
+        boolean quoted = false;
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (quoted) {
+                if (c == '"') {
+                    if (i + 1 < s.length() && s.charAt(i + 1) == '"') { cur.append('"'); i++; }
+                    else quoted = false;
+                } else cur.append(c);
+            } else if (c == '"')      quoted = true;
+            else if (c == sep)        { row.add(cur.toString()); cur.setLength(0); }
+            else if (c == '\n')       { row.add(cur.toString()); cur.setLength(0); rows.add(row); row = new ArrayList<>(); }
+            else if (c != '\r')       cur.append(c);
+        }
+        if (cur.length() > 0 || !row.isEmpty()) { row.add(cur.toString()); rows.add(row); }
+        return rows;
+    }
+
+    private static List<SheetCell> readCsvColumn(File f, int col, int startRow) throws Exception {
+        List<List<String>> rows = readCsvRows(f);
+        List<SheetCell> out = new ArrayList<>();
+        for (int r = startRow; r <= rows.size(); r++) {
+            List<String> row = rows.get(r - 1);
+            if (col > row.size()) continue;
+            String t = row.get(col - 1).trim();
+            if (!t.isEmpty()) out.add(new SheetCell(r, t));
+        }
+        return out;
+    }
+
+    private static void writeCsvColumn(File f, int col, Map<Integer, String> values) throws Exception {
+        List<List<String>> rows = readCsvRows(f);
+        for (Map.Entry<Integer, String> e : values.entrySet()) {
+            int r = e.getKey();
+            while (rows.size() < r) rows.add(new ArrayList<>());
+            List<String> row = rows.get(r - 1);
+            while (row.size() < col) row.add("");
+            row.set(col - 1, e.getValue());
+        }
+        char sep = csvSep(f);
+        StringBuilder sb = new StringBuilder();
+        for (List<String> row : rows) {
+            for (int i = 0; i < row.size(); i++) {
+                if (i > 0) sb.append(sep);
+                sb.append(csvEscape(row.get(i), sep));
+            }
+            sb.append('\n');
+        }
+        Files.write(f.toPath(), sb.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static String csvEscape(String v, char sep) {
+        if (v.indexOf(sep) < 0 && v.indexOf('"') < 0 && v.indexOf('\n') < 0 && v.indexOf('\r') < 0)
+            return v;
+        return "\"" + v.replace("\"", "\"\"") + "\"";
+    }
+
+    // ---- XLSX --------------------------------------------------------------
+
+    private static List<SheetCell> readXlsxColumn(File f, String sheetSel, int col, int startRow)
+            throws Exception {
+        try (ZipFile zip = new ZipFile(f)) {
+            String path = sheetPath(zip, sheetSel);
+            List<String> shared = readSharedStrings(zip);
+            Document doc = parseXml(zipBytes(zip, path));
+            List<SheetCell> out = new ArrayList<>();
+            int rowNum = 0;
+            for (Element row : byLocalName(doc.getDocumentElement(), "row")) {
+                rowNum = attrInt(row, "r", rowNum + 1);
+                if (rowNum < startRow) continue;
+                int colNum = 0;
+                for (Element c : childrenByLocalName(row, "c")) {
+                    colNum = cellCol(c, colNum + 1);
+                    if (colNum != col) continue;
+                    String t = cellText(c, shared);
+                    if (t != null && !t.trim().isEmpty()) out.add(new SheetCell(rowNum, t.trim()));
+                }
+            }
+            out.sort(Comparator.comparingInt(a -> a.row));
+            return out;
+        }
+    }
+
+    private static void writeXlsxColumn(File f, String sheetSel, int col, Map<Integer, String> values)
+            throws Exception {
+        String path;
+        Document doc;
+        try (ZipFile zip = new ZipFile(f)) {
+            path = sheetPath(zip, sheetSel);
+            doc  = parseXml(zipBytes(zip, path));
+        }
+        if (values.isEmpty()) return;
+        Element sheetData = firstByLocalName(doc.getDocumentElement(), "sheetData");
+        if (sheetData == null) throw new IllegalStateException("sheet has no <sheetData>");
+
+        for (Map.Entry<Integer, String> e : values.entrySet())
+            setCellText(doc, sheetData, e.getKey(), col, e.getValue());
+
+        widenDimension(doc, col, Collections.max(values.keySet()));
+        replaceZipEntry(f, path, serializeXml(doc));
+    }
+
+    /** Put text into (row, col), creating the row / cell when Excel never stored one. */
+    private static void setCellText(Document doc, Element sheetData, int rowNum, int col, String text) {
+        Element row = null, rowBefore = null;
+        int seen = 0;
+        for (Element r : childrenByLocalName(sheetData, "row")) {
+            seen = attrInt(r, "r", seen + 1);
+            if (seen == rowNum) { row = r; break; }
+            if (seen > rowNum && rowBefore == null) rowBefore = r;
+        }
+        if (row == null) {
+            row = doc.createElement(sameNameStyle(sheetData, "row"));
+            row.setAttribute("r", String.valueOf(rowNum));
+            if (rowBefore != null) sheetData.insertBefore(row, rowBefore);
+            else                   sheetData.appendChild(row);
+        }
+
+        Element cell = null, cellBefore = null;
+        int colNum = 0;
+        for (Element c : childrenByLocalName(row, "c")) {
+            colNum = cellCol(c, colNum + 1);
+            if (colNum == col) { cell = c; break; }
+            if (colNum > col && cellBefore == null) cellBefore = c;
+        }
+        if (cell == null) {
+            cell = doc.createElement(sameNameStyle(row, "c"));
+            if (cellBefore != null) row.insertBefore(cell, cellBefore);
+            else                    row.appendChild(cell);
+        }
+        cell.setAttribute("r", XlsxWriter.colLetter(col) + rowNum);
+        while (cell.getFirstChild() != null) cell.removeChild(cell.getFirstChild());
+
+        cell.setAttribute("t", "inlineStr");                  // self-contained: no sharedStrings edit
+        Element is = doc.createElement(sameNameStyle(row, "is"));
+        Element t  = doc.createElement(sameNameStyle(row, "t"));
+        t.setAttribute("xml:space", "preserve");
+        t.appendChild(doc.createTextNode(text));
+        is.appendChild(t);
+        cell.appendChild(is);
+    }
+
+    /** Grow <dimension ref="…"> so Excel still sees the whole used range. */
+    private static void widenDimension(Document doc, int col, int lastRow) {
+        Element dim = firstByLocalName(doc.getDocumentElement(), "dimension");
+        if (dim == null) return;
+        String ref = dim.getAttribute("ref");
+        int colon = ref.indexOf(':');
+        if (colon < 0) return;
+        String start = ref.substring(0, colon), end = ref.substring(colon + 1);
+        Matcher m = Pattern.compile("([A-Za-z]+)(\\d+)").matcher(end);
+        if (!m.matches()) return;
+        int endCol = Math.max(colIndex(m.group(1)), col);
+        int endRow = Math.max(Integer.parseInt(m.group(2)), lastRow);
+        dim.setAttribute("ref", start + ":" + XlsxWriter.colLetter(endCol) + endRow);
+    }
+
+    /** Locate xl/worksheets/sheetN.xml for a sheet name, 1-based number, or blank = first. */
+    private static String sheetPath(ZipFile zip, String sel) throws Exception {
+        Document wb   = parseXml(zipBytes(zip, "xl/workbook.xml"));
+        Document rels = parseXml(zipBytes(zip, "xl/_rels/workbook.xml.rels"));
+        Map<String, String> targets = new HashMap<>();
+        for (Element rel : byLocalName(rels.getDocumentElement(), "Relationship"))
+            targets.put(rel.getAttribute("Id"), rel.getAttribute("Target"));
+
+        List<Element> sheets = byLocalName(wb.getDocumentElement(), "sheet");
+        if (sheets.isEmpty()) throw new IllegalStateException("workbook has no sheets");
+
+        Element chosen = null;
+        if (sel.isEmpty()) chosen = sheets.get(0);
+        else if (sel.chars().allMatch(Character::isDigit)) {
+            int n = Integer.parseInt(sel);
+            if (n < 1 || n > sheets.size())
+                throw new IllegalArgumentException("sheet " + n + " does not exist (workbook has "
+                        + sheets.size() + ")");
+            chosen = sheets.get(n - 1);
+        } else {
+            for (Element s : sheets)
+                if (s.getAttribute("name").equalsIgnoreCase(sel)) { chosen = s; break; }
+            if (chosen == null) {
+                List<String> names = new ArrayList<>();
+                for (Element s : sheets) names.add(s.getAttribute("name"));
+                throw new IllegalArgumentException("no sheet named \"" + sel + "\" — found: " + names);
+            }
+        }
+
+        String rid = chosen.getAttribute("r:id");
+        if (rid.isEmpty()) rid = chosen.getAttribute("id");
+        String target = targets.get(rid);
+        if (target == null) throw new IllegalStateException("cannot resolve sheet \""
+                + chosen.getAttribute("name") + "\"");
+        if (target.startsWith("/")) return target.substring(1);
+        return target.startsWith("xl/") ? target : "xl/" + target;
+    }
+
+    private static List<String> readSharedStrings(ZipFile zip) throws Exception {
+        List<String> out = new ArrayList<>();
+        ZipEntry e = zip.getEntry("xl/sharedStrings.xml");
+        if (e == null) return out;
+        Document doc = parseXml(zipBytes(zip, "xl/sharedStrings.xml"));
+        for (Element si : byLocalName(doc.getDocumentElement(), "si")) {
+            StringBuilder sb = new StringBuilder();
+            for (Element t : byLocalName(si, "t")) sb.append(textOf(t));
+            out.add(sb.toString());
+        }
+        return out;
+    }
+
+    /** Value of one <c>, resolving shared / inline strings and tidying whole numbers. */
+    private static String cellText(Element c, List<String> shared) {
+        String type = c.getAttribute("t");
+        if ("inlineStr".equals(type)) {
+            StringBuilder sb = new StringBuilder();
+            for (Element t : byLocalName(c, "t")) sb.append(textOf(t));
+            return sb.toString();
+        }
+        Element v = firstByLocalName(c, "v");
+        if (v == null) return "";
+        String raw = textOf(v);
+        if ("s".equals(type)) {
+            try {
+                int i = Integer.parseInt(raw.trim());
+                return i >= 0 && i < shared.size() ? shared.get(i) : "";
+            } catch (Exception e) { return ""; }
+        }
+        if ("b".equals(type)) return "1".equals(raw.trim()) ? "TRUE" : "FALSE";
+        if (type.isEmpty() || "n".equals(type)) {
+            try { return trim(Double.parseDouble(raw.trim())); } catch (Exception ignored) {}
+        }
+        return raw;
+    }
+
+    /** Column of a cell from its r="B7"; falls back to its position in the row. */
+    private static int cellCol(Element c, int fallback) {
+        String r = c.getAttribute("r");
+        if (r.isEmpty()) return fallback;
+        int i = 0;
+        while (i < r.length() && Character.isLetter(r.charAt(i))) i++;
+        if (i == 0) return fallback;
+        try { return colIndex(r.substring(0, i)); } catch (Exception e) { return fallback; }
+    }
+
+    // ---- tiny XML / zip helpers -------------------------------------------
+
+    private static byte[] zipBytes(ZipFile zip, String entry) throws Exception {
+        ZipEntry e = zip.getEntry(entry);
+        if (e == null) throw new IllegalStateException("not an Excel file (missing " + entry + ")");
+        try (InputStream in = zip.getInputStream(e)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+            return out.toByteArray();
+        }
+    }
+
+    private static Document parseXml(byte[] xml) throws Exception {
+        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        f.setNamespaceAware(false);   // keep prefixes verbatim so re-serialising is faithful
+        return f.newDocumentBuilder().parse(new ByteArrayInputStream(xml));
+    }
+
+    private static byte[] serializeXml(Document doc) throws Exception {
+        Transformer t = TransformerFactory.newInstance().newTransformer();
+        t.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+        t.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+        StringWriter sw = new StringWriter();
+        t.transform(new DOMSource(doc), new StreamResult(sw));
+        String out = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\r\n" + sw;
+        return out.getBytes(StandardCharsets.UTF_8);
+    }
+
+    /** Rewrite one entry of a zip in place, copying everything else through. */
+    private static void replaceZipEntry(File zipFile, String entryName, byte[] content) throws Exception {
+        File tmp = File.createTempFile("elstudio", ".tmp", zipFile.getAbsoluteFile().getParentFile());
+        boolean found = false;
+        try (ZipInputStream in = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
+             ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(tmp)))) {
+            byte[] buf = new byte[8192];
+            ZipEntry e;
+            while ((e = in.getNextEntry()) != null) {
+                ZipEntry copy = new ZipEntry(e.getName());
+                if (e.getTime() >= 0) copy.setTime(e.getTime());
+                out.putNextEntry(copy);
+                if (e.getName().equals(entryName)) { out.write(content); found = true; }
+                else { int n; while ((n = in.read(buf)) > 0) out.write(buf, 0, n); }
+                out.closeEntry();
+            }
+        } catch (Exception ex) {
+            tmp.delete();
+            throw ex;
+        }
+        if (!found) { tmp.delete(); throw new IllegalStateException("sheet " + entryName + " vanished"); }
+        Files.move(tmp.toPath(), zipFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    private static String localName(Node n) {
+        String name = n.getNodeName();
+        int colon = name.indexOf(':');
+        return colon < 0 ? name : name.substring(colon + 1);
+    }
+
+    /** Same prefix as the reference element, so created tags match the file's style. */
+    private static String sameNameStyle(Element reference, String local) {
+        String name = reference.getNodeName();
+        int colon = name.indexOf(':');
+        return colon < 0 ? local : name.substring(0, colon + 1) + local;
+    }
+
+    /** All descendants with this local name, document order. */
+    private static List<Element> byLocalName(Element root, String local) {
+        List<Element> out = new ArrayList<>();
+        NodeList all = root.getElementsByTagName("*");
+        for (int i = 0; i < all.getLength(); i++) {
+            Node n = all.item(i);
+            if (n instanceof Element && localName(n).equals(local)) out.add((Element) n);
+        }
+        return out;
+    }
+
+    private static Element firstByLocalName(Element root, String local) {
+        List<Element> l = byLocalName(root, local);
+        return l.isEmpty() ? null : l.get(0);
+    }
+
+    /** Direct children with this local name. */
+    private static List<Element> childrenByLocalName(Element parent, String local) {
+        List<Element> out = new ArrayList<>();
+        for (Node n = parent.getFirstChild(); n != null; n = n.getNextSibling())
+            if (n instanceof Element && localName(n).equals(local)) out.add((Element) n);
+        return out;
+    }
+
+    private static String textOf(Element e) {
+        String s = e.getTextContent();
+        return s == null ? "" : s;
+    }
+
+    private static int attrInt(Element e, String name, int fallback) {
+        String v = e.getAttribute(name);
+        if (v == null || v.trim().isEmpty()) return fallback;
+        try { return Integer.parseInt(v.trim()); } catch (Exception ex) { return fallback; }
     }
 
     private static final String[] MODELS = {
