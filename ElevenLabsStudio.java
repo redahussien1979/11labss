@@ -82,7 +82,7 @@ public class ElevenLabsStudio extends JFrame {
     private final JTextField tsStyle = new JTextField("0.0");
     private final JCheckBox  tsBoost = new JCheckBox("speaker_boost", true);
 
-    // ---- 7) Excel / CSV batch: a column of text -> audio -> a column of links ----
+    // ---- 7) Excel / CSV batch: column(s) of text -> audio -> column(s) of links ----
     private final JTextField xlFileField  = new JTextField("");
     private final JTextField xlSheetField = new JTextField("");      // blank = first sheet
     private final JTextField xlTextCol    = new JTextField("A");
@@ -410,11 +410,13 @@ public class ElevenLabsStudio extends JFrame {
         xlBox.add(xlBrowse);
         xlSheetField.setToolTipText("Sheet name or 1-based number. Blank = the first sheet.");
         addRow(xlBox, "Sheet", xlSheetField);
-        xlTextCol.setToolTipText("Column the text is read from, e.g. A.");
-        addRow(xlBox, "Text column", xlTextCol);
-        xlLinkCol.setToolTipText("Column the audio links are written into, e.g. B. "
-                + "Each link lands on the same row as its text.");
-        addRow(xlBox, "Link column", xlLinkCol);
+        xlTextCol.setToolTipText("<html>Column(s) the text is read from — one letter (A) or a list (A,B,C).<br>"
+                + "Every non-empty cell becomes its own audio file, read row by row.</html>");
+        addRow(xlBox, "Text col(s)", xlTextCol);
+        xlLinkCol.setToolTipText("<html>Column(s) the audio links are written into — B, or X,Y,Z.<br>"
+                + "They pair with the text columns in order: A,B,C → X,Y,Z writes A's links to X, "
+                + "B's to Y, C's to Z.<br>Each link lands on the same row as its text.</html>");
+        addRow(xlBox, "Link col(s)", xlLinkCol);
         xlStartRow.setToolTipText("First data row — 2 skips a header row.");
         addRow(xlBox, "First row", xlStartRow);
         xlVoice.setToolTipText("Voice used for every row of the batch. "
@@ -425,14 +427,14 @@ public class ElevenLabsStudio extends JFrame {
                 + "https://my.site/audio/&lt;new folder&gt;/&lt;file&gt;.mp3</html>");
         addRow(xlBox, "Link base URL", xlBaseUrl);
         JButton btnXlLoad = action("Load column → lines", this::doExcelLoadColumn);
-        btnXlLoad.setToolTipText("Copy the text column into the quotes panel, so it can be "
+        btnXlLoad.setToolTipText("Copy the text column(s) into the quotes panel, so they can be "
                 + "reviewed or edited before generating.");
         xlBox.add(Box.createVerticalStrut(4));
         xlBox.add(btnXlLoad);
         JButton btnXlRun = action("Generate from Excel", this::doExcelBatch);
-        btnXlRun.setToolTipText("<html>Reads the text column, generates one MP3 per row into a NEW folder "
-                + "named after the first data cell + a timestamp,<br>then writes every file's full link "
-                + "back into the link column.</html>");
+        btnXlRun.setToolTipText("<html>Reads the text column(s), generates one MP3 per filled cell into a NEW "
+                + "folder named after the first data cell + a timestamp,<br>then writes every file's full link "
+                + "back into the paired link column, on the row its text came from.</html>");
         xlBox.add(Box.createVerticalStrut(4));
         xlBox.add(btnXlRun);
         west.add(xlBox);
@@ -2188,8 +2190,10 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     // ---- 7) Excel / CSV batch --------------------------------------------
-    //  Read a column of text, voice every row into a new timestamped folder,
-    //  then write each audio file's full link back into another column.
+    //  Read one or more columns of text, voice every cell into a new timestamped
+    //  folder, then write each audio file's full link back into another column.
+    //  Text and link columns pair up 1-to-1: A,B,C -> X,Y,Z means A's links go
+    //  to X, B's to Y and C's to Z, each on the row its text came from.
 
     private void chooseExcelFile() {
         String cur = xlFileField.getText().trim();
@@ -2215,19 +2219,19 @@ public class ElevenLabsStudio extends JFrame {
         catch (Exception e) { return 1; }
     }
 
-    /** Copy the text column into the quotes panel so it can be reviewed / edited. */
+    /** Copy the text column(s) into the quotes panel so they can be reviewed / edited. */
     private void doExcelLoadColumn() {
         List<SheetCell> cells;
-        int textCol;
+        List<Integer> textCols;
         File book;
         try {
-            book    = excelFile();
-            textCol = colIndex(xlTextCol.getText());
-            cells   = readSheetColumn(book, sheetSel(), textCol, xlFirstRow());
+            book     = excelFile();
+            textCols = colIndexList(xlTextCol.getText());
+            cells    = readSheetCells(book, sheetSel(), textCols, xlFirstRow());
         } catch (Exception e) { log("Excel: " + e.getMessage()); return; }
 
         if (cells.isEmpty()) {
-            log("Excel: no text found in column " + XlsxWriter.colLetter(textCol)
+            log("Excel: no text found in " + colList(textCols)
                     + " from row " + xlFirstRow() + " of " + book.getName());
             return;
         }
@@ -2237,35 +2241,39 @@ public class ElevenLabsStudio extends JFrame {
             for (SheetCell c : cells) addLineRow(c.text, voice);
             refreshLines();
         });
-        log("Excel: loaded " + cells.size() + " rows from column " + XlsxWriter.colLetter(textCol)
-                + " of " + book.getName());
+        log("Excel: loaded " + cells.size() + " cells from " + colList(textCols)
+                + " of " + book.getName() + " (row by row)");
     }
 
-    /** Read a column, voice every row into a fresh folder, write the links back. */
+    /** Read the text column(s), voice every cell into a fresh folder, write the links back. */
     private void doExcelBatch() {
-        log("EXCEL BATCH — text column → audio → link column");
-        log("===============================================");
+        log("EXCEL BATCH — text column(s) → audio → link column(s)");
+        log("=====================================================");
 
         File book;
         List<SheetCell> cells;
-        int textCol, linkCol;
+        List<Integer> textCols, linkCols;
         try {
-            book    = excelFile();
-            textCol = colIndex(xlTextCol.getText());
-            linkCol = colIndex(xlLinkCol.getText());
-            if (textCol == linkCol)
-                throw new IllegalArgumentException("text column and link column must differ");
-            cells = readSheetColumn(book, sheetSel(), textCol, xlFirstRow());
+            book     = excelFile();
+            textCols = colIndexList(xlTextCol.getText());
+            linkCols = colIndexList(xlLinkCol.getText());
+            checkColumnPairs(textCols, linkCols);
+            cells    = readSheetCells(book, sheetSel(), textCols, xlFirstRow());
         } catch (Exception e) { log("Excel: " + e.getMessage()); return; }
 
         if (cells.isEmpty()) {
-            log("Excel: no text found in column " + XlsxWriter.colLetter(textCol)
+            log("Excel: no text found in " + colList(textCols)
                     + " from row " + xlFirstRow() + " of " + book.getName());
             return;
         }
+        // text column -> the link column it writes to
+        Map<Integer, Integer> linkOf = new LinkedHashMap<>();
+        for (int i = 0; i < textCols.size(); i++) linkOf.put(textCols.get(i), linkCols.get(i));
+
         log("File : " + book.getAbsolutePath());
-        log("Found " + cells.size() + " rows of text in column " + XlsxWriter.colLetter(textCol)
-                + " (rows " + cells.get(0).row + "–" + cells.get(cells.size() - 1).row + ")");
+        log("Pairs: " + pairList(textCols, linkCols));
+        log("Found " + cells.size() + " cells of text (rows " + cells.get(0).row
+                + "–" + cells.get(cells.size() - 1).row + ")");
 
         // new folder named after the first data cell + timestamp
         File outDir = new File(workDir(), batchFolderName(cells.get(0).text));
@@ -2282,16 +2290,27 @@ public class ElevenLabsStudio extends JFrame {
         String prefix   = ttsPrefix.getText().trim();
         if (prefix.isEmpty()) prefix = "audio";
 
-        Map<Integer, String> links = new LinkedHashMap<>();
+        // one text column keeps the plain m1, m2, m3… naming; with several the
+        // cell reference goes in the name, so every file says where it came from
+        boolean multi = textCols.size() > 1;
+
+        List<SheetCell> links = new ArrayList<>();
+        StringBuilder index = new StringBuilder();
         int ok = 0;
         for (int i = 0; i < cells.size(); i++) {
             SheetCell c = cells.get(i);
-            File out = new File(outDir, prefix + (i + 1) + ".mp3");
-            log("Generating audio " + (i + 1) + " (row " + c.row + ") [voice "
+            String cellRef = XlsxWriter.colLetter(c.col) + c.row;
+            File out = new File(outDir, multi ? prefix + "_" + cellRef + ".mp3"
+                                              : prefix + (i + 1) + ".mp3");
+            log("Generating audio " + (i + 1) + "/" + cells.size() + " (" + cellRef + ") [voice "
                     + voiceLabel(voice) + "]: \"" + preview(c.text) + "\"");
             if (generateOneTts(voice, c.text, model, settings, out)) {
                 ok++;
-                links.put(c.row, audioLink(outDir, out));
+                int linkCol = linkOf.get(c.col);
+                String link = audioLink(outDir, out);
+                links.add(new SheetCell(c.row, linkCol, link));
+                index.append(cellRef).append(" → ").append(XlsxWriter.colLetter(linkCol)).append(c.row)
+                     .append('\t').append(link).append('\n');
             }
         }
         log("");
@@ -2300,17 +2319,14 @@ public class ElevenLabsStudio extends JFrame {
 
         // always leave a plain-text copy of the links next to the audio
         try {
-            StringBuilder sb = new StringBuilder();
-            for (Map.Entry<Integer, String> e : links.entrySet())
-                sb.append("row ").append(e.getKey()).append('\t').append(e.getValue()).append('\n');
             Files.write(new File(outDir, "links.txt").toPath(),
-                    sb.toString().getBytes(StandardCharsets.UTF_8));
+                    index.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) { log("Note: could not write links.txt: " + e.getMessage()); }
 
         try {
             File backup = backupOf(book);
-            writeSheetColumn(book, sheetSel(), linkCol, links);
-            log("Wrote " + links.size() + " links into column " + XlsxWriter.colLetter(linkCol)
+            writeSheetCells(book, sheetSel(), links);
+            log("Wrote " + links.size() + " links into " + colList(linkCols)
                     + " of " + book.getName());
             log("Backup of the original: " + backup.getName());
         } catch (Exception e) {
@@ -2369,10 +2385,10 @@ public class ElevenLabsStudio extends JFrame {
     //  Reads and edits EXISTING workbooks in place, where XlsxWriter above
     //  writes new ones. Dependency-free, like the rest of this program.
 
-    /** One populated cell of the text column: 1-based sheet row + its text. */
+    /** One cell: 1-based sheet row and column, plus its text. */
     private static class SheetCell {
-        final int row; final String text;
-        SheetCell(int row, String text) { this.row = row; this.text = text; }
+        final int row, col; final String text;
+        SheetCell(int row, int col, String text) { this.row = row; this.col = col; this.text = text; }
     }
 
     private static boolean isXlsx(File f) {
@@ -2380,16 +2396,23 @@ public class ElevenLabsStudio extends JFrame {
         return n.endsWith(".xlsx") || n.endsWith(".xlsm");
     }
 
-    private static List<SheetCell> readSheetColumn(File f, String sheetSel, int col, int startRow)
+    /** Every non-empty cell of the given columns, ordered row by row. */
+    private static List<SheetCell> readSheetCells(File f, String sheetSel, List<Integer> cols, int startRow)
             throws Exception {
-        return isXlsx(f) ? readXlsxColumn(f, sheetSel, col, startRow)
-                         : readCsvColumn(f, col, startRow);
+        List<SheetCell> out = isXlsx(f) ? readXlsxCells(f, sheetSel, cols, startRow)
+                                        : readCsvCells(f, cols, startRow);
+        Map<Integer, Integer> order = new HashMap<>();          // keep the user's column order
+        for (int i = 0; i < cols.size(); i++) order.putIfAbsent(cols.get(i), i);
+        out.sort(Comparator.<SheetCell>comparingInt(c -> c.row)
+                .thenComparingInt(c -> order.getOrDefault(c.col, 0)));
+        return out;
     }
 
-    private static void writeSheetColumn(File f, String sheetSel, int col, Map<Integer, String> values)
+    private static void writeSheetCells(File f, String sheetSel, List<SheetCell> writes)
             throws Exception {
-        if (isXlsx(f)) writeXlsxColumn(f, sheetSel, col, values);
-        else           writeCsvColumn(f, col, values);
+        if (writes.isEmpty()) return;
+        if (isXlsx(f)) writeXlsxCells(f, sheetSel, writes);
+        else           writeCsvCells(f, writes);
     }
 
     // ---- column letters ----------------------------------------------------
@@ -2410,6 +2433,55 @@ public class ElevenLabsStudio extends JFrame {
             n = n * 26 + (u - 'A' + 1);
         }
         return n;
+    }
+
+    /** "A" -> [1]; "A,C,E" -> [1,3,5]. Commas or semicolons, spaces ignored. */
+    private static List<Integer> colIndexList(String s) {
+        List<Integer> out = new ArrayList<>();
+        for (String part : (s == null ? "" : s).split("[,;]")) {
+            String t = part.trim();
+            if (!t.isEmpty()) out.add(colIndex(t));
+        }
+        if (out.isEmpty()) throw new IllegalArgumentException("no column given");
+        return out;
+    }
+
+    /** Reject the pairings that would lose data before a single file is generated. */
+    private static void checkColumnPairs(List<Integer> textCols, List<Integer> linkCols) {
+        if (textCols.size() != linkCols.size())
+            throw new IllegalArgumentException(textCols.size() + " text column(s) but "
+                    + linkCols.size() + " link column(s) — they pair up one to one, "
+                    + "so list the same number of each");
+        if (new HashSet<>(textCols).size() != textCols.size())
+            throw new IllegalArgumentException("the same text column is listed twice");
+        if (new HashSet<>(linkCols).size() != linkCols.size())
+            throw new IllegalArgumentException("the same link column is listed twice — "
+                    + "each text column needs its own");
+        for (int c : linkCols)
+            if (textCols.contains(c))
+                throw new IllegalArgumentException("column " + XlsxWriter.colLetter(c)
+                        + " is listed as both text and link — the links would overwrite the text");
+    }
+
+    /** "column A" / "columns A, C, E". */
+    private static String colList(List<Integer> cols) {
+        StringBuilder sb = new StringBuilder(cols.size() == 1 ? "column " : "columns ");
+        for (int i = 0; i < cols.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(XlsxWriter.colLetter(cols.get(i)));
+        }
+        return sb.toString();
+    }
+
+    /** "A → X, C → Y". */
+    private static String pairList(List<Integer> textCols, List<Integer> linkCols) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < textCols.size(); i++) {
+            if (i > 0) sb.append(", ");
+            sb.append(XlsxWriter.colLetter(textCols.get(i)))
+              .append(" → ").append(XlsxWriter.colLetter(linkCols.get(i)));
+        }
+        return sb.toString();
     }
 
     // ---- CSV / TSV ---------------------------------------------------------
@@ -2442,26 +2514,27 @@ public class ElevenLabsStudio extends JFrame {
         return rows;
     }
 
-    private static List<SheetCell> readCsvColumn(File f, int col, int startRow) throws Exception {
+    private static List<SheetCell> readCsvCells(File f, List<Integer> cols, int startRow) throws Exception {
         List<List<String>> rows = readCsvRows(f);
         List<SheetCell> out = new ArrayList<>();
         for (int r = startRow; r <= rows.size(); r++) {
             List<String> row = rows.get(r - 1);
-            if (col > row.size()) continue;
-            String t = row.get(col - 1).trim();
-            if (!t.isEmpty()) out.add(new SheetCell(r, t));
+            for (int col : cols) {
+                if (col > row.size()) continue;
+                String t = row.get(col - 1).trim();
+                if (!t.isEmpty()) out.add(new SheetCell(r, col, t));
+            }
         }
         return out;
     }
 
-    private static void writeCsvColumn(File f, int col, Map<Integer, String> values) throws Exception {
+    private static void writeCsvCells(File f, List<SheetCell> writes) throws Exception {
         List<List<String>> rows = readCsvRows(f);
-        for (Map.Entry<Integer, String> e : values.entrySet()) {
-            int r = e.getKey();
-            while (rows.size() < r) rows.add(new ArrayList<>());
-            List<String> row = rows.get(r - 1);
-            while (row.size() < col) row.add("");
-            row.set(col - 1, e.getValue());
+        for (SheetCell w : writes) {
+            while (rows.size() < w.row) rows.add(new ArrayList<>());
+            List<String> row = rows.get(w.row - 1);
+            while (row.size() < w.col) row.add("");
+            row.set(w.col - 1, w.text);
         }
         char sep = csvSep(f);
         StringBuilder sb = new StringBuilder();
@@ -2483,8 +2556,9 @@ public class ElevenLabsStudio extends JFrame {
 
     // ---- XLSX --------------------------------------------------------------
 
-    private static List<SheetCell> readXlsxColumn(File f, String sheetSel, int col, int startRow)
+    private static List<SheetCell> readXlsxCells(File f, String sheetSel, List<Integer> cols, int startRow)
             throws Exception {
+        Set<Integer> want = new HashSet<>(cols);
         try (ZipFile zip = new ZipFile(f)) {
             String path = sheetPath(zip, sheetSel);
             List<String> shared = readSharedStrings(zip);
@@ -2497,32 +2571,34 @@ public class ElevenLabsStudio extends JFrame {
                 int colNum = 0;
                 for (Element c : childrenByLocalName(row, "c")) {
                     colNum = cellCol(c, colNum + 1);
-                    if (colNum != col) continue;
+                    if (!want.contains(colNum)) continue;
                     String t = cellText(c, shared);
-                    if (t != null && !t.trim().isEmpty()) out.add(new SheetCell(rowNum, t.trim()));
+                    if (t != null && !t.trim().isEmpty()) out.add(new SheetCell(rowNum, colNum, t.trim()));
                 }
             }
-            out.sort(Comparator.comparingInt(a -> a.row));
             return out;
         }
     }
 
-    private static void writeXlsxColumn(File f, String sheetSel, int col, Map<Integer, String> values)
+    private static void writeXlsxCells(File f, String sheetSel, List<SheetCell> writes)
             throws Exception {
+        if (writes.isEmpty()) return;
         String path;
         Document doc;
         try (ZipFile zip = new ZipFile(f)) {
             path = sheetPath(zip, sheetSel);
             doc  = parseXml(zipBytes(zip, path));
         }
-        if (values.isEmpty()) return;
         Element sheetData = firstByLocalName(doc.getDocumentElement(), "sheetData");
         if (sheetData == null) throw new IllegalStateException("sheet has no <sheetData>");
 
-        for (Map.Entry<Integer, String> e : values.entrySet())
-            setCellText(doc, sheetData, e.getKey(), col, e.getValue());
-
-        widenDimension(doc, col, Collections.max(values.keySet()));
+        int maxCol = 0, maxRow = 0;
+        for (SheetCell w : writes) {
+            setCellText(doc, sheetData, w.row, w.col, w.text);
+            maxCol = Math.max(maxCol, w.col);
+            maxRow = Math.max(maxRow, w.row);
+        }
+        widenDimension(doc, maxCol, maxRow);
         replaceZipEntry(f, path, serializeXml(doc));
     }
 
