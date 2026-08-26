@@ -89,7 +89,8 @@ public class ElevenLabsStudio extends JFrame {
     private final JTextField xlLinkCol    = new JTextField("B");
     private final JTextField xlStartRow   = new JTextField("2");
     private final JTextField xlBaseUrl    = new JTextField("");
-    private final JComboBox<String> xlVoice = voiceCombo("TX3LPaxmHKxFdv7VOQHJ");
+    private final JComboBox<String> xlVoice  = voiceCombo("TX3LPaxmHKxFdv7VOQHJ");
+    private final JComboBox<String> xlVoice2 = voiceCombo2(null);   // blank = 1st voice everywhere
 
     private final JComboBox<String> sttModel  = sttModelCombo("scribe_v2");
     private final JCheckBox vidExtract = new JCheckBox("FFmpeg audio extract", true);
@@ -410,18 +411,26 @@ public class ElevenLabsStudio extends JFrame {
         xlBox.add(xlBrowse);
         xlSheetField.setToolTipText("Sheet name or 1-based number. Blank = the first sheet.");
         addRow(xlBox, "Sheet", xlSheetField);
-        xlTextCol.setToolTipText("<html>Column(s) the text is read from — one letter (A) or a list (A,B,C).<br>"
+        xlTextCol.setToolTipText("<html>Column(s) the text is read from.<br>"
+                + "<b>A-J</b> is the span A through J · <b>A,J</b> is just those two · "
+                + "<b>A-C,F</b> mixes both.<br>"
                 + "Every non-empty cell becomes its own audio file, read row by row.</html>");
         addRow(xlBox, "Text col(s)", xlTextCol);
-        xlLinkCol.setToolTipText("<html>Column(s) the audio links are written into — B, or X,Y,Z.<br>"
-                + "They pair with the text columns in order: A,B,C → X,Y,Z writes A's links to X, "
-                + "B's to Y, C's to Z.<br>Each link lands on the same row as its text.</html>");
+        xlLinkCol.setToolTipText("<html>Column(s) the audio links are written into — same syntax, "
+                + "so <b>K-T</b> is K through T.<br>"
+                + "They pair with the text columns in order: A-J → K-T writes A's links to K, "
+                + "B's to L … J's to T.<br>Each link lands on the same row as its text.</html>");
         addRow(xlBox, "Link col(s)", xlLinkCol);
         xlStartRow.setToolTipText("First data row — 2 skips a header row.");
         addRow(xlBox, "First row", xlStartRow);
-        xlVoice.setToolTipText("Voice used for every row of the batch. "
-                + "Model and voice settings come from box 1.");
+        xlVoice.setToolTipText("<html>Voice for the batch. With no 2nd voice below it speaks every "
+                + "column.<br>Model and voice settings come from box 1.</html>");
         addRow(xlBox, "Voice", xlVoice);
+        xlVoice2.setToolTipText("<html>Optional 2nd voice. When set, the columns <b>alternate</b> between "
+                + "the two voices<br>in the order they are listed: with A-J, voice 1 speaks A, C, E, G, I "
+                + "and voice 2 speaks B, D, F, H, J.<br>Leave on \"(no 2nd voice)\" to use voice 1 "
+                + "everywhere.</html>");
+        addRow(xlBox, "Voice 2", xlVoice2);
         xlBaseUrl.setToolTipText("<html>Optional. Blank writes the full file path.<br>"
                 + "Set e.g. https://my.site/audio to write a web link instead:<br>"
                 + "https://my.site/audio/&lt;new folder&gt;/&lt;file&gt;.mp3</html>");
@@ -2235,10 +2244,10 @@ public class ElevenLabsStudio extends JFrame {
                     + " from row " + xlFirstRow() + " of " + book.getName());
             return;
         }
-        String voice = comboVal(xlVoice);
+        Map<Integer, String> voiceOf = voiceByColumn(textCols);
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
-            for (SheetCell c : cells) addLineRow(c.text, voice);
+            for (SheetCell c : cells) addLineRow(c.text, voiceOf.get(c.col));
             refreshLines();
         });
         log("Excel: loaded " + cells.size() + " cells from " + colList(textCols)
@@ -2270,10 +2279,29 @@ public class ElevenLabsStudio extends JFrame {
         Map<Integer, Integer> linkOf = new LinkedHashMap<>();
         for (int i = 0; i < textCols.size(); i++) linkOf.put(textCols.get(i), linkCols.get(i));
 
-        log("File : " + book.getAbsolutePath());
-        log("Pairs: " + pairList(textCols, linkCols));
+        Map<Integer, String> voiceOf = voiceByColumn(textCols);
+
+        log("File  : " + book.getAbsolutePath());
+        log("Pairs : " + pairList(textCols, linkCols));
+        log("Voices: " + voiceSplit(textCols, voiceOf));
         log("Found " + cells.size() + " cells of text (rows " + cells.get(0).row
                 + "–" + cells.get(cells.size() - 1).row + ")");
+
+        // per-column tally, so an empty column is obvious instead of silent
+        Map<Integer, Integer> perCol = new LinkedHashMap<>();
+        for (int c : textCols) perCol.put(c, 0);
+        for (SheetCell c : cells) perCol.merge(c.col, 1, Integer::sum);
+        StringBuilder tally = new StringBuilder();
+        List<String> empty = new ArrayList<>();
+        for (Map.Entry<Integer, Integer> e : perCol.entrySet()) {
+            if (tally.length() > 0) tally.append(", ");
+            tally.append(XlsxWriter.colLetter(e.getKey())).append(' ').append(e.getValue());
+            if (e.getValue() == 0) empty.add(XlsxWriter.colLetter(e.getKey()));
+        }
+        log("Per column: " + tally);
+        if (!empty.isEmpty())
+            log("Note: nothing to say in " + colList(colIndexList(String.join(",", empty)))
+                    + " — if you meant a span of columns write A-J, because A,J is just those two.");
 
         // new folder named after the first data cell + timestamp
         File outDir = new File(workDir(), batchFolderName(cells.get(0).text));
@@ -2284,7 +2312,6 @@ public class ElevenLabsStudio extends JFrame {
         log("Output folder: " + outDir.getAbsolutePath());
         log("");
 
-        String voice    = comboVal(xlVoice);
         String model    = comboVal(ttsModel);
         String settings = ttsSettingsJson(model);
         String prefix   = ttsPrefix.getText().trim();
@@ -2300,6 +2327,7 @@ public class ElevenLabsStudio extends JFrame {
         for (int i = 0; i < cells.size(); i++) {
             SheetCell c = cells.get(i);
             String cellRef = XlsxWriter.colLetter(c.col) + c.row;
+            String voice   = voiceOf.get(c.col);
             File out = new File(outDir, multi ? prefix + "_" + cellRef + ".mp3"
                                               : prefix + (i + 1) + ".mp3");
             log("Generating audio " + (i + 1) + "/" + cells.size() + " (" + cellRef + ") [voice "
@@ -2435,12 +2463,28 @@ public class ElevenLabsStudio extends JFrame {
         return n;
     }
 
-    /** "A" -> [1]; "A,C,E" -> [1,3,5]. Commas or semicolons, spaces ignored. */
+    /** Splits a range: A-J, A:J, A..J or "A to J" (the word needs spaces around it). */
+    private static final Pattern COL_RANGE = Pattern.compile("\\s*(?:\\.\\.|[-:])\\s*|\\s+(?i:to)\\s+");
+
+    /**
+     * "A" -> [1]; "A,C,E" -> [1,3,5]; "A-J" -> [1..10]; "A-C,F" -> [1,2,3,6].
+     * A comma always means "just these columns", never a range — use A-J for a span.
+     */
     private static List<Integer> colIndexList(String s) {
         List<Integer> out = new ArrayList<>();
         for (String part : (s == null ? "" : s).split("[,;]")) {
             String t = part.trim();
-            if (!t.isEmpty()) out.add(colIndex(t));
+            if (t.isEmpty()) continue;
+            String[] ends = COL_RANGE.split(t, -1);   // -1 keeps a trailing "" so "A-" is caught
+            if (ends.length == 1) { out.add(colIndex(ends[0])); continue; }
+            if (ends.length != 2 || ends[0].trim().isEmpty() || ends[1].trim().isEmpty())
+                throw new IllegalArgumentException("cannot read the column range \"" + t + "\"");
+            int from = colIndex(ends[0]), to = colIndex(ends[1]);
+            int step = from <= to ? 1 : -1;
+            for (int c = from; ; c += step) {
+                out.add(c);
+                if (c == to) break;
+            }
         }
         if (out.isEmpty()) throw new IllegalArgumentException("no column given");
         return out;
@@ -2461,6 +2505,34 @@ public class ElevenLabsStudio extends JFrame {
             if (textCols.contains(c))
                 throw new IllegalArgumentException("column " + XlsxWriter.colLetter(c)
                         + " is listed as both text and link — the links would overwrite the text");
+    }
+
+    /**
+     * The voice each text column is spoken in. With a 2nd voice set, the columns
+     * alternate between the two in the order they were listed; otherwise every
+     * column uses the 1st voice.
+     */
+    private Map<Integer, String> voiceByColumn(List<Integer> textCols) {
+        String v1 = comboVal(xlVoice), v2 = comboVal(xlVoice2);
+        boolean alt = !v2.isEmpty() && !v2.equals(v1);
+        Map<Integer, String> out = new LinkedHashMap<>();
+        for (int i = 0; i < textCols.size(); i++)
+            out.put(textCols.get(i), (alt && i % 2 == 1) ? v2 : v1);
+        return out;
+    }
+
+    /** "A, C, E → Liam · B, D → Brian", for the log. */
+    private static String voiceSplit(List<Integer> textCols, Map<Integer, String> voiceOf) {
+        Map<String, List<String>> byVoice = new LinkedHashMap<>();
+        for (int c : textCols)
+            byVoice.computeIfAbsent(voiceOf.get(c), v -> new ArrayList<>())
+                   .add(XlsxWriter.colLetter(c));
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, List<String>> e : byVoice.entrySet()) {
+            if (sb.length() > 0) sb.append("  ·  ");
+            sb.append(String.join(", ", e.getValue())).append(" → ").append(voiceLabel(e.getKey()));
+        }
+        return sb.toString();
     }
 
     /** "column A" / "columns A, C, E". */
