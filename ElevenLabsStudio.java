@@ -1196,7 +1196,7 @@ public class ElevenLabsStudio extends JFrame {
      * Bulk actions (Generate Audio, Merge) always use the panel numbering.
      */
     private File rowAudioFile(LineRow row, int zeroBasedIdx) {
-        return row.batchFile != null ? row.batchFile : ttsAudioFile(zeroBasedIdx);
+        return row.batch != null ? row.batch.audio : ttsAudioFile(zeroBasedIdx);
     }
 
     private File ttsAudioFile(int zeroBasedIdx) {
@@ -1299,10 +1299,35 @@ public class ElevenLabsStudio extends JFrame {
         String v2 = comboVal(row.voice2);
         boolean two = !v2.isEmpty() && !v2.equalsIgnoreCase(v1);
         File out = rowAudioFile(row, idx);
-        log("Regenerating " + (row.batchFile != null ? out.getName() : "audio " + (idx + 1))
+        log("Regenerating " + (row.batch != null ? out.getName() : "audio " + (idx + 1))
                 + " [voice " + voiceLabel(v1)
                 + (two ? " + " + voiceLabel(v2) : "") + "]: \"" + preview(text) + "\"");
-        generateLineTts(v1, v2, text, comboVal(ttsModel), ttsSettingsJson(), out);
+        if (generateLineTts(v1, v2, text, comboVal(ttsModel), ttsSettingsJson(), out))
+            fillMissingLink(row);
+    }
+
+    /**
+     * After regenerating a batch line, put its link in the sheet if that cell is still
+     * empty — which is the case when the cell failed during the batch, so no link was
+     * ever written. A cell that already holds a link is left exactly as it is: the
+     * audio path has not changed, so what is there is still right.
+     */
+    private void fillMissingLink(LineRow row) {
+        BatchCell b = row.batch;
+        if (b == null) return;
+        try {
+            if (!b.book.isFile()) return;
+            for (SheetCell c : readSheetCells(b.book, b.sheet,
+                    Collections.singletonList(b.linkCol), b.linkRow))
+                if (c.row == b.linkRow) return;                    // a link is already there
+            String link = audioLink(b.audio.getParentFile(), b.audio);
+            writeSheetCells(b.book, b.sheet,
+                    Collections.singletonList(new SheetCell(b.linkRow, b.linkCol, link)));
+            log("Link was missing — wrote it into " + b.linkRef() + " of " + b.book.getName());
+        } catch (Exception e) {
+            log("Note: could not write the link into " + b.linkRef() + ": " + e.getMessage()
+                    + " (close the workbook in Excel and click ↻ Regen again)");
+        }
     }
 
     private void doTimestamps() {
@@ -2255,14 +2280,14 @@ public class ElevenLabsStudio extends JFrame {
             return;
         }
         Map<Integer, String> voiceOf = voiceByColumn(textCols);
-        Map<String, File> earlier = lastBatchFiles(book);   // audio from a previous batch, if any
+        Map<String, BatchCell> earlier = lastBatchFiles(book);   // audio from a previous batch, if any
         int[] attached = {0};
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
             for (SheetCell c : cells) {
                 LineRow r = insertLineRow(lineRows.size(), c.text, voiceOf.get(c.col));
-                File f = earlier.get(XlsxWriter.colLetter(c.col) + c.row);
-                if (f != null) { r.batchFile = f; attached[0]++; }
+                BatchCell b = earlier.get(XlsxWriter.colLetter(c.col) + c.row);
+                if (b != null) { r.batch = b; attached[0]++; }
             }
             if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
             refreshLines();
@@ -2353,7 +2378,7 @@ public class ElevenLabsStudio extends JFrame {
                                               : prefix + (i + 1) + ".mp3");
             log("Generating audio " + (i + 1) + "/" + cells.size() + " (" + cellRef + ") [voice "
                     + voiceLabel(voice) + "]: \"" + preview(c.text) + "\"");
-            made.add(new MadeCell(cellRef, c.col, c.text, out));
+            made.add(new MadeCell(cellRef, c.col, c.text, out, c.row, linkOf.get(c.col)));
             if (generateOneTts(voice, c.text, model, settings, out)) {
                 ok++;
                 int linkCol = linkOf.get(c.col);
@@ -2378,7 +2403,7 @@ public class ElevenLabsStudio extends JFrame {
 
         // put the generated cells in the quotes panel, each line owning its file,
         // so ▶ Listen and ↻ Regen work on the batch audio straight away
-        showBatchInPanel(made, voiceOf);
+        showBatchInPanel(made, book, voiceOf);
         log("The " + made.size() + " lines are in the quotes panel — ▶ Listen to check one, "
                 + "↻ Regen to redo it in place (its link stays valid).");
 
@@ -2395,11 +2420,22 @@ public class ElevenLabsStudio extends JFrame {
         }
     }
 
+    /** What one quotes-panel line owns: its batch audio and the sheet cell its link belongs in. */
+    private static class BatchCell {
+        final File audio, book; final String sheet; final int linkRow, linkCol;
+        BatchCell(File audio, File book, String sheet, int linkRow, int linkCol) {
+            this.audio = audio; this.book = book; this.sheet = sheet;
+            this.linkRow = linkRow; this.linkCol = linkCol;
+        }
+        String linkRef() { return XlsxWriter.colLetter(linkCol) + linkRow; }
+    }
+
     /** One generated cell: where it came from, what it says, and the file it owns. */
     private static class MadeCell {
-        final String ref, text; final int col; final File file;
-        MadeCell(String ref, int col, String text, File file) {
+        final String ref, text; final int col, linkRow, linkCol; final File file;
+        MadeCell(String ref, int col, String text, File file, int linkRow, int linkCol) {
             this.ref = ref; this.col = col; this.text = text; this.file = file;
+            this.linkRow = linkRow; this.linkCol = linkCol;
         }
     }
 
@@ -2410,7 +2446,9 @@ public class ElevenLabsStudio extends JFrame {
     private void writeBatchManifest(File dir, File book, List<MadeCell> made) {
         StringBuilder sb = new StringBuilder();
         sb.append("# ").append(book.getName()).append('\t').append(sheetSel()).append('\n');
-        for (MadeCell m : made) sb.append(m.ref).append('\t').append(m.file.getName()).append('\n');
+        for (MadeCell m : made)
+            sb.append(m.ref).append('\t').append(m.file.getName()).append('\t')
+              .append(XlsxWriter.colLetter(m.linkCol)).append(m.linkRow).append('\n');
         try {
             Files.write(new File(dir, BATCH_MANIFEST).toPath(),
                     sb.toString().getBytes(StandardCharsets.UTF_8));
@@ -2418,12 +2456,13 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     /** Fills the quotes panel with the cells just generated, each line owning its file. */
-    private void showBatchInPanel(List<MadeCell> made, Map<Integer, String> voiceOf) {
+    private void showBatchInPanel(List<MadeCell> made, File book, Map<Integer, String> voiceOf) {
+        String sheet = sheetSel();
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
             for (MadeCell m : made) {
                 LineRow r = insertLineRow(lineRows.size(), m.text, voiceOf.get(m.col));
-                r.batchFile = m.file;
+                r.batch = new BatchCell(m.file, book, sheet, m.linkRow, m.linkCol);
             }
             if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
             refreshLines();
@@ -2435,7 +2474,7 @@ public class ElevenLabsStudio extends JFrame {
      * workbook and sheet, or null. Lets "Load column → lines" re-attach to audio
      * made in an earlier session.
      */
-    private Map<String, File> lastBatchFiles(File book) {
+    private Map<String, BatchCell> lastBatchFiles(File book) {
         File[] dirs = workDir().listFiles(File::isDirectory);
         if (dirs == null) return Collections.emptyMap();
         File[] sorted = dirs.clone();
@@ -2450,12 +2489,16 @@ public class ElevenLabsStudio extends JFrame {
                 if (!head[0].equals(book.getName())) continue;
                 String sheet = head.length > 1 ? head[1] : "";
                 if (!sheet.equals(sheetSel())) continue;
-                Map<String, File> out = new HashMap<>();
+                Map<String, BatchCell> out = new HashMap<>();
                 for (String line : lines.subList(1, lines.size())) {
                     String[] p = line.split("\t", -1);
-                    if (p.length < 2) continue;
+                    if (p.length < 3) continue;
                     File f = new File(d, p[1]);
-                    if (f.isFile()) out.put(p[0], f);
+                    if (!f.isFile()) continue;
+                    Matcher ref = Pattern.compile("([A-Za-z]+)(\\d+)").matcher(p[2].trim());
+                    if (!ref.matches()) continue;
+                    out.put(p[0], new BatchCell(f, book, sheet,
+                            Integer.parseInt(ref.group(2)), colIndex(ref.group(1))));
                 }
                 if (!out.isEmpty()) return out;
             } catch (Exception ignored) { }
@@ -3096,11 +3139,12 @@ public class ElevenLabsStudio extends JFrame {
         final JComboBox<String> voice2;   // optional 2nd voice ("" = none)
         final JTextField text;
         /**
-         * The file this line owns inside an Excel-batch folder, or null for an
-         * ordinary line. Only ▶ Listen and ↻ Regen look at it: when it is set they
-         * act on that file so the link already written into the sheet stays valid.
+         * The Excel-batch cell this line owns, or null for an ordinary line. Only
+         * ▶ Listen and ↻ Regen look at it: when it is set they act on that file, so
+         * the link already written into the sheet stays valid, and a regen fills the
+         * link in if the sheet cell is still empty (the cell failed its batch).
          */
-        File batchFile;
+        BatchCell batch;
         LineRow(JPanel p, JComboBox<String> v, JComboBox<String> v2, JTextField t) {
             panel = p; voice = v; voice2 = v2; text = t;
         }
