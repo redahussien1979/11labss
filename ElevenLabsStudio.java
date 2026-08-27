@@ -1190,6 +1190,15 @@ public class ElevenLabsStudio extends JFrame {
                 ttsBoost.isSelected());
     }
 
+    /**
+     * Where a single line's audio lives: the file it owns in an Excel-batch folder
+     * when it came from one, otherwise the panel's own m1, m2, m3… in the work folder.
+     * Bulk actions (Generate Audio, Merge) always use the panel numbering.
+     */
+    private File rowAudioFile(LineRow row, int zeroBasedIdx) {
+        return row.batchFile != null ? row.batchFile : ttsAudioFile(zeroBasedIdx);
+    }
+
     private File ttsAudioFile(int zeroBasedIdx) {
         String prefix = ttsPrefix.getText().trim();
         if (prefix.isEmpty()) prefix = "audio";
@@ -1270,13 +1279,13 @@ public class ElevenLabsStudio extends JFrame {
         final int idx = nonEmptyIndex(row);
         if (idx < 0) { log("Listen: line is empty — type some text first."); return; }
 
-        File f = ttsAudioFile(idx);
+        File f = rowAudioFile(row, idx);
         if (f.isFile() && f.length() > 0) { player.playAsync(f); return; }
 
         log("Listen: no audio yet at " + f.getName() + " — generating it now …");
         runInBackground(() -> {
             regenerateLine(row);
-            File g = ttsAudioFile(idx);
+            File g = rowAudioFile(row, idx);
             if (g.isFile() && g.length() > 0) player.playAsync(g);
         });
     }
@@ -1289,8 +1298,9 @@ public class ElevenLabsStudio extends JFrame {
         String v1 = comboVal(row.voice);
         String v2 = comboVal(row.voice2);
         boolean two = !v2.isEmpty() && !v2.equalsIgnoreCase(v1);
-        File out = ttsAudioFile(idx);
-        log("Regenerating audio " + (idx + 1) + " [voice " + voiceLabel(v1)
+        File out = rowAudioFile(row, idx);
+        log("Regenerating " + (row.batchFile != null ? out.getName() : "audio " + (idx + 1))
+                + " [voice " + voiceLabel(v1)
                 + (two ? " + " + voiceLabel(v2) : "") + "]: \"" + preview(text) + "\"");
         generateLineTts(v1, v2, text, comboVal(ttsModel), ttsSettingsJson(), out);
     }
@@ -2245,10 +2255,20 @@ public class ElevenLabsStudio extends JFrame {
             return;
         }
         Map<Integer, String> voiceOf = voiceByColumn(textCols);
+        Map<String, File> earlier = lastBatchFiles(book);   // audio from a previous batch, if any
+        int[] attached = {0};
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
-            for (SheetCell c : cells) addLineRow(c.text, voiceOf.get(c.col));
+            for (SheetCell c : cells) {
+                LineRow r = insertLineRow(lineRows.size(), c.text, voiceOf.get(c.col));
+                File f = earlier.get(XlsxWriter.colLetter(c.col) + c.row);
+                if (f != null) { r.batchFile = f; attached[0]++; }
+            }
+            if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
             refreshLines();
+            if (attached[0] > 0)
+                log("Excel: " + attached[0] + " of them already have audio from an earlier batch — "
+                        + "▶ Listen plays it, ↻ Regen redoes it in place.");
         });
         log("Excel: loaded " + cells.size() + " cells from " + colList(textCols)
                 + " of " + book.getName() + " (row by row)");
@@ -2322,6 +2342,7 @@ public class ElevenLabsStudio extends JFrame {
         boolean multi = textCols.size() > 1;
 
         List<SheetCell> links = new ArrayList<>();
+        List<MadeCell> made = new ArrayList<>();
         StringBuilder index = new StringBuilder();
         int ok = 0;
         for (int i = 0; i < cells.size(); i++) {
@@ -2332,6 +2353,7 @@ public class ElevenLabsStudio extends JFrame {
                                               : prefix + (i + 1) + ".mp3");
             log("Generating audio " + (i + 1) + "/" + cells.size() + " (" + cellRef + ") [voice "
                     + voiceLabel(voice) + "]: \"" + preview(c.text) + "\"");
+            made.add(new MadeCell(cellRef, c.col, c.text, out));
             if (generateOneTts(voice, c.text, model, settings, out)) {
                 ok++;
                 int linkCol = linkOf.get(c.col);
@@ -2351,6 +2373,15 @@ public class ElevenLabsStudio extends JFrame {
                     index.toString().getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) { log("Note: could not write links.txt: " + e.getMessage()); }
 
+        // a manifest so a later "Load column → lines" can find these files again
+        writeBatchManifest(outDir, book, made);
+
+        // put the generated cells in the quotes panel, each line owning its file,
+        // so ▶ Listen and ↻ Regen work on the batch audio straight away
+        showBatchInPanel(made, voiceOf);
+        log("The " + made.size() + " lines are in the quotes panel — ▶ Listen to check one, "
+                + "↻ Regen to redo it in place (its link stays valid).");
+
         try {
             File backup = backupOf(book);
             writeSheetCells(book, sheetSel(), links);
@@ -2362,6 +2393,74 @@ public class ElevenLabsStudio extends JFrame {
             log("       (close the file in Excel and try again — links.txt in the "
                     + "output folder has them all)");
         }
+    }
+
+    /** One generated cell: where it came from, what it says, and the file it owns. */
+    private static class MadeCell {
+        final String ref, text; final int col; final File file;
+        MadeCell(String ref, int col, String text, File file) {
+            this.ref = ref; this.col = col; this.text = text; this.file = file;
+        }
+    }
+
+    /** Name of the manifest that ties a batch folder's files back to their cells. */
+    private static final String BATCH_MANIFEST = "batch_cells.tsv";
+
+    /** Records cell → file for this batch so a later session can re-attach to it. */
+    private void writeBatchManifest(File dir, File book, List<MadeCell> made) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("# ").append(book.getName()).append('\t').append(sheetSel()).append('\n');
+        for (MadeCell m : made) sb.append(m.ref).append('\t').append(m.file.getName()).append('\n');
+        try {
+            Files.write(new File(dir, BATCH_MANIFEST).toPath(),
+                    sb.toString().getBytes(StandardCharsets.UTF_8));
+        } catch (Exception e) { log("Note: could not write " + BATCH_MANIFEST + ": " + e.getMessage()); }
+    }
+
+    /** Fills the quotes panel with the cells just generated, each line owning its file. */
+    private void showBatchInPanel(List<MadeCell> made, Map<Integer, String> voiceOf) {
+        SwingUtilities.invokeLater(() -> {
+            clearLineRows();
+            for (MadeCell m : made) {
+                LineRow r = insertLineRow(lineRows.size(), m.text, voiceOf.get(m.col));
+                r.batchFile = m.file;
+            }
+            if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
+            refreshLines();
+        });
+    }
+
+    /**
+     * The newest batch folder under the work folder that was generated from this
+     * workbook and sheet, or null. Lets "Load column → lines" re-attach to audio
+     * made in an earlier session.
+     */
+    private Map<String, File> lastBatchFiles(File book) {
+        File[] dirs = workDir().listFiles(File::isDirectory);
+        if (dirs == null) return Collections.emptyMap();
+        File[] sorted = dirs.clone();
+        Arrays.sort(sorted, Comparator.comparingLong(File::lastModified).reversed());
+        for (File d : sorted) {
+            File man = new File(d, BATCH_MANIFEST);
+            if (!man.isFile()) continue;
+            try {
+                List<String> lines = Files.readAllLines(man.toPath(), StandardCharsets.UTF_8);
+                if (lines.isEmpty() || !lines.get(0).startsWith("# ")) continue;
+                String[] head = lines.get(0).substring(2).split("\t", -1);
+                if (!head[0].equals(book.getName())) continue;
+                String sheet = head.length > 1 ? head[1] : "";
+                if (!sheet.equals(sheetSel())) continue;
+                Map<String, File> out = new HashMap<>();
+                for (String line : lines.subList(1, lines.size())) {
+                    String[] p = line.split("\t", -1);
+                    if (p.length < 2) continue;
+                    File f = new File(d, p[1]);
+                    if (f.isFile()) out.put(p[0], f);
+                }
+                if (!out.isEmpty()) return out;
+            } catch (Exception ignored) { }
+        }
+        return Collections.emptyMap();
     }
 
     /** Full link written into the sheet: a web URL when a base URL is set, else the file path. */
@@ -2996,6 +3095,12 @@ public class ElevenLabsStudio extends JFrame {
         final JComboBox<String> voice;
         final JComboBox<String> voice2;   // optional 2nd voice ("" = none)
         final JTextField text;
+        /**
+         * The file this line owns inside an Excel-batch folder, or null for an
+         * ordinary line. Only ▶ Listen and ↻ Regen look at it: when it is set they
+         * act on that file so the link already written into the sheet stays valid.
+         */
+        File batchFile;
         LineRow(JPanel p, JComboBox<String> v, JComboBox<String> v2, JTextField t) {
             panel = p; voice = v; voice2 = v2; text = t;
         }
