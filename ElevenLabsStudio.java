@@ -1898,10 +1898,22 @@ public class ElevenLabsStudio extends JFrame {
             JButton clear  = new JButton("Clear all");
             clear.addActionListener(e -> { for (List<PhraseHit> p : picks) p.clear(); rebuildTable(); });
 
+            JButton toXlsx = new JButton("Export table…");
+            toXlsx.setToolTipText("<html>Save this table as a small .xlsx so it can be edited in Excel.<br>"
+                    + "Edit the words, the meanings, the start times — add or delete rows — then bring it "
+                    + "back with \"Import edits…\".</html>");
+            toXlsx.addActionListener(e -> exportPicks());
+            JButton fromXlsx = new JButton("Import edits…");
+            fromXlsx.setToolTipText("<html>Read an edited picks sheet back into this table, replacing what "
+                    + "is here.<br>Rows are matched to files by the File column and ordered as they appear "
+                    + "in the sheet.</html>");
+            fromXlsx.addActionListener(e -> importPicks());
+
             JPanel rowBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
             rowBar.add(remove);
             rowBar.add(clear);
-            rowBar.add(new JLabel("— text41 and text49 are typed straight into the table"));
+            rowBar.add(toXlsx);
+            rowBar.add(fromXlsx);
 
             JPanel bottom = new JPanel(new BorderLayout());
             bottom.setBorder(new TitledBorder("Picked for export  (up to " + SEL_WORDS
@@ -2011,11 +2023,159 @@ public class ElevenLabsStudio extends JFrame {
 
         private void status(String msg) { status.setText("  " + msg); }
 
+        /** Column layout of the picks sheet (1-based, as the reader reports them). */
+        private static final int PK_SLOT = 1, PK_FILE = 2, PK_TEXT = 3,
+                                 PK_START = 4, PK_AR = 5, PK_NEW = 6;
+
+        /** Write the picks table to its own small .xlsx for editing in Excel. */
+        private void exportPicks() {
+            if (table.isEditing()) table.getCellEditor().stopCellEditing();
+            if (model.getRowCount() == 0) { status("Nothing to export — pick some words first."); return; }
+
+            JFileChooser fc = new JFileChooser(workDir());
+            fc.setDialogTitle("Save the picks table");
+            fc.setSelectedFile(new File(workDir(), combinedBaseName(results) + "_picks.xlsx"));
+            fc.setFileFilter(new FileNameExtensionFilter("Excel (.xlsx)", "xlsx"));
+            if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
+            File out = fc.getSelectedFile();
+            if (!out.getName().toLowerCase(Locale.ROOT).endsWith(".xlsx"))
+                out = new File(out.getParentFile(), out.getName() + ".xlsx");
+            exportPicksTo(out);
+        }
+
+        void exportPicksTo(File out) {
+            List<List<String>> rows = new ArrayList<>();
+            rows.add(Arrays.asList("#", "File", "Word / phrase", "start", "text41", "text49"));
+            for (int r = 0; r < model.getRowCount(); r++) {
+                List<String> row = new ArrayList<>();
+                for (int c = 0; c < 6; c++) {
+                    Object v = model.getValueAt(r, c);
+                    row.add(v == null ? "" : String.valueOf(v));
+                }
+                rows.add(row);
+            }
+            // Colour the columns like the groups they feed on the main export.
+            int[] styles = { 0, 0, STYLE_SEL, STYLE_SEL, STYLE_AR, STYLE_NEW };
+            try {
+                XlsxWriter.write(out, rows, styles);
+                status("Saved " + out.getName() + " — edit it, then \"Import edits…\".");
+                log("Picks table saved: " + out.getAbsolutePath() + "  ("
+                        + (rows.size() - 1) + " row(s)). Edit it and load it back with \"Import edits…\".");
+            } catch (Exception ex) {
+                status("Could not save: " + ex.getMessage());
+                log("Error writing the picks table: " + ex.getMessage());
+            }
+        }
+
+        /** Read an edited picks sheet back in, replacing the current table. */
+        private void importPicks() {
+            JFileChooser fc = new JFileChooser(workDir());
+            fc.setDialogTitle("Open an edited picks sheet");
+            fc.setFileFilter(new FileNameExtensionFilter(
+                    "Picks sheet (.xlsx, .xlsm, .csv, .tsv)", "xlsx", "xlsm", "csv", "tsv"));
+            if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
+            importPicksFrom(fc.getSelectedFile());
+        }
+
+        void importPicksFrom(File in) {
+            List<SheetCell> cells;
+            try {
+                cells = readSheetCells(in, "", Arrays.asList(
+                        PK_SLOT, PK_FILE, PK_TEXT, PK_START, PK_AR, PK_NEW), 2);   // row 1 is the header
+            } catch (Exception ex) {
+                status("Could not read that file: " + ex.getMessage());
+                log("Error reading the picks sheet: " + ex.getMessage());
+                return;
+            }
+
+            // Group the cells back into rows, keeping the sheet's row order.
+            Map<Integer, Map<Integer, String>> bySheetRow = new TreeMap<>();
+            for (SheetCell c : cells)
+                bySheetRow.computeIfAbsent(c.row, k -> new HashMap<>()).put(c.col, c.text);
+
+            // Look up files by name; fall back to the only file when a sheet names none.
+            Map<String, Integer> byName = new HashMap<>();
+            for (int i = 0; i < results.size(); i++)
+                byName.put(results.get(i).baseName.toLowerCase(Locale.ROOT), i);
+
+            List<List<PhraseHit>> fresh = new ArrayList<>();
+            for (int i = 0; i < results.size(); i++) fresh.add(new ArrayList<>());
+
+            int taken = 0, noFile = 0, overflow = 0;
+            List<String> unknown = new ArrayList<>();
+            for (Map.Entry<Integer, Map<Integer, String>> e : bySheetRow.entrySet()) {
+                Map<Integer, String> row = e.getValue();
+                String text = row.getOrDefault(PK_TEXT, "").trim();
+                if (text.isEmpty()) continue;                       // a deleted row
+
+                String fileName = row.getOrDefault(PK_FILE, "").trim();
+                Integer f = byName.get(fileName.toLowerCase(Locale.ROOT));
+                if (f == null && fileName.isEmpty() && results.size() == 1) f = 0;
+                if (f == null) {
+                    noFile++;
+                    if (unknown.size() < 5 && !fileName.isEmpty() && !unknown.contains(fileName))
+                        unknown.add(fileName);
+                    continue;
+                }
+                if (fresh.get(f).size() >= SEL_WORDS) { overflow++; continue; }
+
+                double start = parseSeconds(row.get(PK_START));
+                PhraseHit was = findPick(f, text, start);           // keep the word range when unchanged
+                PhraseHit ph = was != null
+                        ? new PhraseHit(text, start, was.end, was.firstIdx, was.lastIdx)
+                        : new PhraseHit(text, start, start, -1, -1);
+                ph.arabic   = row.getOrDefault(PK_AR, "").trim();
+                ph.newGroup = row.getOrDefault(PK_NEW, "").trim();
+                fresh.get(f).add(ph);
+                taken++;
+            }
+
+            if (taken == 0) {
+                status("No usable rows in " + in.getName() + " — the table is unchanged.");
+                log("Import: no usable rows in " + in.getName() + " (expected the header in row 1 and "
+                        + "File / Word / start / text41 / text49 in columns B-F). Table unchanged.");
+                return;
+            }
+
+            for (int i = 0; i < picks.size(); i++) { picks.get(i).clear(); picks.get(i).addAll(fresh.get(i)); }
+            rebuildTable();
+
+            StringBuilder note = new StringBuilder("Imported " + taken + " row(s) from " + in.getName());
+            if (noFile > 0)   note.append("; ").append(noFile).append(" skipped (unknown File")
+                    .append(unknown.isEmpty() ? "" : ": " + String.join(", ", unknown)).append(")");
+            if (overflow > 0) note.append("; ").append(overflow).append(" past the ")
+                    .append(SEL_WORDS).append("-per-file limit");
+            status(note + ".");
+            log("Import: " + note + ". Click Apply to keep them.");
+        }
+
+        /** The pick this row came from, so an untouched row keeps its link to the transcript. */
+        private PhraseHit findPick(int file, String text, double start) {
+            for (PhraseHit ph : picks.get(file))
+                if (ph.text.equals(text) && Math.abs(ph.start - start) < 0.0005) return ph;
+            return null;
+        }
+
         private void apply() {
             if (table.isEditing()) table.getCellEditor().stopCellEditing();
             for (int f = 0; f < results.size(); f++) results.get(f).phrases = picks.get(f);
             dispose();
             logPicks(results);
+        }
+    }
+
+    /** A start time as typed in Excel: plain seconds, a comma decimal, or m:ss / h:mm:ss. */
+    private static double parseSeconds(String raw) {
+        if (raw == null) return 0;
+        String t = raw.trim().replace(',', '.');
+        if (t.isEmpty()) return 0;
+        try {
+            if (t.indexOf(':') < 0) return Double.parseDouble(t);
+            double total = 0;
+            for (String part : t.split(":")) total = total * 60 + Double.parseDouble(part.trim());
+            return total;
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 
