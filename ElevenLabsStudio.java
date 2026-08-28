@@ -97,13 +97,23 @@ public class ElevenLabsStudio extends JFrame {
     private final JCheckBox vidDiarize = new JCheckBox("Speaker diarization", false);
     private final JCheckBox vidEvents  = new JCheckBox("Tag audio events", false);
 
-    private volatile List<WordStamp> lastVideoWords = null;
-    private volatile String lastVideoBaseName = null;
+    /** One transcribed video/audio file: its words, its transcript and its resolved phrases. */
+    private static final class MediaResult {
+        final String baseName;
+        final String transcript;
+        final List<WordStamp> words;
+        List<PhraseHit> phrases = new ArrayList<>();
+        MediaResult(String baseName, String transcript, List<WordStamp> words) {
+            this.baseName = baseName; this.transcript = transcript; this.words = words;
+        }
+    }
+
+    /** Every file of the last batch, in the order it was transcribed. One entry = one Excel row block. */
+    private volatile List<MediaResult> lastVideoResults = new ArrayList<>();
 
     private final JTextArea  phraseArea   = new JTextArea(4, 6); // col1 -> text33..text40 (matched)
     private final JTextArea  arabicArea   = new JTextArea(4, 6); // col2 -> text41..text48 (typed)
     private final JTextArea  newGroupArea = new JTextArea(4, 6); // col3 -> text49..text56 (typed)
-    private volatile List<PhraseHit> pendingPhrases = new ArrayList<>();
     private final java.util.List<JButton> actionButtons = new ArrayList<>();
 
     private final AudioPlayer player = new AudioPlayer();
@@ -152,21 +162,24 @@ public class ElevenLabsStudio extends JFrame {
 
     private void handleDroppedFiles(java.util.List<File> files) {
         if (files == null || files.isEmpty()) return;
-        File media = null;
+        List<File> media = new ArrayList<>();
         for (File f : files) {
-            if (f != null && f.isFile() && isMediaFile(f)) { media = f; break; }
+            if (f != null && f.isFile() && isMediaFile(f)) media.add(f);
         }
-        if (media == null) {
+        if (media.isEmpty()) {
             log("Drag & drop: no supported video/audio file found "
                     + "(accepted: mp4, mov, mkv, webm, avi, m4v, mp3, wav, m4a, aac, flac, ogg).");
             return;
         }
-        if (files.size() > 1)
-            log("Drag & drop: multiple files dropped — using \"" + media.getName() + "\".");
+        media.sort(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
+        int skipped = files.size() - media.size();
+        if (media.size() > 1)
+            log("Drag & drop: " + media.size() + " media files — transcribing them in name order…"
+                    + (skipped > 0 ? "  (" + skipped + " unsupported file(s) ignored)" : ""));
         else
-            log("Drag & drop: \"" + media.getName() + "\" — transcribing…");
-        final File chosen = media;
-        runInBackground(() -> doVideoWordTimestamps(chosen));
+            log("Drag & drop: \"" + media.get(0).getName() + "\" — transcribing…"
+                    + (skipped > 0 ? "  (" + skipped + " unsupported file(s) ignored)" : ""));
+        runInBackground(() -> doVideoWordTimestamps(media));
     }
 
     private static boolean isMediaFile(File f) {
@@ -337,15 +350,18 @@ public class ElevenLabsStudio extends JFrame {
         vidBox.add(vidExtract);
         vidBox.add(vidDiarize);
         vidBox.add(vidEvents);
-        JButton btnVid = new JButton("Choose video / audio…");
+        JButton btnVid = new JButton("Choose video(s) / audio…");
         btnVid.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnVid.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnVid.setToolTipText("Upload a video or audio file and get word-by-word start/end timestamps (JSON + CSV + SRT).");
+        btnVid.setToolTipText("<html>Upload one or more video/audio files and get word-by-word start/end "
+                + "timestamps (JSON + CSV + SRT per file).<br>Ctrl/Shift-click to pick several — they are "
+                + "transcribed one after another, the scripts are stacked into one combined transcript, "
+                + "and each file gets its own Excel row.</html>");
         btnVid.addActionListener(e -> chooseMediaAndTranscribe());
         actionButtons.add(btnVid);
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnVid);
-        JLabel dropHint = new JLabel("…or drag & drop a video/audio file onto the window");
+        JLabel dropHint = new JLabel("…or drag & drop one or more files onto the window");
         dropHint.setFont(dropHint.getFont().deriveFont(Font.ITALIC, 11f));
         dropHint.setAlignmentX(Component.LEFT_ALIGNMENT);
         vidBox.add(Box.createVerticalStrut(2));
@@ -361,7 +377,9 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 81-88 Arabic meaning (text41-48, blank), cols 89-96 same start time — yellow<br>"
                 + "• cols 97-104 new group (text49-56, blank), cols 105-112 same start time — purple<br>"
                 + "• col 113 logo cell (text57) — peach<br>"
-                + "Selected words come from \"Find &amp; Set Phrases\" (up to 8).</html>");
+                + "Selected words come from \"Find &amp; Set Phrases\" (up to 8).<br>"
+                + "With several files, each one gets its own row block, stacked in the order "
+                + "they were transcribed.</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
         actionButtons.add(btnExport);
         vidBox.add(Box.createVerticalStrut(4));
@@ -375,7 +393,8 @@ public class ElevenLabsStudio extends JFrame {
         phraseArea.setToolTipText("<html><b>Column 1 — selected words.</b> One per line, EXACTLY as in the "
                 + "transcript (case + punctuation).<br>\"Find &amp; Set Phrases\" matches THESE only and writes "
                 + "them to text33-40 with their start times.<br>Up to 8; extras ignored. "
-                + "Leave empty and click the button to clear.</html>");
+                + "Leave empty and click the button to clear.<br>Searched in every transcribed file; each "
+                + "file's row shows the phrases found in it.</html>");
         arabicArea.setToolTipText("<html><b>Column 2 — free text → text41-48.</b> One per line, aligned by row "
                 + "with column 1 (line 1 = meaning of selected word 1…).<br>Written verbatim on export; not matched. "
                 + "Up to 8.</html>");
@@ -393,8 +412,9 @@ public class ElevenLabsStudio extends JFrame {
         JButton btnPhrase = new JButton("Find & Set Phrases");
         btnPhrase.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnPhrase.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnPhrase.setToolTipText("Looks up every selected word/phrase as consecutive words in the last "
-                + "transcription and stores its start time for the next export.");
+        btnPhrase.setToolTipText("<html>Looks up every selected word/phrase as consecutive words in the last "
+                + "transcription and stores its start time for the next export.<br>With several files, each "
+                + "one is searched separately and keeps the phrases found in it.</html>");
         btnPhrase.addActionListener(e -> runInBackground(this::setPhraseOverrides));
         actionButtons.add(btnPhrase);
         phraseBox.add(Box.createVerticalStrut(4));
@@ -1454,17 +1474,95 @@ public class ElevenLabsStudio extends JFrame {
 
     private void chooseMediaAndTranscribe() {
         JFileChooser fc = new JFileChooser(workDir());
-        fc.setDialogTitle("Choose a video or audio file");
+        fc.setDialogTitle("Choose one or more video / audio files");
+        fc.setMultiSelectionEnabled(true);
         fc.setFileFilter(new FileNameExtensionFilter(
                 "Video / Audio (mp4, mov, mkv, webm, avi, m4v, mp3, wav, m4a, aac, flac, ogg)",
                 "mp4", "mov", "mkv", "webm", "avi", "m4v",
                 "mp3", "wav", "m4a", "aac", "flac", "ogg"));
         if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
-        File media = fc.getSelectedFile();
+
+        List<File> media = new ArrayList<>(Arrays.asList(fc.getSelectedFiles()));
+        if (media.isEmpty() && fc.getSelectedFile() != null) media.add(fc.getSelectedFile());
+        if (media.isEmpty()) return;
+        media.sort(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
         runInBackground(() -> doVideoWordTimestamps(media));
     }
 
-    private void doVideoWordTimestamps(File media) {
+    /**
+     * Transcribe every chosen file in turn, exactly as the single-file run always did, then
+     * stack the results: one combined transcript with each script below the previous one, and
+     * one Excel row block per file on the next "Export to Excel".
+     */
+    private void doVideoWordTimestamps(List<File> media) {
+        if (media == null || media.isEmpty()) return;
+
+        boolean hadPhrases = false;
+        for (MediaResult r : lastVideoResults) if (!r.phrases.isEmpty()) hadPhrases = true;
+
+        if (media.size() > 1) {
+            log("VIDEO → WORD-BY-WORD TIMESTAMPS (Scribe) — " + media.size() + " files");
+            log("========================================");
+            for (int i = 0; i < media.size(); i++)
+                log("   " + (i + 1) + ". " + media.get(i).getName());
+            log("");
+        }
+
+        List<MediaResult> results = new ArrayList<>();
+        for (int i = 0; i < media.size(); i++) {
+            File f = media.get(i);
+            if (media.size() > 1) {
+                log("");
+                log("---- File " + (i + 1) + " of " + media.size() + ": " + f.getName() + " ----");
+            }
+            MediaResult r = transcribeOneMedia(f);
+            if (r != null) results.add(r);
+        }
+
+        if (results.isEmpty()) {
+            log("");
+            log("Nothing transcribed — the previous results (if any) are unchanged.");
+            return;
+        }
+
+        lastVideoResults = results;
+        if (hadPhrases)
+            log("Note: previously resolved phrases were cleared — click \"Find & Set Phrases\" again "
+                    + "so they are matched against the new transcript(s).");
+
+        if (results.size() > 1) {
+            saveText(combinedBaseName(results) + "_transcript.txt", combinedTranscript(results));
+            int total = 0;
+            for (MediaResult r : results) total += r.words.size();
+            log("");
+            log("Batch done: " + results.size() + " of " + media.size() + " file(s) transcribed, "
+                    + total + " word(s) in total. \"Export to Excel\" writes one row block per file, "
+                    + "in this order.");
+        }
+    }
+
+    /** All scripts below each other, each under its file name. */
+    private static String combinedTranscript(List<MediaResult> results) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < results.size(); i++) {
+            MediaResult r = results.get(i);
+            if (i > 0) sb.append("\n\n");
+            sb.append("=== ").append(i + 1).append(". ").append(r.baseName).append(" ===\n");
+            sb.append(r.transcript.trim());
+        }
+        sb.append('\n');
+        return sb.toString();
+    }
+
+    /** Output name for a batch: the first file plus how many followed it. */
+    private static String combinedBaseName(List<MediaResult> results) {
+        String first = results.get(0).baseName;
+        if (first == null || first.isEmpty()) first = "words";
+        return results.size() == 1 ? first : first + "_and_" + (results.size() - 1) + "_more";
+    }
+
+    /** The original single-file pipeline: transcribe one file and save its own .txt/.json/.csv/.srt. */
+    private MediaResult transcribeOneMedia(File media) {
         log("VIDEO → WORD-BY-WORD TIMESTAMPS (Scribe)");
         log("========================================");
         log("Input: " + media.getName() + "  (" + mb(media.length()) + " MB)");
@@ -1490,7 +1588,7 @@ public class ElevenLabsStudio extends JFrame {
             json = scribeMultipart(upload, fields);
         } catch (Exception e) {
             log("Error calling Scribe: " + e.getMessage());
-            return;
+            return null;
         }
 
         try {
@@ -1519,18 +1617,10 @@ public class ElevenLabsStudio extends JFrame {
                     ? String.format(Locale.US, "  (confidence %.0f%%)", dbl(prob) * 100) : ""));
             log("Words with timestamps: " + stamps.size());
 
-            lastVideoWords = stamps;
-            lastVideoBaseName = stripExt(media.getName());
-            if (!pendingPhrases.isEmpty()) {
-                pendingPhrases = new ArrayList<>();
-                log("Note: previously resolved phrases were cleared — click \"Find & Set Phrases\" again "
-                        + "so they are matched against this new transcript.");
-            }
-
             if (stamps.isEmpty()) {
                 log("No word timestamps returned. Raw transcript:");
                 log(transcript.isEmpty() ? "(empty)" : transcript);
-                return;
+                return null;
             }
 
             log("");
@@ -1551,9 +1641,11 @@ public class ElevenLabsStudio extends JFrame {
 
             log("");
             log("Done. Saved: " + base + "_transcript.txt, _words.json, _words.csv, _words.srt");
+            return new MediaResult(base, transcript, stamps);
 
         } catch (Exception e) {
             log("Error parsing Scribe response: " + e.getMessage());
+            return null;
         }
     }
 
@@ -1645,79 +1737,102 @@ public class ElevenLabsStudio extends JFrame {
         return s;
     }
 
-    /** Write up to SEL_WORDS lines of free text into consecutive cells from startCol,
-     *  aligned by line index (blank lines advance the index but write nothing).
-     *  Returns how many non-empty cells were written. */
-    private static int fillWordColumn(List<String> row, int startCol, String text) {
-        if (text == null) return 0;
+    /** Split a free-text panel column into at most SEL_WORDS trimmed lines, keeping blank
+     *  lines so the row alignment with column 1 is preserved. */
+    private static List<String> splitWordColumn(String text) {
+        List<String> out = new ArrayList<>();
+        if (text == null) return out;
         String[] lines = text.split("\\R", -1);
+        for (int i = 0; i < lines.length && i < SEL_WORDS; i++) out.add(lines[i].trim());
+        return out;
+    }
+
+    /** Write the parsed free-text lines into consecutive cells from startCol, aligned by line
+     *  index (blank lines advance the index but write nothing).
+     *  Returns how many non-empty cells were written. */
+    private static int fillWordColumn(List<String> row, int startCol, List<String> lines) {
         int written = 0;
-        for (int i = 0; i < lines.length && i < SEL_WORDS; i++) {
-            String v = lines[i].trim();
+        for (int i = 0; i < lines.size() && i < SEL_WORDS; i++) {
+            String v = lines.get(i);
             if (!v.isEmpty()) { row.set(startCol + i, v); written++; }
         }
         return written;
     }
 
     private void exportWordsToExcel() {
-        List<WordStamp> stamps = lastVideoWords;
-        String base = lastVideoBaseName;
-        if (stamps == null || stamps.isEmpty()) {
-            log("Export to Excel: no word timestamps yet — run \"Choose video / audio…\" first.");
+        List<MediaResult> results = lastVideoResults;
+        if (results.isEmpty()) {
+            log("Export to Excel: no word timestamps yet — run \"Choose video(s) / audio…\" first.");
             return;
         }
 
-        log("Exporting " + stamps.size() + " word(s) to Excel using the fixed template "
-                + "(32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · 1 logo, "
-                + "each group colour-coded)…");
-        if (stamps.size() > PARA_WORDS)
-            log("Note: paragraph has " + stamps.size() + " words — more than the " + PARA_WORDS
-                    + " reserved cells, so it wraps onto additional rows.");
+        int totalWords = 0;
+        for (MediaResult r : results) totalWords += r.words.size();
+        log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel using the "
+                + "fixed template (32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · "
+                + "1 logo, each group colour-coded)…");
 
-        List<List<String>> rows = buildExcelRows(stamps);
-        List<String> dataRow = rows.get(1);            // first data row (row 2)
+        // Columns 2 & 3 of the Selected-Words panel are typed once and repeat on every file's row.
+        List<String> arabic   = splitWordColumn(arabicArea.getText());
+        List<String> newGroup = splitWordColumn(newGroupArea.getText());
 
-        // Logo cell (last column of the first data row).
-        dataRow.set(LOGO_COL, LOGO_TEXT);
+        List<List<String>> rows = new ArrayList<>();
+        rows.add(buildExcelHeader());
 
-        // Columns 2 & 3 of the Selected-Words panel: free text, aligned by line with column 1.
-        int arWritten  = fillWordColumn(dataRow, AR_WORDS_START,  arabicArea.getText());
-        int newWritten = fillWordColumn(dataRow, NEW_WORDS_START, newGroupArea.getText());
-        if (arWritten > 0 || newWritten > 0)
-            log("Typed meanings written: " + arWritten + " → "
-                    + XlsxWriter.colLetter(AR_WORDS_START + 1) + "2… (text41+), "
-                    + newWritten + " → " + XlsxWriter.colLetter(NEW_WORDS_START + 1) + "2… (text49+).");
+        for (int f = 0; f < results.size(); f++) {
+            MediaResult r = results.get(f);
+            String tag = results.size() == 1 ? "" : "[" + r.baseName + "] ";
 
-        // Selected words + their timings (row 2), sourced from the resolved phrases.
-        List<PhraseHit> phrases = pendingPhrases;
-        if (phrases != null && !phrases.isEmpty()) {
-            int n = Math.min(phrases.size(), SEL_WORDS);
-            if (phrases.size() > SEL_WORDS)
-                log("Note: " + phrases.size() + " selected phrases resolved but only " + SEL_WORDS
-                        + " slots are reserved — writing the first " + SEL_WORDS + ".");
-            for (int i = 0; i < n; i++) {
-                PhraseHit p = phrases.get(i);
-                String startOnly = String.format(Locale.US, "%.3f", p.start); // start time only
-                dataRow.set(SEL_WORDS_START + i, p.text);     // selected word / phrase
-                dataRow.set(SEL_TIME_START + i,  startOnly);  // selected timing (start only)
-                // text41 / text49 word cells come from columns 2 & 3; their timing mirrors the start time.
-                dataRow.set(AR_TIME_START + i,   startOnly);  // text41+ timing = same start time
-                dataRow.set(NEW_TIME_START + i,  startOnly);  // text49+ timing = same start time
+            if (r.words.size() > PARA_WORDS)
+                log(tag + "Note: paragraph has " + r.words.size() + " words — more than the " + PARA_WORDS
+                        + " reserved cells, so it wraps onto additional rows.");
+
+            List<List<String>> block = buildParagraphRows(r.words);
+            List<String> dataRow = block.get(0);   // this file's first row — its whole panel lives here
+
+            // Logo cell (last column of the file's first row).
+            dataRow.set(LOGO_COL, LOGO_TEXT);
+
+            int arWritten  = fillWordColumn(dataRow, AR_WORDS_START,  arabic);
+            int newWritten = fillWordColumn(dataRow, NEW_WORDS_START, newGroup);
+            if (f == 0 && (arWritten > 0 || newWritten > 0))
+                log("Typed meanings written on every file row: " + arWritten + " → "
+                        + XlsxWriter.colLetter(AR_WORDS_START + 1) + " (text41+), "
+                        + newWritten + " → " + XlsxWriter.colLetter(NEW_WORDS_START + 1) + " (text49+).");
+
+            // Selected words + their timings, sourced from this file's resolved phrases.
+            List<PhraseHit> phrases = r.phrases;
+            if (!phrases.isEmpty()) {
+                int n = Math.min(phrases.size(), SEL_WORDS);
+                if (phrases.size() > SEL_WORDS)
+                    log(tag + "Note: " + phrases.size() + " selected phrases resolved but only " + SEL_WORDS
+                            + " slots are reserved — writing the first " + SEL_WORDS + ".");
+                for (int i = 0; i < n; i++) {
+                    PhraseHit ph = phrases.get(i);
+                    String startOnly = String.format(Locale.US, "%.3f", ph.start); // start time only
+                    dataRow.set(SEL_WORDS_START + i, ph.text);     // selected word / phrase
+                    dataRow.set(SEL_TIME_START + i,  startOnly);   // selected timing (start only)
+                    // text41 / text49 word cells come from columns 2 & 3; their timing mirrors the start time.
+                    dataRow.set(AR_TIME_START + i,   startOnly);   // text41+ timing = same start time
+                    dataRow.set(NEW_TIME_START + i,  startOnly);   // text49+ timing = same start time
+                }
+                log(tag + n + " selected phrase(s) written to row " + (rows.size() + 1) + ": "
+                        + XlsxWriter.colLetter(SEL_WORDS_START + 1) + " (words), "
+                        + XlsxWriter.colLetter(SEL_TIME_START + 1) + " (start times); "
+                        + "text41+ / text49+ timing columns carry the same start times.");
+            } else {
+                log(tag + "No selected phrases set — use \"Find & Set Phrases\" to fill the "
+                        + SEL_WORDS + " selected-word slots.");
             }
-            log(n + " selected phrase(s) written: "
-                    + XlsxWriter.colLetter(SEL_WORDS_START + 1) + "2… (words), "
-                    + XlsxWriter.colLetter(SEL_TIME_START + 1) + "2… (start times); "
-                    + "text41+ / text49+ timing columns carry the same start times.");
-        } else {
-            log("No selected phrases set — use \"Find & Set Phrases\" to fill the "
-                    + SEL_WORDS + " selected-word slots.");
+
+            rows.addAll(block);
         }
 
-        File out = new File(workDir(), (base == null || base.isEmpty() ? "words" : base) + "_words.xlsx");
+        File out = new File(workDir(), combinedBaseName(results) + "_words.xlsx");
         try {
             XlsxWriter.write(out, rows, buildColStyles());
-            log("Saved: " + out.getName() + "  (" + (rows.size() - 1) + " paragraph row(s), "
-                    + TOTAL_COLS + " columns)");
+            log("Saved: " + out.getName() + "  (" + results.size() + " file(s), "
+                    + (rows.size() - 1) + " paragraph row(s), " + TOTAL_COLS + " columns)");
         } catch (Exception e) {
             log("Error writing xlsx: " + e.getMessage());
         }
@@ -1731,21 +1846,49 @@ public class ElevenLabsStudio extends JFrame {
             if (!t.isEmpty()) wanted.add(t);
         }
 
+        List<MediaResult> results = lastVideoResults;
+
         if (wanted.isEmpty()) {
-            if (pendingPhrases.isEmpty()) log("Phrases: type at least one phrase (one per line) first.");
+            boolean had = false;
+            for (MediaResult r : results) if (!r.phrases.isEmpty()) had = true;
+            if (!had) log("Phrases: type at least one phrase (one per line) first.");
             else {
-                pendingPhrases = new ArrayList<>();
+                for (MediaResult r : results) r.phrases = new ArrayList<>();
                 log("Phrases cleared — the next export will not write a phrase block.");
             }
             return;
         }
 
-        List<WordStamp> stamps = lastVideoWords;
-        if (stamps == null || stamps.isEmpty()) {
-            log("Phrases: no transcribed words yet — run \"Choose video / audio…\" first.");
+        if (results.isEmpty()) {
+            log("Phrases: no transcribed words yet — run \"Choose video(s) / audio…\" first.");
             return;
         }
 
+        // Every file is searched for the same phrase list; each keeps the ones found in it.
+        List<List<PhraseHit>> perFile = new ArrayList<>();
+        int filesWithHits = 0;
+        for (MediaResult r : results) {
+            String tag = results.size() == 1 ? "" : "[" + r.baseName + "] ";
+            List<PhraseHit> hits = resolvePhrases(r.words, wanted, tag);
+            perFile.add(hits);
+            if (!hits.isEmpty()) filesWithHits++;
+        }
+
+        if (filesWithHits == 0) {
+            log("No phrase could be resolved in any file — the previous phrase set (if any) is unchanged.");
+            return;
+        }
+
+        for (int i = 0; i < results.size(); i++) results.get(i).phrases = perFile.get(i);
+
+        int totalHits = 0;
+        for (List<PhraseHit> h : perFile) totalHits += h.size();
+        log(totalHits + " phrase(s) ready across " + filesWithHits + " of " + results.size()
+                + " file(s) — each file's phrases go on its own row on the next \"Export to Excel\".");
+    }
+
+    /** Match every wanted phrase against one file's words, keeping the first occurrence of each. */
+    private List<PhraseHit> resolvePhrases(List<WordStamp> stamps, List<String> wanted, String tag) {
         List<PhraseHit> hits = new ArrayList<>();
         int missing = 0;
         for (String phrase : wanted) {
@@ -1760,7 +1903,7 @@ public class ElevenLabsStudio extends JFrame {
 
             if (matches.isEmpty()) {
                 missing++;
-                log("Phrase NOT found: \"" + phrase + "\" — check the exact wording in the saved *_words.csv.");
+                log(tag + "Phrase NOT found: \"" + phrase + "\" — check the exact wording in the saved *_words.csv.");
                 continue;
             }
 
@@ -1769,20 +1912,14 @@ public class ElevenLabsStudio extends JFrame {
                     stamps.get(first[0]).start, stamps.get(first[1]).end);
             hits.add(hit);
 
-            log(String.format(Locale.US, "Phrase %s: \"%s\" -> %.3fs to %.3fs (words #%d-%d)%s",
-                    normalized ? "found (normalized match)" : "found",
+            log(String.format(Locale.US, "%sPhrase %s: \"%s\" -> %.3fs to %.3fs (words #%d-%d)%s",
+                    tag, normalized ? "found (normalized match)" : "found",
                     phrase, hit.start, hit.end, first[0] + 1, first[1] + 1,
                     matches.size() > 1 ? "  [+" + (matches.size() - 1) + " more occurrence(s), using the first]" : ""));
         }
-
-        if (hits.isEmpty()) {
-            log("No phrase could be resolved — the previous phrase set (if any) is unchanged.");
-            return;
-        }
-        pendingPhrases = hits;
-        log(hits.size() + " phrase(s) ready" + (missing > 0 ? "  (" + missing + " not found and skipped)" : "")
-                + " — they will be written to row 2, right after the word/time columns, "
-                + "on the next \"Export to Excel\".");
+        if (missing > 0 && !hits.isEmpty())
+            log(tag + hits.size() + " phrase(s) resolved  (" + missing + " not found and skipped).");
+        return hits;
     }
 
     private static List<int[]> findPhraseMatches(List<WordStamp> stamps, String[] tokens, boolean exact) {
@@ -1807,13 +1944,8 @@ public class ElevenLabsStudio extends JFrame {
                 .replaceAll("[^\\p{L}\\p{N}']", "");
     }
 
-    /** Build rows for the fixed template: header + paragraph words (wrapped across the
-     *  32 reserved word columns) with paragraph start,end timings. Selected-word, Arabic
-     *  and logo cells are filled by the caller on the first data row. */
-    private static List<List<String>> buildExcelRows(List<WordStamp> stamps) {
-        List<List<String>> rows = new ArrayList<>();
-
-        // Header row.
+    /** The template header row: text1..text57 plus the matching *time columns. */
+    private static List<String> buildExcelHeader() {
         List<String> header = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
         for (int i = 0; i < PARA_WORDS; i++) {
             header.set(PARA_WORDS_START + i, "text" + (i + 1));
@@ -1831,14 +1963,20 @@ public class ElevenLabsStudio extends JFrame {
             header.set(NEW_TIME_START + i,  "text" + newN + "time");
         }
         header.set(LOGO_COL, "text" + (PARA_WORDS + 3 * SEL_WORDS + 1)); // logo header continues: text57
-        rows.add(header);
+        return header;
+    }
+
+    /** One file's row block (no header): its paragraph words wrapped across the 32 reserved word
+     *  columns with their start,end timings. Always at least one row, so the caller can fill the
+     *  selected-word, Arabic, new-group and logo cells on row 0 of the block. */
+    private static List<List<String>> buildParagraphRows(List<WordStamp> stamps) {
+        List<List<String>> rows = new ArrayList<>();
 
         if (stamps.isEmpty()) {
             rows.add(new ArrayList<>(Collections.nCopies(TOTAL_COLS, "")));
             return rows;
         }
 
-        // Paragraph words wrapped across the PARA_WORDS reserved columns.
         for (int start = 0; start < stamps.size(); start += PARA_WORDS) {
             List<String> row = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
             int end = Math.min(start + PARA_WORDS, stamps.size());
@@ -1852,6 +1990,7 @@ public class ElevenLabsStudio extends JFrame {
         }
         return rows;
     }
+
     static final class XlsxWriter {
         private static final String CONTENT_TYPES =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
