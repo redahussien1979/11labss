@@ -5,6 +5,7 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.BufferedInputStream;
@@ -111,9 +112,6 @@ public class ElevenLabsStudio extends JFrame {
     /** Every file of the last batch, in the order it was transcribed. One entry = one Excel row block. */
     private volatile List<MediaResult> lastVideoResults = new ArrayList<>();
 
-    private final JTextArea  phraseArea   = new JTextArea(4, 6); // col1 -> text33..text40 (matched)
-    private final JTextArea  arabicArea   = new JTextArea(4, 6); // col2 -> text41..text48 (typed)
-    private final JTextArea  newGroupArea = new JTextArea(4, 6); // col3 -> text49..text56 (typed)
     private final java.util.List<JButton> actionButtons = new ArrayList<>();
 
     private final AudioPlayer player = new AudioPlayer();
@@ -367,6 +365,18 @@ public class ElevenLabsStudio extends JFrame {
         vidBox.add(Box.createVerticalStrut(2));
         vidBox.add(dropHint);
 
+        JButton btnPick = new JButton("Select Words…");
+        btnPick.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnPick.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        btnPick.setToolTipText("<html>Show every transcribed word — of one file or of all of them — and "
+                + "pick the ones to export.<br>Click a word to select it, ctrl-click to add more, "
+                + "shift-click for a run of words.<br>\"Add as one phrase\" joins a run into a single "
+                + "entry; the Arabic and new-group cells are typed beside each pick.</html>");
+        btnPick.addActionListener(e -> openWordPicker());
+        actionButtons.add(btnPick);
+        vidBox.add(Box.createVerticalStrut(4));
+        vidBox.add(btnPick);
+
         JButton btnExport = new JButton("Export to Excel (.xlsx)");
         btnExport.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnExport.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -377,7 +387,7 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 81-88 Arabic meaning (text41-48, blank), cols 89-96 same start time — yellow<br>"
                 + "• cols 97-104 new group (text49-56, blank), cols 105-112 same start time — purple<br>"
                 + "• col 113 logo cell (text57) — peach<br>"
-                + "Selected words come from \"Find &amp; Set Phrases\" (up to 8).<br>"
+                + "Selected words come from \"Select Words…\" (up to 8 per file).<br>"
                 + "With several files, each one gets its own row block, stacked in the order "
                 + "they were transcribed.</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
@@ -388,38 +398,6 @@ public class ElevenLabsStudio extends JFrame {
 
 
         west.add(vidBox);
-
-        JPanel phraseBox = settingsBox("Selected Words (3 cols → text33 · text41 · text49)");
-        phraseArea.setToolTipText("<html><b>Column 1 — selected words.</b> One per line, EXACTLY as in the "
-                + "transcript (case + punctuation).<br>\"Find &amp; Set Phrases\" matches THESE only and writes "
-                + "them to text33-40 with their start times.<br>Up to 8; extras ignored. "
-                + "Leave empty and click the button to clear.<br>Searched in every transcribed file; each "
-                + "file's row shows the phrases found in it.</html>");
-        arabicArea.setToolTipText("<html><b>Column 2 — free text → text41-48.</b> One per line, aligned by row "
-                + "with column 1 (line 1 = meaning of selected word 1…).<br>Written verbatim on export; not matched. "
-                + "Up to 8.</html>");
-        newGroupArea.setToolTipText("<html><b>Column 3 — free text → text49-56.</b> One per line, aligned by row "
-                + "with column 1.<br>Written verbatim on export; not matched. Up to 8.</html>");
-
-        JPanel phraseCols = new JPanel(new GridLayout(1, 3, 4, 0));
-        phraseCols.setAlignmentX(Component.LEFT_ALIGNMENT);
-        phraseCols.setMaximumSize(new Dimension(Integer.MAX_VALUE, 110));
-        phraseCols.setPreferredSize(new Dimension(240, 110));
-        phraseCols.add(labeledArea("1 → text33", phraseArea, mono));
-        phraseCols.add(labeledArea("2 → text41", arabicArea, mono));
-        phraseCols.add(labeledArea("3 → text49", newGroupArea, mono));
-        phraseBox.add(phraseCols);
-        JButton btnPhrase = new JButton("Find & Set Phrases");
-        btnPhrase.setAlignmentX(Component.LEFT_ALIGNMENT);
-        btnPhrase.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
-        btnPhrase.setToolTipText("<html>Looks up every selected word/phrase as consecutive words in the last "
-                + "transcription and stores its start time for the next export.<br>With several files, each "
-                + "one is searched separately and keeps the phrases found in it.</html>");
-        btnPhrase.addActionListener(e -> runInBackground(this::setPhraseOverrides));
-        actionButtons.add(btnPhrase);
-        phraseBox.add(Box.createVerticalStrut(4));
-        phraseBox.add(btnPhrase);
-        west.add(phraseBox);
 
         JPanel xlBox = settingsBox("7 · Excel / CSV batch");
         xlFileField.setToolTipText("The .xlsx / .xlsm / .csv / .tsv file holding the text to speak.");
@@ -490,17 +468,6 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     /** A text area with a small caption above it (for the 3-column selected-words layout). */
-    private JPanel labeledArea(String caption, JTextArea area, Font mono) {
-        area.setFont(mono);
-        area.setLineWrap(false);
-        JPanel p = new JPanel(new BorderLayout());
-        JLabel l = new JLabel(caption, SwingConstants.CENTER);
-        l.setFont(l.getFont().deriveFont(Font.PLAIN, 10f));
-        p.add(l, BorderLayout.NORTH);
-        p.add(new JScrollPane(area), BorderLayout.CENTER);
-        return p;
-    }
-
     private static final int FIELD_W = 100;
 
     private void addRow(JPanel box, String label, JComponent field) {
@@ -1527,8 +1494,8 @@ public class ElevenLabsStudio extends JFrame {
 
         lastVideoResults = results;
         if (hadPhrases)
-            log("Note: previously resolved phrases were cleared — click \"Find & Set Phrases\" again "
-                    + "so they are matched against the new transcript(s).");
+            log("Note: previously picked words were cleared — click \"Select Words…\" again "
+                    + "to pick from the new transcript(s).");
 
         if (results.size() > 1) {
             saveText(combinedBaseName(results) + "_transcript.txt", combinedTranscript(results));
@@ -1737,28 +1704,6 @@ public class ElevenLabsStudio extends JFrame {
         return s;
     }
 
-    /** Split a free-text panel column into at most SEL_WORDS trimmed lines, keeping blank
-     *  lines so the row alignment with column 1 is preserved. */
-    private static List<String> splitWordColumn(String text) {
-        List<String> out = new ArrayList<>();
-        if (text == null) return out;
-        String[] lines = text.split("\\R", -1);
-        for (int i = 0; i < lines.length && i < SEL_WORDS; i++) out.add(lines[i].trim());
-        return out;
-    }
-
-    /** Write the parsed free-text lines into consecutive cells from startCol, aligned by line
-     *  index (blank lines advance the index but write nothing).
-     *  Returns how many non-empty cells were written. */
-    private static int fillWordColumn(List<String> row, int startCol, List<String> lines) {
-        int written = 0;
-        for (int i = 0; i < lines.size() && i < SEL_WORDS; i++) {
-            String v = lines.get(i);
-            if (!v.isEmpty()) { row.set(startCol + i, v); written++; }
-        }
-        return written;
-    }
-
     private void exportWordsToExcel() {
         List<MediaResult> results = lastVideoResults;
         if (results.isEmpty()) {
@@ -1771,10 +1716,6 @@ public class ElevenLabsStudio extends JFrame {
         log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel using the "
                 + "fixed template (32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · "
                 + "1 logo, each group colour-coded)…");
-
-        // Columns 2 & 3 of the Selected-Words panel are typed once and repeat on every file's row.
-        List<String> arabic   = splitWordColumn(arabicArea.getText());
-        List<String> newGroup = splitWordColumn(newGroupArea.getText());
 
         List<List<String>> rows = new ArrayList<>();
         rows.add(buildExcelHeader());
@@ -1793,35 +1734,33 @@ public class ElevenLabsStudio extends JFrame {
             // Logo cell (last column of the file's first row).
             dataRow.set(LOGO_COL, LOGO_TEXT);
 
-            int arWritten  = fillWordColumn(dataRow, AR_WORDS_START,  arabic);
-            int newWritten = fillWordColumn(dataRow, NEW_WORDS_START, newGroup);
-            if (f == 0 && (arWritten > 0 || newWritten > 0))
-                log("Typed meanings written on every file row: " + arWritten + " → "
-                        + XlsxWriter.colLetter(AR_WORDS_START + 1) + " (text41+), "
-                        + newWritten + " → " + XlsxWriter.colLetter(NEW_WORDS_START + 1) + " (text49+).");
-
-            // Selected words + their timings, sourced from this file's resolved phrases.
+            // Words/phrases picked in the word chooser, each with the meaning cells typed beside it.
             List<PhraseHit> phrases = r.phrases;
             if (!phrases.isEmpty()) {
                 int n = Math.min(phrases.size(), SEL_WORDS);
                 if (phrases.size() > SEL_WORDS)
-                    log(tag + "Note: " + phrases.size() + " selected phrases resolved but only " + SEL_WORDS
+                    log(tag + "Note: " + phrases.size() + " words picked but only " + SEL_WORDS
                             + " slots are reserved — writing the first " + SEL_WORDS + ".");
+                int meanings = 0;
                 for (int i = 0; i < n; i++) {
                     PhraseHit ph = phrases.get(i);
                     String startOnly = String.format(Locale.US, "%.3f", ph.start); // start time only
-                    dataRow.set(SEL_WORDS_START + i, ph.text);     // selected word / phrase
-                    dataRow.set(SEL_TIME_START + i,  startOnly);   // selected timing (start only)
-                    // text41 / text49 word cells come from columns 2 & 3; their timing mirrors the start time.
+                    dataRow.set(SEL_WORDS_START + i, ph.text);     // picked word / phrase
+                    dataRow.set(SEL_TIME_START + i,  startOnly);   // picked timing (start only)
+                    // text41 / text49 carry the meanings typed beside the pick; their timing mirrors it.
+                    if (!ph.arabic.isEmpty())   { dataRow.set(AR_WORDS_START + i,  ph.arabic);   meanings++; }
+                    if (!ph.newGroup.isEmpty()) { dataRow.set(NEW_WORDS_START + i, ph.newGroup); meanings++; }
                     dataRow.set(AR_TIME_START + i,   startOnly);   // text41+ timing = same start time
                     dataRow.set(NEW_TIME_START + i,  startOnly);   // text49+ timing = same start time
                 }
-                log(tag + n + " selected phrase(s) written to row " + (rows.size() + 1) + ": "
+                log(tag + n + " picked word(s)/phrase(s) written to row " + (rows.size() + 1) + ": "
                         + XlsxWriter.colLetter(SEL_WORDS_START + 1) + " (words), "
-                        + XlsxWriter.colLetter(SEL_TIME_START + 1) + " (start times); "
-                        + "text41+ / text49+ timing columns carry the same start times.");
+                        + XlsxWriter.colLetter(SEL_TIME_START + 1) + " (start times), "
+                        + meanings + " meaning cell(s) in "
+                        + XlsxWriter.colLetter(AR_WORDS_START + 1) + " / "
+                        + XlsxWriter.colLetter(NEW_WORDS_START + 1) + ".");
             } else {
-                log(tag + "No selected phrases set — use \"Find & Set Phrases\" to fill the "
+                log(tag + "No words picked — use \"Select Words…\" to fill the "
                         + SEL_WORDS + " selected-word slots.");
             }
 
@@ -1838,110 +1777,246 @@ public class ElevenLabsStudio extends JFrame {
         }
     }
 
-    private void setPhraseOverrides() {
-        String raw = phraseArea.getText();
-        List<String> wanted = new ArrayList<>();
-        for (String line : raw.split("\\R")) {
-            String t = line.trim();
-            if (!t.isEmpty()) wanted.add(t);
-        }
-
+    /** Open the word chooser on the last batch, so words/phrases can be picked for the export. */
+    private void openWordPicker() {
         List<MediaResult> results = lastVideoResults;
-
-        if (wanted.isEmpty()) {
-            boolean had = false;
-            for (MediaResult r : results) if (!r.phrases.isEmpty()) had = true;
-            if (!had) log("Phrases: type at least one phrase (one per line) first.");
-            else {
-                for (MediaResult r : results) r.phrases = new ArrayList<>();
-                log("Phrases cleared — the next export will not write a phrase block.");
-            }
-            return;
-        }
-
         if (results.isEmpty()) {
-            log("Phrases: no transcribed words yet — run \"Choose video(s) / audio…\" first.");
+            log("Select Words: no transcribed words yet — run \"Choose video(s) / audio…\" first.");
             return;
         }
+        new WordPickerDialog(this, results).setVisible(true);
+    }
 
-        // Every file is searched for the same phrase list; each keeps the ones found in it.
-        List<List<PhraseHit>> perFile = new ArrayList<>();
-        int filesWithHits = 0;
+    /** Log what a finished pick left on each file's row. */
+    private void logPicks(List<MediaResult> results) {
+        int total = 0, files = 0;
         for (MediaResult r : results) {
-            String tag = results.size() == 1 ? "" : "[" + r.baseName + "] ";
-            List<PhraseHit> hits = resolvePhrases(r.words, wanted, tag);
-            perFile.add(hits);
-            if (!hits.isEmpty()) filesWithHits++;
+            if (r.phrases.isEmpty()) continue;
+            files++; total += r.phrases.size();
+            StringBuilder sb = new StringBuilder();
+            for (PhraseHit ph : r.phrases) {
+                if (sb.length() > 0) sb.append(" · ");
+                sb.append(String.format(Locale.US, "\"%s\" @%.3fs", ph.text, ph.start));
+            }
+            log((results.size() == 1 ? "" : "[" + r.baseName + "] ") + r.phrases.size()
+                    + " pick(s): " + sb);
         }
-
-        if (filesWithHits == 0) {
-            log("No phrase could be resolved in any file — the previous phrase set (if any) is unchanged.");
-            return;
-        }
-
-        for (int i = 0; i < results.size(); i++) results.get(i).phrases = perFile.get(i);
-
-        int totalHits = 0;
-        for (List<PhraseHit> h : perFile) totalHits += h.size();
-        log(totalHits + " phrase(s) ready across " + filesWithHits + " of " + results.size()
-                + " file(s) — each file's phrases go on its own row on the next \"Export to Excel\".");
+        if (total == 0) log("No words picked — the next export writes no selected-word block.");
+        else log(total + " word(s)/phrase(s) picked across " + files + " of " + results.size()
+                + " file(s) — each file's picks go on its own row on the next \"Export to Excel\".");
     }
 
-    /** Match every wanted phrase against one file's words, keeping the first occurrence of each. */
-    private List<PhraseHit> resolvePhrases(List<WordStamp> stamps, List<String> wanted, String tag) {
-        List<PhraseHit> hits = new ArrayList<>();
-        int missing = 0;
-        for (String phrase : wanted) {
-            String[] tokens = phrase.split("\\s+");
+    /**
+     * Every transcribed word of every file, laid out as a grid you can click. Picked words and
+     * phrases land in the table below, where the text41 and text49 cells are typed beside them,
+     * so the three Excel columns stay aligned by construction.
+     */
+    private final class WordPickerDialog extends JDialog {
+        private final List<MediaResult> results;
+        private final List<List<PhraseHit>> picks = new ArrayList<>();   // per file, in export order
+        private final DefaultTableModel model;
+        private final JTable table;
+        private final JTabbedPane tabs = new JTabbedPane();
+        private final List<JList<String>> wordLists = new ArrayList<>();
+        private final JLabel status = new JLabel(" ");
 
-            List<int[]> matches = findPhraseMatches(stamps, tokens, true);
-            boolean normalized = false;
-            if (matches.isEmpty()) {
-                matches = findPhraseMatches(stamps, tokens, false);
-                normalized = !matches.isEmpty();
+        WordPickerDialog(JFrame owner, List<MediaResult> results) {
+            super(owner, "Select words for the Excel export", true);
+            this.results = results;
+            for (MediaResult r : results) picks.add(new ArrayList<>(r.phrases));  // keep earlier picks
+
+            // ---- top: one word grid per file ----
+            for (MediaResult r : results) {
+                DefaultListModel<String> lm = new DefaultListModel<>();
+                for (int i = 0; i < r.words.size(); i++) {
+                    WordStamp w = r.words.get(i);
+                    lm.addElement(String.format(Locale.US, "%d. %s", i + 1, w.text));
+                }
+                JList<String> list = new JList<>(lm);
+                list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+                list.setVisibleRowCount(-1);                 // wrap to the viewport width
+                list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+                list.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+                list.setToolTipText("<html>Click a word · ctrl-click to add more · shift-click for a run."
+                        + "<br>Double-click adds the word on its own.</html>");
+                list.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                        if (e.getClickCount() == 2) addSelection(false);
+                    }
+                });
+                wordLists.add(list);
+
+                JScrollPane sp = new JScrollPane(list);
+                sp.getVerticalScrollBar().setUnitIncrement(16);
+                tabs.addTab(r.baseName + "  (" + r.words.size() + ")", sp);
             }
+            tabs.addChangeListener(e -> refreshStatus());
 
-            if (matches.isEmpty()) {
-                missing++;
-                log(tag + "Phrase NOT found: \"" + phrase + "\" — check the exact wording in the saved *_words.csv.");
-                continue;
-            }
+            JButton addWords  = new JButton("Add as separate words");
+            addWords.setToolTipText("Each selected word becomes its own entry (text33, text34, …).");
+            addWords.addActionListener(e -> addSelection(false));
+            JButton addPhrase = new JButton("Add as one phrase");
+            addPhrase.setToolTipText("Join the selected run of consecutive words into a single entry, "
+                    + "timed from the first word.");
+            addPhrase.addActionListener(e -> addSelection(true));
 
-            int[] first = matches.get(0);
-            PhraseHit hit = new PhraseHit(phrase,
-                    stamps.get(first[0]).start, stamps.get(first[1]).end);
-            hits.add(hit);
+            JPanel addBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+            addBar.add(addWords);
+            addBar.add(addPhrase);
+            addBar.add(status);
 
-            log(String.format(Locale.US, "%sPhrase %s: \"%s\" -> %.3fs to %.3fs (words #%d-%d)%s",
-                    tag, normalized ? "found (normalized match)" : "found",
-                    phrase, hit.start, hit.end, first[0] + 1, first[1] + 1,
-                    matches.size() > 1 ? "  [+" + (matches.size() - 1) + " more occurrence(s), using the first]" : ""));
+            JPanel top = new JPanel(new BorderLayout());
+            top.setBorder(new TitledBorder("All transcribed words — click to select"));
+            top.add(tabs, BorderLayout.CENTER);
+            top.add(addBar, BorderLayout.SOUTH);
+
+            // ---- bottom: what will be written, with the two meaning columns ----
+            model = new DefaultTableModel(new Object[]{"#", "File", "Word / phrase",
+                    "start", "text41 (Arabic)", "text49 (new group)"}, 0) {
+                @Override public boolean isCellEditable(int row, int col) { return col >= 4; }
+            };
+            table = new JTable(model);
+            table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+            table.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+            table.getColumnModel().getColumn(0).setPreferredWidth(30);
+            table.getColumnModel().getColumn(1).setPreferredWidth(120);
+            table.getColumnModel().getColumn(2).setPreferredWidth(220);
+            table.getColumnModel().getColumn(3).setPreferredWidth(60);
+            table.getColumnModel().getColumn(4).setPreferredWidth(160);
+            table.getColumnModel().getColumn(5).setPreferredWidth(160);
+            model.addTableModelListener(e -> {
+                if (e.getColumn() < 4 || e.getFirstRow() < 0) return;
+                PhraseHit ph = rowToPick(e.getFirstRow());
+                if (ph == null) return;
+                Object v = model.getValueAt(e.getFirstRow(), e.getColumn());
+                String text = v == null ? "" : String.valueOf(v).trim();
+                if (e.getColumn() == 4) ph.arabic = text; else ph.newGroup = text;
+            });
+
+            JButton remove = new JButton("Remove selected");
+            remove.addActionListener(e -> removeSelectedRows());
+            JButton clear  = new JButton("Clear all");
+            clear.addActionListener(e -> { for (List<PhraseHit> p : picks) p.clear(); rebuildTable(); });
+
+            JPanel rowBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+            rowBar.add(remove);
+            rowBar.add(clear);
+            rowBar.add(new JLabel("— text41 and text49 are typed straight into the table"));
+
+            JPanel bottom = new JPanel(new BorderLayout());
+            bottom.setBorder(new TitledBorder("Picked for export  (up to " + SEL_WORDS
+                    + " per file → text33-40, one row per file)"));
+            bottom.add(new JScrollPane(table), BorderLayout.CENTER);
+            bottom.add(rowBar, BorderLayout.SOUTH);
+
+            JButton ok = new JButton("Apply");
+            ok.addActionListener(e -> apply());
+            JButton cancel = new JButton("Cancel");
+            cancel.addActionListener(e -> dispose());
+            JPanel okBar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 6));
+            okBar.add(cancel);
+            okBar.add(ok);
+            getRootPane().setDefaultButton(ok);
+
+            JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, top, bottom);
+            split.setResizeWeight(0.6);
+            setLayout(new BorderLayout());
+            add(split, BorderLayout.CENTER);
+            add(okBar, BorderLayout.SOUTH);
+            setSize(900, 620);
+            setLocationRelativeTo(owner);
+            rebuildTable();
         }
-        if (missing > 0 && !hits.isEmpty())
-            log(tag + hits.size() + " phrase(s) resolved  (" + missing + " not found and skipped).");
-        return hits;
-    }
 
-    private static List<int[]> findPhraseMatches(List<WordStamp> stamps, String[] tokens, boolean exact) {
-        List<int[]> out = new ArrayList<>();
-        if (tokens.length == 0) return out;
-        for (int start = 0; start + tokens.length <= stamps.size(); start++) {
-            boolean ok = true;
-            for (int j = 0; j < tokens.length; j++) {
-                String a = stamps.get(start + j).text;
-                String b = tokens[j];
-                boolean same = exact ? a.equals(b) : normalize(a).equals(normalize(b));
-                if (!same || (!exact && normalize(b).isEmpty())) { ok = false; break; }
+        private int fileIdx() { return Math.max(0, tabs.getSelectedIndex()); }
+
+        /** Add the current word selection, either as one entry per word or as a single phrase. */
+        private void addSelection(boolean asPhrase) {
+            int f = fileIdx();
+            JList<String> list = wordLists.get(f);
+            int[] sel = list.getSelectedIndices();
+            if (sel.length == 0) { status("Select one or more words first."); return; }
+
+            List<PhraseHit> mine = picks.get(f);
+            List<WordStamp> words = results.get(f).words;
+
+            if (asPhrase) {
+                if (sel[sel.length - 1] - sel[0] + 1 != sel.length) {
+                    status("A phrase needs consecutive words — shift-click a run.");
+                    return;
+                }
+                if (mine.size() >= SEL_WORDS) { status("That file already has " + SEL_WORDS + " picks."); return; }
+                StringBuilder sb = new StringBuilder();
+                for (int i : sel) {
+                    if (sb.length() > 0) sb.append(' ');
+                    sb.append(words.get(i).text);
+                }
+                mine.add(new PhraseHit(sb.toString(), words.get(sel[0]).start,
+                        words.get(sel[sel.length - 1]).end, sel[0], sel[sel.length - 1]));
+                status("Added phrase \"" + sb + "\".");
+            } else {
+                int added = 0;
+                for (int i : sel) {
+                    if (mine.size() >= SEL_WORDS) break;
+                    WordStamp w = words.get(i);
+                    mine.add(new PhraseHit(w.text, w.start, w.end, i, i));
+                    added++;
+                }
+                status(added == sel.length
+                        ? "Added " + added + " word(s)."
+                        : "Added " + added + " of " + sel.length + " — " + SEL_WORDS + " per file is the limit.");
             }
-            if (ok) out.add(new int[]{start, start + tokens.length - 1});
+            list.clearSelection();
+            rebuildTable();
         }
-        return out;
-    }
 
-    private static String normalize(String s) {
-        return s.toLowerCase(Locale.ROOT)
-                .replace('\u2019', '\'')
-                .replaceAll("[^\\p{L}\\p{N}']", "");
+        private void removeSelectedRows() {
+            int[] rows = table.getSelectedRows();
+            if (rows.length == 0) { status("Select a table row to remove."); return; }
+            List<PhraseHit> doomed = new ArrayList<>();
+            for (int r : rows) doomed.add(rowToPick(r));
+            for (List<PhraseHit> p : picks) p.removeAll(doomed);
+            rebuildTable();
+            status("Removed " + rows.length + " pick(s).");
+        }
+
+        /** Table rows run file by file, in the same order the export writes them. */
+        private PhraseHit rowToPick(int row) {
+            int n = 0;
+            for (List<PhraseHit> p : picks) {
+                if (row < n + p.size()) return p.get(row - n);
+                n += p.size();
+            }
+            return null;
+        }
+
+        private void rebuildTable() {
+            model.setRowCount(0);
+            for (int f = 0; f < picks.size(); f++) {
+                List<PhraseHit> mine = picks.get(f);
+                for (int i = 0; i < mine.size(); i++) {
+                    PhraseHit ph = mine.get(i);
+                    model.addRow(new Object[]{"text" + (PARA_WORDS + i + 1), results.get(f).baseName,
+                            ph.text, String.format(Locale.US, "%.3f", ph.start), ph.arabic, ph.newGroup});
+                }
+            }
+            refreshStatus();
+        }
+
+        private void refreshStatus() {
+            int f = fileIdx();
+            status.setText("  " + picks.get(f).size() + " of " + SEL_WORDS
+                    + " picked for " + results.get(f).baseName);
+        }
+
+        private void status(String msg) { status.setText("  " + msg); }
+
+        private void apply() {
+            if (table.isEditing()) table.getCellEditor().stopCellEditing();
+            for (int f = 0; f < results.size(); f++) results.get(f).phrases = picks.get(f);
+            dispose();
+            logPicks(results);
+        }
     }
 
     /** The template header row: text1..text57 plus the matching *time columns. */
@@ -2213,9 +2288,15 @@ public class ElevenLabsStudio extends JFrame {
         WordStamp(String t, double s, double e, String spk) { text = t; start = s; end = e; speaker = spk; }
     }
 
+    /** One word or phrase picked in the word chooser, with the two meaning cells typed beside it. */
     private static class PhraseHit {
         final String text; final double start, end;
-        PhraseHit(String t, double s, double e) { text = t; start = s; end = e; }
+        final int firstIdx, lastIdx;        // the word range it was picked from
+        String arabic = "";                 // -> text41+ on this file's row
+        String newGroup = "";               // -> text49+ on this file's row
+        PhraseHit(String t, double s, double e, int firstIdx, int lastIdx) {
+            text = t; start = s; end = e; this.firstIdx = firstIdx; this.lastIdx = lastIdx;
+        }
     }
 
     private String speechToText(File audioFile) {
