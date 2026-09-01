@@ -4,10 +4,20 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 import javax.swing.*;
+import javax.swing.border.AbstractBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.PopupMenuEvent;
+import javax.swing.event.PopupMenuListener;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
@@ -61,8 +71,9 @@ public class ElevenLabsStudio extends JFrame {
 
     private final JTextField apiKeyField  = new JTextField("sk_085b309952bcc3227379faa49e8f49d40478fda3985840e7");
     private final JTextField workDirField = new JTextField(System.getProperty("user.dir"));
-    private final JPanel     linesContainer = new JPanel();
+    private final JPanel     linesContainer = new RowList();
     private final List<LineRow> lineRows    = new ArrayList<>();
+    private final JLabel     lineCountLabel = new JLabel();
     private final JTextArea  logArea       = new JTextArea();
 
     private final JComboBox<String> ttsVoice = voiceCombo("TX3LPaxmHKxFdv7VOQHJ");
@@ -187,6 +198,164 @@ public class ElevenLabsStudio extends JFrame {
                 || n.endsWith(".aac") || n.endsWith(".flac") || n.endsWith(".ogg");
     }
 
+    // =====================================================================
+    //  Quotes panel — look & feel
+    // =====================================================================
+
+    private static final Color UI_BG         = new Color(0xEC, 0xEF, 0xF3);
+    private static final Color UI_CARD       = new Color(0xFF, 0xFF, 0xFF);
+    private static final Color UI_ROW_ALT    = new Color(0xF3, 0xF6, 0xFA);
+    private static final Color UI_ROW_HOVER  = new Color(0xF0, 0xF5, 0xFF);
+    private static final Color UI_ROW_FOCUS  = new Color(0xE7, 0xEF, 0xFD);
+    private static final Color UI_LINE       = new Color(0xE6, 0xEA, 0xF0);
+    private static final Color UI_BORDER     = new Color(0xC9, 0xD2, 0xDE);
+    private static final Color UI_TEXT       = new Color(0x1F, 0x29, 0x37);
+    private static final Color UI_MUTED      = new Color(0x76, 0x82, 0x93);
+    private static final Color UI_ACCENT     = new Color(0x2F, 0x6F, 0xED);
+    private static final Color UI_ACCENT_DK  = new Color(0x21, 0x55, 0xC0);
+    private static final Color UI_HOVER      = new Color(0xEE, 0xF3, 0xFC);
+    private static final Color UI_DANGER     = new Color(0xC0, 0x39, 0x2B);
+
+    private static final Font UI_FONT   = new Font(Font.SANS_SERIF, Font.PLAIN, 12);
+    private static final Font UI_FONT_B = new Font(Font.SANS_SERIF, Font.BOLD,  12);
+
+    /** Fixed column widths so every row lines up under the header. */
+    private static final int COL_NUM = 26, COL_VOICE = 190, ROW_H = 26;
+
+    /** A rounded, hairline border with its own padding. */
+    private static final class RoundBorder extends AbstractBorder {
+        private final Color color;
+        private final int radius;
+        private final Insets pad;
+        RoundBorder(Color color, int radius, int top, int left, int bottom, int right) {
+            this.color = color; this.radius = radius;
+            this.pad = new Insets(top, left, bottom, right);
+        }
+        @Override public void paintBorder(Component c, Graphics g, int x, int y, int w, int h) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            g2.drawRoundRect(x, y, w - 1, h - 1, radius, radius);
+            g2.dispose();
+        }
+        @Override public Insets getBorderInsets(Component c) { return (Insets) pad.clone(); }
+        @Override public Insets getBorderInsets(Component c, Insets i) {
+            i.set(pad.top, pad.left, pad.bottom, pad.right);
+            return i;
+        }
+    }
+
+    /**
+     * The vertical list of quote rows. It reports that it tracks the viewport
+     * width, so a long quote never widens the panel: the rows keep the width of
+     * the visible area and the action buttons stay put on the right instead of
+     * being pushed off behind a horizontal scrollbar.
+     */
+    private static final class RowList extends JPanel implements Scrollable {
+        RowList() { setBackground(UI_CARD); }
+        @Override public Dimension getPreferredScrollableViewportSize() { return getPreferredSize(); }
+        @Override public int getScrollableUnitIncrement(Rectangle r, int orientation, int dir) { return ROW_H + 10; }
+        @Override public int getScrollableBlockIncrement(Rectangle r, int orientation, int dir) {
+            return Math.max(ROW_H + 10, r.height - (ROW_H + 10));
+        }
+        @Override public boolean getScrollableTracksViewportWidth() { return true; }
+        @Override public boolean getScrollableTracksViewportHeight() {
+            Container p = getParent();
+            return p instanceof JViewport && p.getHeight() > getPreferredSize().height;
+        }
+    }
+
+    /** Text field that shows a grey hint while it is empty and unfocused. */
+    private static final class HintField extends JTextField {
+        private final String hint;
+        HintField(String hint) { this.hint = hint; setColumns(1); }
+        @Override protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (!getText().isEmpty() || isFocusOwner()) return;
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2.setColor(UI_MUTED);
+            g2.setFont(getFont().deriveFont(Font.ITALIC));
+            Insets in = getInsets();
+            FontMetrics fm = g2.getFontMetrics();
+            g2.drawString(hint, in.left, (getHeight() + fm.getAscent() - fm.getDescent()) / 2);
+            g2.dispose();
+        }
+    }
+
+    /** Flat, quiet button used inside a quote row and on the quotes toolbar. */
+    private static JButton flatButton(String text, String tip, Color fg, boolean primary) {
+        JButton b = new JButton(text);
+        b.setFont(primary ? UI_FONT_B : UI_FONT);
+        b.setToolTipText(tip);
+        b.setFocusPainted(false);
+        b.setContentAreaFilled(false);
+        b.setOpaque(true);
+        b.setForeground(primary ? Color.WHITE : fg);
+        Color base = primary ? UI_ACCENT : UI_CARD;
+        Color hover = primary ? UI_ACCENT_DK : UI_HOVER;
+        b.setBackground(base);
+        b.setBorder(new RoundBorder(primary ? UI_ACCENT : UI_BORDER, 8, 4, 10, 4, 10));
+        b.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { if (b.isEnabled()) b.setBackground(hover); }
+            @Override public void mouseExited (MouseEvent e) { b.setBackground(base); }
+        });
+        return b;
+    }
+
+    /** A row of the quotes list: one label-less strip of controls, fixed height. */
+    private static JPanel rowStrip() {
+        JPanel p = new JPanel(new BorderLayout(8, 0));
+        p.setAlignmentX(Component.LEFT_ALIGNMENT);
+        p.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UI_LINE),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)));
+        p.setMaximumSize(new Dimension(Integer.MAX_VALUE, ROW_H + 12));
+        p.setMinimumSize(new Dimension(320, ROW_H + 12));
+        return p;
+    }
+
+    /** Column captions above the rows, using the same fixed widths as a row. */
+    private JPanel quotesHeader() {
+        JPanel h = new JPanel(new BorderLayout(8, 0));
+        h.setBackground(UI_ROW_ALT);
+        h.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, UI_BORDER),
+                BorderFactory.createEmptyBorder(6, 10, 6, 10)));
+
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.X_AXIS));
+        left.setOpaque(false);
+        left.add(caption("#", COL_NUM, SwingConstants.RIGHT));
+        left.add(Box.createHorizontalStrut(8));
+        left.add(caption("Voice", COL_VOICE, SwingConstants.LEFT));
+        left.add(Box.createHorizontalStrut(6));
+        left.add(caption("2nd voice (optional)", COL_VOICE, SwingConstants.LEFT));
+        h.add(left, BorderLayout.WEST);
+
+        JLabel quote = new JLabel("Quote");
+        quote.setFont(UI_FONT_B);
+        quote.setForeground(UI_MUTED);
+        h.add(quote, BorderLayout.CENTER);
+        return h;
+    }
+
+    private static JLabel caption(String text, int width, int align) {
+        JLabel l = new JLabel(text, align);
+        l.setFont(UI_FONT_B);
+        l.setForeground(UI_MUTED);
+        fixWidth(l, width, 16);
+        return l;
+    }
+
+    private static void fixWidth(JComponent c, int w, int h) {
+        Dimension d = new Dimension(w, h);
+        c.setPreferredSize(d);
+        c.setMinimumSize(d);
+        c.setMaximumSize(d);
+    }
+
     private void buildUI() {
         Font mono = new Font(Font.MONOSPACED, Font.PLAIN, 13);
 
@@ -214,29 +383,75 @@ public class ElevenLabsStudio extends JFrame {
         addLineRow("", comboVal(ttsVoice));
 
         JPanel scriptPanel = new JPanel(new BorderLayout());
-        scriptPanel.setBorder(new TitledBorder(
-                "Quotes  (one per row · voice picker per row · Enter adds a new row)"));
+        scriptPanel.setBackground(UI_BG);
+        scriptPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
 
-        JPanel linesWrap = new JPanel(new BorderLayout());
-        linesWrap.add(linesContainer, BorderLayout.NORTH);
-        scriptPanel.add(new JScrollPane(linesWrap), BorderLayout.CENTER);
+        // ── title bar ────────────────────────────────────────────────────
+        JLabel scriptTitle = new JLabel("Quotes");
+        scriptTitle.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
+        scriptTitle.setForeground(UI_TEXT);
+        JLabel scriptHint = new JLabel("one quote per row  ·  pick a voice per row  ·  Enter adds a new row");
+        scriptHint.setFont(UI_FONT);
+        scriptHint.setForeground(UI_MUTED);
+        JPanel titleWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        titleWrap.setOpaque(false);
+        titleWrap.add(scriptTitle);
+        titleWrap.add(scriptHint);
 
-        JPanel scriptBtns = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        JButton addLine = new JButton("Add line");
+        lineCountLabel.setFont(UI_FONT);
+        lineCountLabel.setForeground(UI_MUTED);
+
+        JPanel scriptHead = new JPanel(new BorderLayout(12, 0));
+        scriptHead.setOpaque(false);
+        scriptHead.setBorder(BorderFactory.createEmptyBorder(0, 2, 8, 2));
+        scriptHead.add(titleWrap, BorderLayout.WEST);
+        scriptHead.add(lineCountLabel, BorderLayout.EAST);
+        scriptPanel.add(scriptHead, BorderLayout.NORTH);
+
+        // ── card: column header + the scrolling list of rows ─────────────
+        JPanel card = new JPanel(new BorderLayout());
+        card.setBackground(UI_CARD);
+        card.setBorder(new RoundBorder(UI_BORDER, 10, 1, 1, 1, 1));
+
+        card.add(quotesHeader(), BorderLayout.NORTH);
+
+        JScrollPane linesScroll = new JScrollPane(linesContainer,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        linesScroll.setBorder(BorderFactory.createEmptyBorder());
+        linesScroll.getViewport().setBackground(UI_CARD);
+        linesScroll.getVerticalScrollBar().setUnitIncrement(ROW_H + 10);
+        card.add(linesScroll, BorderLayout.CENTER);
+        scriptPanel.add(card, BorderLayout.CENTER);
+
+        // ── toolbar ──────────────────────────────────────────────────────
+        JButton addLine = flatButton("＋  Add line", "Append an empty quote row (or just press Enter in the last row)", UI_TEXT, true);
         addLine.addActionListener(e -> {
-            addLineRow("", comboVal(ttsVoice));
+            LineRow added = insertLineRow(lineRows.size(), "", comboVal(ttsVoice));
             refreshLines();
+            added.text.requestFocusInWindow();
         });
-        JButton loadScript = new JButton("Load file…");
+        JButton loadScript = flatButton("Load file…", "Replace the rows with the lines of a text file", UI_TEXT, false);
         loadScript.addActionListener(e -> loadScriptFile());
-        JButton saveScript = new JButton("Save as myscript.txt");
+        JButton saveScript = flatButton("Save as myscript.txt", "Write every row to myscript.txt in the work folder", UI_TEXT, false);
         saveScript.addActionListener(e -> saveScriptFile());
-        JButton clearLog = new JButton("Clear log");
+        JButton clearLog = flatButton("Clear log", "Empty the log panel below", UI_MUTED, false);
         clearLog.addActionListener(e -> logArea.setText(""));
-        scriptBtns.add(addLine);
-        scriptBtns.add(loadScript);
-        scriptBtns.add(saveScript);
-        scriptBtns.add(clearLog);
+
+        JPanel toolLeft = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        toolLeft.setOpaque(false);
+        toolLeft.add(addLine);
+        toolLeft.add(loadScript);
+        toolLeft.add(saveScript);
+        JPanel toolRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        toolRight.setOpaque(false);
+        toolRight.add(clearLog);
+
+        JPanel scriptBtns = new JPanel(new BorderLayout(8, 0));
+        scriptBtns.setOpaque(false);
+        scriptBtns.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
+        scriptBtns.add(toolLeft, BorderLayout.WEST);
+        scriptBtns.add(toolRight, BorderLayout.EAST);
         scriptPanel.add(scriptBtns, BorderLayout.SOUTH);
 
         logArea.setFont(mono);
@@ -249,6 +464,9 @@ public class ElevenLabsStudio extends JFrame {
 
         JSplitPane center = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scriptPanel, logPanel);
         center.setResizeWeight(0.42);
+        center.setBorder(null);
+        center.setDividerSize(6);
+        center.setBackground(UI_BG);
 
         JPanel west = new JPanel();
         west.setLayout(new BoxLayout(west, BoxLayout.Y_AXIS));
@@ -586,57 +804,100 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     private LineRow insertLineRow(int idx, String text, String voiceId) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
-        panel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JPanel panel = rowStrip();
+
+        JLabel num = new JLabel("", SwingConstants.RIGHT);
+        num.setFont(UI_FONT);
+        num.setForeground(UI_MUTED);
+        fixWidth(num, COL_NUM, ROW_H);
 
         String seed = (voiceId == null || voiceId.isEmpty()) ? comboVal(ttsVoice) : voiceId;
         JComboBox<String> voiceCb = voiceCombo(seed);
-        voiceCb.setPreferredSize(new Dimension(180, 24));
-        voiceCb.setMaximumSize(new Dimension(180, 24));
+        fixWidth(voiceCb, COL_VOICE, ROW_H);
+        voiceCb.setToolTipText("Voice used for this line.");
 
         JComboBox<String> voiceCb2 = voiceCombo2(NO_VOICE2);
-        voiceCb2.setPreferredSize(new Dimension(180, 24));
-        voiceCb2.setMaximumSize(new Dimension(180, 24));
+        fixWidth(voiceCb2, COL_VOICE, ROW_H);
         voiceCb2.setToolTipText("Optional 2nd voice. When set, this line is generated by BOTH voices "
                 + "and concatenated into one clip (gap set by \"voice-2 gap\" in the TTS panel). "
-                + "Leave on \"(no 2nd voice)\" for the normal single-voice behavior.");
+                + "Leave on \"no 2nd voice\" for the normal single-voice behavior.");
 
-        JTextField textField = new JTextField(text);
+        JPanel left = new JPanel();
+        left.setLayout(new BoxLayout(left, BoxLayout.X_AXIS));
+        left.setOpaque(false);
+        left.add(num);
+        left.add(Box.createHorizontalStrut(8));
+        left.add(voiceCb);
+        left.add(Box.createHorizontalStrut(6));
+        left.add(voiceCb2);
+        panel.add(left, BorderLayout.WEST);
+
+        // The quote itself takes whatever width is left over, so a long quote
+        // scrolls inside its own field instead of widening the row.
+        HintField textField = new HintField("Type a quote…");
+        textField.setText(text);
+        textField.setCaretPosition(0);          // long quotes read from the beginning
         textField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
+        textField.setForeground(UI_TEXT);
+        textField.setCaretColor(UI_ACCENT);
+        textField.setBorder(new RoundBorder(UI_BORDER, 8, 3, 8, 3, 8));
+        textField.setMinimumSize(new Dimension(60, ROW_H));
+        textField.setPreferredSize(new Dimension(COL_VOICE, ROW_H));
+        panel.add(textField, BorderLayout.CENTER);
 
-        JButton listen = new JButton("▶ Listen");
-        listen.setMargin(new Insets(2, 6, 2, 6));
-        listen.setToolTipText("Play the generated audio for this line inside the app (generates it first if missing)");
+        JButton listen = flatButton("▶", "Play the audio for this line inside the app "
+                + "(it is generated first if missing)", UI_ACCENT, false);
+        JButton regen = flatButton("↻", "Regenerate the audio for this line with its current voice(s)", UI_TEXT, false);
+        JButton applyAll = flatButton("⇊", "Copy this row's voice(s) to every line", UI_TEXT, false);
+        JButton remove = flatButton("✕", "Remove this line", UI_DANGER, false);
 
-        JButton regen = new JButton("↻ Regen");
-        regen.setMargin(new Insets(2, 6, 2, 6));
-        regen.setToolTipText("Regenerate audio for this line using its current voice");
+        JPanel right = new JPanel();
+        right.setLayout(new BoxLayout(right, BoxLayout.X_AXIS));
+        right.setOpaque(false);
+        for (JButton b : new JButton[]{listen, regen, applyAll, remove}) {
+            fixWidth(b, 32, ROW_H);
+            right.add(b);
+            right.add(Box.createHorizontalStrut(4));
+        }
+        panel.add(right, BorderLayout.EAST);
 
-        JButton applyAll = new JButton("→ all");
-        applyAll.setMargin(new Insets(2, 6, 2, 6));
-        applyAll.setToolTipText("Apply this row's voice(s) to all lines");
+        LineRow lr = new LineRow(panel, voiceCb, voiceCb2, textField, num);
 
-        JButton remove = new JButton("×");
-        remove.setMargin(new Insets(2, 6, 2, 6));
-        remove.setToolTipText("Remove this line");
+        MouseAdapter hover = new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) { lr.hovered = true;  paintRow(lr); }
+            @Override public void mouseExited (MouseEvent e) {
+                if (!panel.contains(SwingUtilities.convertPoint((Component) e.getSource(), e.getPoint(), panel))) {
+                    lr.hovered = false;
+                    paintRow(lr);
+                }
+            }
+        };
+        panel.addMouseListener(hover);
+        textField.addMouseListener(hover);
+        textField.addFocusListener(new FocusAdapter() {
+            @Override public void focusGained(FocusEvent e) {
+                lr.focused = true;
+                textField.setBorder(new RoundBorder(UI_ACCENT, 8, 3, 8, 3, 8));
+                paintRow(lr);
+            }
+            @Override public void focusLost(FocusEvent e) {
+                lr.focused = false;
+                textField.setBorder(new RoundBorder(UI_BORDER, 8, 3, 8, 3, 8));
+                paintRow(lr);
+                textField.repaint();
+            }
+        });
 
-        panel.add(voiceCb);
-        panel.add(Box.createHorizontalStrut(6));
-        panel.add(voiceCb2);
-        panel.add(Box.createHorizontalStrut(6));
-        panel.add(textField);
-        panel.add(Box.createHorizontalStrut(6));
-        panel.add(listen);
-        panel.add(Box.createHorizontalStrut(4));
-        panel.add(regen);
-        panel.add(Box.createHorizontalStrut(4));
-        panel.add(applyAll);
-        panel.add(Box.createHorizontalStrut(4));
-        panel.add(remove);
-
-        LineRow lr = new LineRow(panel, voiceCb, voiceCb2, textField);
+        textField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e)  { quoteChanged(); }
+            @Override public void removeUpdate(DocumentEvent e)  { quoteChanged(); }
+            @Override public void changedUpdate(DocumentEvent e) { quoteChanged(); }
+            private void quoteChanged() {
+                textField.setToolTipText(quoteTip(textField.getText()));
+                updateLineCount();
+            }
+        });
+        textField.setToolTipText(quoteTip(text));
 
         listen.addActionListener(e -> listenLine(lr));
         regen.addActionListener(e -> runInBackground(() -> regenerateLine(lr)));
@@ -644,10 +905,11 @@ public class ElevenLabsStudio extends JFrame {
             String v1 = comboVal(lr.voice);
             String v2 = comboVal(lr.voice2);
             for (LineRow r : lineRows) {
-                r.voice.setSelectedItem(v1);
-                r.voice2.setSelectedItem(v2);
-                if (r.voice2.isEditable()) r.voice2.getEditor().setItem(v2);
+                selectVoice(r.voice, v1);
+                selectVoice(r.voice2, v2);
             }
+            log("Voice applied to all " + lineRows.size() + " lines: " + voiceLabel(v1)
+                    + (v2.isEmpty() ? "" : "  +  " + voiceLabel(v2)));
         });
         remove.addActionListener(e -> {
             lineRows.remove(lr);
@@ -655,6 +917,7 @@ public class ElevenLabsStudio extends JFrame {
             voiceCombos.remove(lr.voice);
             voiceCombos.remove(lr.voice2);
             voice2Combos.remove(lr.voice2);
+            if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
             refreshLines();
         });
         textField.addActionListener(e -> {
@@ -670,9 +933,40 @@ public class ElevenLabsStudio extends JFrame {
         return lr;
     }
 
+    /** Row background: focus wins over hover, otherwise plain zebra striping. */
+    private static void paintRow(LineRow r) {
+        Color bg = r.focused   ? UI_ROW_FOCUS
+                 : r.hovered   ? UI_ROW_HOVER
+                 : (r.index % 2 == 0 ? UI_CARD : UI_ROW_ALT);
+        r.panel.setBackground(bg);
+        r.panel.repaint();
+    }
+
     private void refreshLines() {
+        for (int i = 0; i < lineRows.size(); i++) {
+            LineRow r = lineRows.get(i);
+            r.index = i;
+            r.num.setText(String.valueOf(i + 1));
+            paintRow(r);
+        }
+        updateLineCount();
         linesContainer.revalidate();
         linesContainer.repaint();
+    }
+
+    private void updateLineCount() {
+        int filled = 0;
+        for (LineRow r : lineRows) if (!r.text.getText().trim().isEmpty()) filled++;
+        lineCountLabel.setText(lineRows.size() + (lineRows.size() == 1 ? " row" : " rows")
+                + "  ·  " + filled + " with text");
+    }
+
+    /** A wrapped tooltip so a quote too long for its field can still be read in full. */
+    private static String quoteTip(String text) {
+        String t = text == null ? "" : text.trim();
+        if (t.isEmpty()) return "Type the quote for this line. Enter adds a new line below.";
+        String esc = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+        return "<html><body style='width:380px'>" + esc + "</body></html>";
     }
 
     private void clearLineRows() {
@@ -767,7 +1061,7 @@ public class ElevenLabsStudio extends JFrame {
             log("Voice added in memory, but saving the library failed: " + e.getMessage());
         }
         rebuildVoiceCombos();
-        ttsVoice.setSelectedItem(i);
+        SwingUtilities.invokeLater(() -> selectVoice(ttsVoice, i));
     }
 
     private void removeVoiceDialog() {
@@ -794,11 +1088,13 @@ public class ElevenLabsStudio extends JFrame {
             for (JComboBox<String> cb : voiceCombos) {
                 boolean hasNone = voice2Combos.contains(cb);
                 String current = comboVal(cb);
+                ActionListener[] listeners = cb.getActionListeners();
+                for (ActionListener l : listeners) cb.removeActionListener(l);
                 cb.removeAllItems();
-                if (hasNone) cb.addItem(NO_VOICE2);
-                for (String[] v : VOICES) cb.addItem(v[1]);
-                cb.setSelectedItem(current);
-                if (cb.isEditable()) cb.getEditor().setItem(current);
+                fillVoiceItems(cb, hasNone);
+                selectVoice(cb, current);           // re-adds an ID the library no longer holds
+                for (ActionListener l : listeners) cb.addActionListener(l);
+                cb.setToolTipText(voiceTip(comboVal(cb), hasNone));
             }
             refreshLines();
         });
@@ -1100,9 +1396,11 @@ public class ElevenLabsStudio extends JFrame {
         log("Generated " + ok + " out of " + items.size() + " audio files.");
     }
 
+    /** "name / id" for tooltips and log lines; the raw ID when the library does not know it. */
     private static String voiceLabel(String id) {
-        String n = voiceName(id);
-        return n == null ? id : n + " / " + id;
+        if (id == null || id.trim().isEmpty()) return "(none)";
+        String n = voiceName(id.trim());
+        return n == null ? id.trim() : n + " / " + id.trim();
     }
 
     private static boolean isV3(String modelId) {
@@ -3443,49 +3741,193 @@ public class ElevenLabsStudio extends JFrame {
     };
     private static final String[] STT_MODELS = { "scribe_v2", "scribe_v1" };
 
-    private JComboBox<String> voiceCombo(String defaultId) {
-        JComboBox<String> cb = new JComboBox<>();
-        for (String[] v : VOICES) cb.addItem(v[1]);
-        cb.setEditable(true);
-        cb.setSelectedItem(defaultId);
-        cb.setRenderer(new DefaultListCellRenderer() {
-            @Override public Component getListCellRendererComponent(JList<?> list, Object value,
-                                                                    int index, boolean isSel, boolean focus) {
-                super.getListCellRendererComponent(list, value, index, isSel, focus);
-                String id = String.valueOf(value);
-                String name = voiceName(id);
-                setText(name == null ? id : name + "  —  " + id);
-                return this;
-            }
-        });
-        voiceCombos.add(cb);
-        return cb;
-    }
-
     /** Sentinel value for the optional 2nd-voice dropdown: empty = "no 2nd voice". */
     private static final String NO_VOICE2 = "";
 
-    /** Like voiceCombo, but with a leading "(no 2nd voice)" option and registered for none-restore. */
+    /** Last item of every voice dropdown: opens a prompt for an ID that is not in the library. */
+    private static final String CUSTOM_VOICE = "…custom-voice-id";
+
+    private JComboBox<String> voiceCombo(String defaultId) {
+        return buildVoiceCombo(defaultId, false);
+    }
+
+    /** Like voiceCombo, but with a leading "no 2nd voice" option and registered for none-restore. */
     private JComboBox<String> voiceCombo2(String defaultId) {
+        return buildVoiceCombo(defaultId == null ? NO_VOICE2 : defaultId, true);
+    }
+
+    /**
+     * A voice picker that shows the voice NAME (never the bare ID) when closed, so
+     * nothing is cut off, and the name above its full ID in a widened dropdown.
+     * Typing jumps to a voice by name; the last entry takes a raw ID for a voice
+     * that is not in the library.
+     */
+    private JComboBox<String> buildVoiceCombo(String defaultId, boolean withNone) {
         JComboBox<String> cb = new JComboBox<>();
-        cb.addItem(NO_VOICE2);
-        for (String[] v : VOICES) cb.addItem(v[1]);
-        cb.setEditable(true);
-        cb.setSelectedItem(defaultId == null ? NO_VOICE2 : defaultId);
-        cb.setRenderer(new DefaultListCellRenderer() {
-            @Override public Component getListCellRendererComponent(JList<?> list, Object value,
-                                                                    int index, boolean isSel, boolean focus) {
-                super.getListCellRendererComponent(list, value, index, isSel, focus);
-                String id = value == null ? "" : String.valueOf(value);
-                if (id.isEmpty()) { setText("(no 2nd voice)"); return this; }
-                String name = voiceName(id);
-                setText(name == null ? id : name + "  \u2014  " + id);
-                return this;
+        fillVoiceItems(cb, withNone);
+        cb.setEditable(false);
+        cb.setFont(UI_FONT);
+        cb.setForeground(UI_TEXT);
+        cb.setBackground(UI_CARD);
+        cb.setMaximumRowCount(9);
+        cb.setRenderer(new VoiceRenderer(withNone));
+        selectVoice(cb, defaultId);
+
+        final String[] previous = { comboVal(cb) };
+        cb.addActionListener(e -> {
+            Object sel = cb.getSelectedItem();
+            if (CUSTOM_VOICE.equals(sel)) {
+                String was = previous[0];
+                SwingUtilities.invokeLater(() -> askCustomVoice(cb, was));
+                return;
             }
+            previous[0] = comboVal(cb);
+            cb.setToolTipText(voiceTip(previous[0], withNone));
         });
+        cb.setToolTipText(voiceTip(comboVal(cb), withNone));
+
+        installWidePopup(cb);
+        installNameSearch(cb);
         voiceCombos.add(cb);
-        voice2Combos.add(cb);
+        if (withNone) voice2Combos.add(cb);
         return cb;
+    }
+
+    private static void fillVoiceItems(JComboBox<String> cb, boolean withNone) {
+        if (withNone) cb.addItem(NO_VOICE2);
+        for (String[] v : VOICES) cb.addItem(v[1]);
+        cb.addItem(CUSTOM_VOICE);
+    }
+
+    /** Selects a voice ID, adding it to the dropdown first when it is not in the library. */
+    private static void selectVoice(JComboBox<String> cb, String id) {
+        String want = id == null ? "" : id.trim();
+        if (CUSTOM_VOICE.equals(want)) want = "";
+        boolean has = false;
+        for (int i = 0; i < cb.getItemCount(); i++) {
+            if (want.equals(cb.getItemAt(i))) { has = true; break; }
+        }
+        if (!has) {
+            if (want.isEmpty()) {                       // a 1st-voice picker has no "none" entry
+                if (cb.getItemCount() > 0 && !CUSTOM_VOICE.equals(cb.getItemAt(0))) cb.setSelectedIndex(0);
+                return;
+            }
+            cb.insertItemAt(want, Math.max(0, cb.getItemCount() - 1));   // keep "custom…" last
+        }
+        cb.setSelectedItem(want);
+    }
+
+    private void askCustomVoice(JComboBox<String> cb, String previous) {
+        String id = (String) JOptionPane.showInputDialog(this,
+                "Paste an ElevenLabs voice ID for this line:\n"
+                        + "(use \"0 · Voice Library ▸ ＋ Add voice…\" to give it a name)",
+                "Custom voice ID", JOptionPane.PLAIN_MESSAGE, null, null, "");
+        String pick = (id == null || id.trim().isEmpty()) ? previous : id.trim();
+        selectVoice(cb, pick);
+    }
+
+    private static String voiceTip(String id, boolean withNone) {
+        if (id == null || id.isEmpty())
+            return withNone ? "No 2nd voice — this line is spoken by one voice only." : "No voice selected.";
+        return voiceLabel(id);
+    }
+
+    /**
+     * Widens the dropdown list past the (narrow) closed picker. BasicComboPopup fixes
+     * the list to the combo width while it is opening, so the resize is queued for
+     * right after the popup is on screen.
+     */
+    private static void installWidePopup(JComboBox<String> cb) {
+        cb.addPopupMenuListener(new PopupMenuListener() {
+            @Override public void popupMenuWillBecomeVisible(PopupMenuEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    Object child = cb.getUI().getAccessibleChild(cb, 0);
+                    if (!(child instanceof JPopupMenu)) return;
+                    JPopupMenu popup = (JPopupMenu) child;
+                    if (!popup.isShowing() || popup.getComponentCount() == 0) return;
+                    Component c0 = popup.getComponent(0);
+                    if (!(c0 instanceof JScrollPane)) return;
+                    JScrollPane sp = (JScrollPane) c0;
+                    int w = Math.max(cb.getWidth(), 300);
+                    if (sp.getWidth() >= w) return;
+                    Dimension d = new Dimension(w, sp.getHeight());
+                    sp.setMinimumSize(d);
+                    sp.setPreferredSize(d);
+                    sp.setMaximumSize(d);
+                    popup.setPopupSize(w, popup.getHeight());
+                });
+            }
+            @Override public void popupMenuWillBecomeInvisible(PopupMenuEvent e) { }
+            @Override public void popupMenuCanceled(PopupMenuEvent e) { }
+        });
+    }
+
+    /** Typing a letter jumps to the voice whose NAME starts with it, not its ID. */
+    private static void installNameSearch(JComboBox<String> cb) {
+        cb.setKeySelectionManager((aKey, model) -> {
+            String key = String.valueOf(aKey).toLowerCase(Locale.ROOT);
+            int size = model.getSize();
+            int from = Math.max(0, cb.getSelectedIndex() + 1);
+            for (int step = 0; step < size; step++) {
+                int i = (from + step) % size;
+                Object o = model.getElementAt(i);
+                String id = o == null ? "" : o.toString();
+                if (id.isEmpty() || CUSTOM_VOICE.equals(id)) continue;
+                String name = voiceName(id);
+                String hay = (name == null ? id : name).toLowerCase(Locale.ROOT);
+                if (hay.startsWith(key)) return i;
+            }
+            return -1;
+        });
+    }
+
+    /**
+     * Draws a voice as its NAME, with the raw ID on a second, quieter line inside the
+     * dropdown. The closed picker shows the name only, so a narrow row never cuts it.
+     */
+    private final class VoiceRenderer extends JPanel implements ListCellRenderer<Object> {
+        private final JLabel name = new JLabel();
+        private final JLabel id   = new JLabel();
+        private final boolean withNone;
+
+        VoiceRenderer(boolean withNone) {
+            super(new BorderLayout(0, 1));
+            this.withNone = withNone;
+            this.name.setFont(UI_FONT);
+            this.id.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 10));
+            add(this.name, BorderLayout.CENTER);
+            add(this.id, BorderLayout.SOUTH);
+        }
+
+        @Override public Component getListCellRendererComponent(JList<?> list, Object value,
+                                                                int index, boolean isSel, boolean focus) {
+            String v = value == null ? "" : value.toString();
+            boolean custom = CUSTOM_VOICE.equals(v);
+            boolean none   = v.isEmpty();
+            boolean closed = index < 0;                       // the picker itself, not a popup row
+
+            String label;
+            if (custom)     label = "✎  Custom voice ID…";
+            else if (none)  label = withNone ? "no 2nd voice" : "— none —";
+            else {
+                String n = voiceName(v);
+                label = n == null ? v : n;
+            }
+            name.setText(label);
+            name.setFont(none || custom ? UI_FONT.deriveFont(Font.ITALIC)
+                                        : (isSel && !closed ? UI_FONT_B : UI_FONT));
+            boolean showId = !closed && !custom && !none;
+            id.setVisible(showId);
+            id.setText(showId ? v : "");
+            setBorder(BorderFactory.createEmptyBorder(closed ? 0 : 4, 7, closed ? 0 : 4, 7));
+
+            setOpaque(!closed);
+            setBackground(isSel && !closed ? UI_ACCENT : UI_CARD);
+            name.setForeground(isSel && !closed ? Color.WHITE : (none || custom ? UI_MUTED : UI_TEXT));
+            id.setForeground(isSel && !closed ? new Color(0xD8, 0xE4, 0xFF) : UI_MUTED);
+            setToolTipText(showId ? voiceLabel(v) : null);
+            return this;
+        }
     }
 
     private static JComboBox<String> modelCombo(String defaultId) {
@@ -3505,7 +3947,8 @@ public class ElevenLabsStudio extends JFrame {
     private static String comboVal(JComboBox<String> cb) {
         Object o = cb.isEditable() ? cb.getEditor().getItem() : cb.getSelectedItem();
         if (o == null) o = cb.getSelectedItem();
-        return o == null ? "" : o.toString().trim();
+        String v = o == null ? "" : o.toString().trim();
+        return CUSTOM_VOICE.equals(v) ? "" : v;
     }
 
     private static class Word {
@@ -3518,6 +3961,9 @@ public class ElevenLabsStudio extends JFrame {
         final JComboBox<String> voice;
         final JComboBox<String> voice2;   // optional 2nd voice ("" = none)
         final JTextField text;
+        final JLabel num;             // 1-based row number, refreshed by refreshLines()
+        int index;                    // position used for zebra striping
+        boolean hovered, focused;     // row highlight state
         /**
          * The Excel-batch cell this line owns, or null for an ordinary line. Only
          * ▶ Listen and ↻ Regen look at it: when it is set they act on that file, so
@@ -3525,8 +3971,8 @@ public class ElevenLabsStudio extends JFrame {
          * link in if the sheet cell is still empty (the cell failed its batch).
          */
         BatchCell batch;
-        LineRow(JPanel p, JComboBox<String> v, JComboBox<String> v2, JTextField t) {
-            panel = p; voice = v; voice2 = v2; text = t;
+        LineRow(JPanel p, JComboBox<String> v, JComboBox<String> v2, JTextField t, JLabel n) {
+            panel = p; voice = v; voice2 = v2; text = t; num = n;
         }
     }
 
