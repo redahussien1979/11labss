@@ -103,6 +103,9 @@ public class ElevenLabsStudio extends JFrame {
     private final JTextField xlBaseUrl    = new JTextField("");
     private final JComboBox<String> xlVoice  = voiceCombo("TX3LPaxmHKxFdv7VOQHJ");
     private final JComboBox<String> xlVoice2 = voiceCombo2(null);   // blank = 1st voice everywhere
+    // off = voice 2 alternates between the text columns; on = every cell is spoken by
+    // BOTH voices and the two clips are joined into one MP3, as a quotes line does.
+    private final JCheckBox xlJoinVoices = new JCheckBox("Join voice 2 into one clip", false);
 
     private final JComboBox<String> sttModel  = sttModelCombo("scribe_v2");
     private final JCheckBox vidExtract = new JCheckBox("FFmpeg audio extract", true);
@@ -490,7 +493,7 @@ public class ElevenLabsStudio extends JFrame {
 
         JPanel ttsBox = settingsBox("1 · Generate Audio (TTS)");
         ttsVoice.setToolTipText("Default voice for new lines. Each line in the script has its own voice picker that overrides this.");
-        addRow(ttsBox, "Default voice", ttsVoice);
+        addRow(ttsBox, "Default voice", ttsVoice, VOICE_FIELD_W);
         addRow(ttsBox, "Model ID", ttsModel);
         ttsSpeed.setToolTipText("0.7 – 1.2 (1.0 = normal). Ignored by eleven_v3, which has no speed setting.");
         ttsStab .setToolTipText("0.0 – 1.0. eleven_v3 accepts only 0.0 (creative), 0.5 (natural), 1.0 (robust).");
@@ -641,12 +644,23 @@ public class ElevenLabsStudio extends JFrame {
         addRow(xlBox, "First row", xlStartRow);
         xlVoice.setToolTipText("<html>Voice for the batch. With no 2nd voice below it speaks every "
                 + "column.<br>Model and voice settings come from box 1.</html>");
-        addRow(xlBox, "Voice", xlVoice);
-        xlVoice2.setToolTipText("<html>Optional 2nd voice. When set, the columns <b>alternate</b> between "
-                + "the two voices<br>in the order they are listed: with A-J, voice 1 speaks A, C, E, G, I "
-                + "and voice 2 speaks B, D, F, H, J.<br>Leave on \"(no 2nd voice)\" to use voice 1 "
+        addRow(xlBox, "Voice", xlVoice, VOICE_FIELD_W);
+        xlVoice2.setToolTipText("<html>Optional 2nd voice. What it does depends on the box below:<br>"
+                + "<b>unticked</b> — the columns <b>alternate</b> between the two voices in the order "
+                + "they are listed:<br>with A-J, voice 1 speaks A, C, E, G, I and voice 2 speaks "
+                + "B, D, F, H, J.<br>"
+                + "<b>ticked</b> — every cell is spoken by <b>both</b> voices and the two clips are "
+                + "<b>joined into one MP3</b>.<br>Leave on \"no 2nd voice\" to use voice 1 "
                 + "everywhere.</html>");
-        addRow(xlBox, "Voice 2", xlVoice2);
+        addRow(xlBox, "Voice 2", xlVoice2, VOICE_FIELD_W);
+        xlJoinVoices.setToolTipText("<html>Ticked, each cell is generated <b>twice</b> — once per voice — "
+                + "and the two clips are concatenated<br>into the single MP3 that cell's link points to, "
+                + "exactly like a quotes line with a 2nd voice.<br>The silence between them is the "
+                + "\"voice-2 gap\" in box 1, and every text column uses both voices.<br>"
+                + "Unticked, voice 2 alternates between the columns instead.<br>"
+                + "<i>Note: two API calls per cell.</i></html>");
+        xlJoinVoices.setAlignmentX(Component.LEFT_ALIGNMENT);
+        xlBox.add(xlJoinVoices);
         xlBaseUrl.setToolTipText("<html>Optional. Blank writes the full file path.<br>"
                 + "Set e.g. https://my.site/audio to write a web link instead:<br>"
                 + "https://my.site/audio/&lt;new folder&gt;/&lt;file&gt;.mp3</html>");
@@ -688,13 +702,21 @@ public class ElevenLabsStudio extends JFrame {
     /** A text area with a small caption above it (for the 3-column selected-words layout). */
     private static final int FIELD_W = 100;
 
+    /** Voice pickers get a wider field than a number box, so a voice name fits. */
+    private static final int VOICE_FIELD_W = 132;
+
     private void addRow(JPanel box, String label, JComponent field) {
+        addRow(box, label, field, FIELD_W);
+    }
+
+    /** Same row, with a wider field — voice pickers need the room for a full name. */
+    private void addRow(JPanel box, String label, JComponent field, int fieldW) {
         JLabel l = new JLabel(label);
         l.setPreferredSize(new Dimension(80, 24));
         l.setMaximumSize(new Dimension(80, 24));
 
-        field.setPreferredSize(new Dimension(FIELD_W, 24));
-        field.setMaximumSize(new Dimension(FIELD_W, 24));
+        field.setPreferredSize(new Dimension(fieldW, 24));
+        field.setMaximumSize(new Dimension(fieldW, 24));
 
         JPanel row = new JPanel();
         row.setLayout(new BoxLayout(row, BoxLayout.X_AXIS));
@@ -2957,13 +2979,15 @@ public class ElevenLabsStudio extends JFrame {
                     + " from row " + xlFirstRow() + " of " + book.getName());
             return;
         }
-        Map<Integer, String> voiceOf = voiceByColumn(textCols);
+        Map<Integer, String> voiceOf  = voiceByColumn(textCols);
+        Map<Integer, String> voice2Of = voice2ByColumn(textCols);
         Map<String, BatchCell> earlier = lastBatchFiles(book);   // audio from a previous batch, if any
         int[] attached = {0};
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
             for (SheetCell c : cells) {
                 LineRow r = insertLineRow(lineRows.size(), c.text, voiceOf.get(c.col));
+                selectVoice(r.voice2, voice2Of.get(c.col));
                 BatchCell b = earlier.get(XlsxWriter.colLetter(c.col) + c.row);
                 if (b != null) { r.batch = b; attached[0]++; }
             }
@@ -2975,6 +2999,9 @@ public class ElevenLabsStudio extends JFrame {
         });
         log("Excel: loaded " + cells.size() + " cells from " + colList(textCols)
                 + " of " + book.getName() + " (row by row)");
+        if (xlJoining())
+            log("Excel: every line carries both voices — Generate Audio (TTS) joins each one "
+                    + "into a single MP3.");
     }
 
     /** Read the text column(s), voice every cell into a fresh folder, write the links back. */
@@ -3002,11 +3029,16 @@ public class ElevenLabsStudio extends JFrame {
         Map<Integer, Integer> linkOf = new LinkedHashMap<>();
         for (int i = 0; i < textCols.size(); i++) linkOf.put(textCols.get(i), linkCols.get(i));
 
-        Map<Integer, String> voiceOf = voiceByColumn(textCols);
+        Map<Integer, String> voiceOf  = voiceByColumn(textCols);
+        Map<Integer, String> voice2Of = voice2ByColumn(textCols);
 
         log("File  : " + book.getAbsolutePath());
         log("Pairs : " + pairList(textCols, linkCols));
-        log("Voices: " + voiceSplit(textCols, voiceOf));
+        log("Voices: " + voiceSplit(textCols, voiceOf, voice2Of));
+        if (xlJoining())
+            log("        both voices speak every cell and the two clips are joined into one MP3"
+                    + String.format(Locale.US, " (%.2fs gap)", Math.max(0, dblField(ttsVoice2Gap, 0.5)))
+                    + " — two API calls per cell.");
         log("Found " + cells.size() + " cells of text (rows " + cells.get(0).row
                 + "–" + cells.get(cells.size() - 1).row + ")");
 
@@ -3052,12 +3084,15 @@ public class ElevenLabsStudio extends JFrame {
             SheetCell c = cells.get(i);
             String cellRef = XlsxWriter.colLetter(c.col) + c.row;
             String voice   = voiceOf.get(c.col);
+            String voice2  = voice2Of.get(c.col);
+            boolean two    = voice2 != null && !voice2.isEmpty();
             File out = new File(outDir, multi ? prefix + "_" + cellRef + ".mp3"
                                               : prefix + (i + 1) + ".mp3");
             log("Generating audio " + (i + 1) + "/" + cells.size() + " (" + cellRef + ") [voice "
-                    + voiceLabel(voice) + "]: \"" + preview(c.text) + "\"");
+                    + voiceLabel(voice) + (two ? " + " + voiceLabel(voice2) : "")
+                    + "]: \"" + preview(c.text) + "\"");
             made.add(new MadeCell(cellRef, c.col, c.text, out, c.row, linkOf.get(c.col)));
-            if (generateOneTts(voice, c.text, model, settings, out)) {
+            if (generateLineTts(voice, voice2, c.text, model, settings, out)) {
                 ok++;
                 int linkCol = linkOf.get(c.col);
                 String link = audioLink(outDir, out);
@@ -3081,7 +3116,7 @@ public class ElevenLabsStudio extends JFrame {
 
         // put the generated cells in the quotes panel, each line owning its file,
         // so ▶ Listen and ↻ Regen work on the batch audio straight away
-        showBatchInPanel(made, book, voiceOf);
+        showBatchInPanel(made, book, voiceOf, voice2Of);
         log("The " + made.size() + " lines are in the quotes panel — ▶ Listen to check one, "
                 + "↻ Regen to redo it in place (its link stays valid).");
 
@@ -3134,12 +3169,14 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     /** Fills the quotes panel with the cells just generated, each line owning its file. */
-    private void showBatchInPanel(List<MadeCell> made, File book, Map<Integer, String> voiceOf) {
+    private void showBatchInPanel(List<MadeCell> made, File book,
+                                  Map<Integer, String> voiceOf, Map<Integer, String> voice2Of) {
         String sheet = sheetSel();
         SwingUtilities.invokeLater(() -> {
             clearLineRows();
             for (MadeCell m : made) {
                 LineRow r = insertLineRow(lineRows.size(), m.text, voiceOf.get(m.col));
+                selectVoice(r.voice2, voice2Of == null ? "" : voice2Of.get(m.col));
                 r.batch = new BatchCell(m.file, book, sheet, m.linkRow, m.linkCol);
             }
             if (lineRows.isEmpty()) addLineRow("", comboVal(ttsVoice));
@@ -3328,29 +3365,56 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     /**
-     * The voice each text column is spoken in. With a 2nd voice set, the columns
-     * alternate between the two in the order they were listed; otherwise every
-     * column uses the 1st voice.
+     * True when the batch should speak every cell with BOTH voices and join the two
+     * clips into one MP3 — the "Join voice 2 into one clip" box, with a 2nd voice
+     * that is actually different from the 1st.
+     */
+    private boolean xlJoining() {
+        String v1 = comboVal(xlVoice), v2 = comboVal(xlVoice2);
+        return xlJoinVoices.isSelected() && !v2.isEmpty() && !v2.equalsIgnoreCase(v1);
+    }
+
+    /**
+     * The voice each text column is spoken in. With a 2nd voice set the columns
+     * alternate between the two in the order they were listed; while joining they
+     * all lead with the 1st voice (the 2nd comes from voice2ByColumn), and with no
+     * 2nd voice every column uses the 1st.
      */
     private Map<Integer, String> voiceByColumn(List<Integer> textCols) {
         String v1 = comboVal(xlVoice), v2 = comboVal(xlVoice2);
-        boolean alt = !v2.isEmpty() && !v2.equals(v1);
+        boolean alt = !xlJoinVoices.isSelected() && !v2.isEmpty() && !v2.equals(v1);
         Map<Integer, String> out = new LinkedHashMap<>();
         for (int i = 0; i < textCols.size(); i++)
             out.put(textCols.get(i), (alt && i % 2 == 1) ? v2 : v1);
         return out;
     }
 
-    /** "A, C, E → Liam · B, D → Brian", for the log. */
-    private static String voiceSplit(List<Integer> textCols, Map<Integer, String> voiceOf) {
+    /**
+     * The 2nd voice each column is joined with — the same voice everywhere while
+     * joining, and "" (no 2nd voice) otherwise.
+     */
+    private Map<Integer, String> voice2ByColumn(List<Integer> textCols) {
+        String v2 = xlJoining() ? comboVal(xlVoice2) : "";
+        Map<Integer, String> out = new LinkedHashMap<>();
+        for (int c : textCols) out.put(c, v2);
+        return out;
+    }
+
+    /** "A, C, E → Liam · B, D → Brian", or "A, B → Liam + Brian" while joining, for the log. */
+    private static String voiceSplit(List<Integer> textCols,
+                                     Map<Integer, String> voiceOf,
+                                     Map<Integer, String> voice2Of) {
         Map<String, List<String>> byVoice = new LinkedHashMap<>();
-        for (int c : textCols)
-            byVoice.computeIfAbsent(voiceOf.get(c), v -> new ArrayList<>())
-                   .add(XlsxWriter.colLetter(c));
+        for (int c : textCols) {
+            String v2 = voice2Of == null ? "" : voice2Of.get(c);
+            String key = voiceLabel(voiceOf.get(c))
+                    + (v2 == null || v2.isEmpty() ? "" : "  +  " + voiceLabel(v2));
+            byVoice.computeIfAbsent(key, v -> new ArrayList<>()).add(XlsxWriter.colLetter(c));
+        }
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, List<String>> e : byVoice.entrySet()) {
             if (sb.length() > 0) sb.append("  ·  ");
-            sb.append(String.join(", ", e.getValue())).append(" → ").append(voiceLabel(e.getKey()));
+            sb.append(String.join(", ", e.getValue())).append(" → ").append(e.getKey());
         }
         return sb.toString();
     }
