@@ -1,0 +1,1905 @@
+<title>الطاقة الحرارية — أسئلة محلولة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F2F5F7; --surface:#FFFFFF; --surface-2:#EAEFF2;
+  --ink:#111A20; --ink-2:#3C4C57; --ink-3:#6B7C88;
+  --rule:#CFD9E0; --rule-soft:#E2E9ED;
+  --cool:#12688F; --amber:#A66A12; --ember:#B33A22;
+  --verify:#1F7A4D; --verify-bg:#E7F3EC; --verify-rule:#9FCFB4;
+  --accent:var(--cool);
+  --shadow:0 1px 2px rgba(17,26,32,.06), 0 8px 24px -18px rgba(17,26,32,.5);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0D1319; --surface:#141C23; --surface-2:#1B242C;
+    --ink:#E6EDF2; --ink-2:#AFC0CC; --ink-3:#7D909D;
+    --rule:#2A3742; --rule-soft:#222D36;
+    --cool:#5FB4DA; --amber:#E0AC57; --ember:#F0836A;
+    --verify:#63C494; --verify-bg:#142C21; --verify-rule:#2E5F45;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0D1319; --surface:#141C23; --surface-2:#1B242C;
+  --ink:#E6EDF2; --ink-2:#AFC0CC; --ink-3:#7D909D;
+  --rule:#2A3742; --rule-soft:#222D36;
+  --cool:#5FB4DA; --amber:#E0AC57; --ember:#F0836A;
+  --verify:#63C494; --verify-bg:#142C21; --verify-rule:#2E5F45;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans Arabic","Segoe UI",Tahoma,sans-serif;
+  font-size:16.5px; line-height:1.85; direction:rtl;
+}
+.wrap{max-width:60rem; margin:0 auto; padding:0 clamp(1rem,4vw,2.5rem) 5rem}
+
+/* ---------- رأس الصفحة ---------- */
+.masthead{padding:clamp(2.5rem,7vw,4.5rem) 0 1.75rem; border-bottom:1px solid var(--rule)}
+.eyebrow{
+  font-size:.78rem; font-weight:500; color:var(--ink-3);
+  display:flex; gap:.65rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem;
+}
+.latin{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem;
+  letter-spacing:.16em; text-transform:uppercase; direction:ltr; unicode-bidi:isolate}
+.eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--ember)}
+h1{
+  font-family:"Readex Pro","IBM Plex Sans Arabic",sans-serif; font-weight:600;
+  font-size:clamp(2rem,5.5vw,3.1rem); line-height:1.25; margin:0 0 .6rem;
+  text-wrap:balance;
+}
+.standfirst{margin:0; max-width:52ch; color:var(--ink-2); font-size:1.03rem}
+.ramp{height:4px; border-radius:2px; margin:1.6rem 0 1.3rem;
+  background:linear-gradient(to left,var(--cool),var(--amber),var(--ember))}
+.facts{display:flex; flex-wrap:wrap; gap:0 2.25rem; padding:0; margin:0; list-style:none}
+.facts div{padding:.55rem 0}
+.facts dt{font-size:.76rem; font-weight:500; color:var(--ink-3)}
+.facts dd{margin:.15rem 0 0; font-weight:600; font-size:.97rem; font-variant-numeric:tabular-nums}
+
+/* ---------- شريط الأدوات ---------- */
+.bar{
+  position:sticky; top:0; z-index:20; background:color-mix(in srgb,var(--paper) 88%, transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--rule);
+  margin:0 calc(-1 * clamp(1rem,4vw,2.5rem)); padding:.6rem clamp(1rem,4vw,2.5rem);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+}
+.bar .state{font-size:.85rem; font-weight:500; color:var(--ink-3)}
+button.toggle{
+  font-family:"IBM Plex Sans Arabic",sans-serif; font-size:.9rem; font-weight:600;
+  color:var(--surface); background:var(--ink); border:1px solid var(--ink);
+  border-radius:999px; padding:.42rem 1.15rem; cursor:pointer; transition:opacity .15s;
+}
+button.toggle:hover{opacity:.85}
+button.toggle:focus-visible{outline:3px solid var(--cool); outline-offset:2px}
+
+/* ---------- الأقسام ---------- */
+section.lesson{margin-top:3.5rem}
+.lesson-head{display:flex; gap:1rem; align-items:baseline; border-bottom:2px solid var(--accent); padding-bottom:.7rem}
+.lesson-num{
+  font-family:"IBM Plex Mono",monospace; font-size:1.5rem; font-weight:600;
+  color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:-.02em;
+}
+.lesson-head h2{font-family:"Readex Pro",sans-serif; font-weight:600; font-size:clamp(1.3rem,3.4vw,1.75rem);
+  margin:0; line-height:1.3}
+.lesson-topics{color:var(--ink-3); font-size:.88rem; margin:.7rem 0 0; line-height:1.9}
+.lesson-count{margin-inline-start:auto; font-size:.82rem; font-weight:500;
+  color:var(--ink-3); font-variant-numeric:tabular-nums; white-space:nowrap}
+#l1{--accent:var(--cool)} #l2{--accent:var(--amber)} #l3{--accent:var(--ember)}
+
+/* ---------- السؤال ---------- */
+.q{padding:1.6rem 0; border-bottom:1px solid var(--rule-soft); display:grid;
+  grid-template-columns:2.6rem 1fr; gap:0 .9rem; align-items:start}
+.q:last-of-type{border-bottom:0}
+.qn{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:.95rem; font-weight:600; color:var(--accent); padding-top:.2rem;
+  border-inline-end:2px solid var(--accent); padding-inline-end:.5rem; text-align:start}
+.qtext{margin:0 0 .95rem; font-weight:600; line-height:1.75}
+.opts{display:grid; gap:.4rem; margin:0; padding:0; list-style:none}
+@media (min-width:52rem){ .opts{grid-template-columns:1fr 1fr; gap:.4rem .9rem} }
+.opt{display:grid; grid-template-columns:1.7rem 1fr 1rem; gap:.55rem; align-items:start;
+  padding:.5rem .65rem; border:1px solid transparent; border-radius:7px; line-height:1.65}
+.opt .mk{font-weight:700; color:var(--verify); text-align:center; line-height:1.65}
+.opt .ltr{font-family:"IBM Plex Mono",monospace; font-size:.8rem; font-weight:600;
+  color:var(--ink-3); background:var(--surface-2); border-radius:5px; text-align:center;
+  padding:.05rem 0; line-height:1.55}
+.opt.right{background:var(--verify-bg); border-color:var(--verify-rule)}
+.opt.right .ltr{background:var(--verify); color:#fff}
+.opt.right .txt{font-weight:600}
+.opt.right .mk::before{content:"✓"}
+.why{margin:.95rem 0 0; padding:.75rem .95rem; background:var(--surface);
+  border:1px solid var(--rule-soft); border-inline-start:3px solid var(--accent);
+  border-radius:7px; font-size:.93rem; color:var(--ink-2); line-height:1.85; box-shadow:var(--shadow)}
+.why b{font-size:.83rem; color:var(--accent); display:block; margin-bottom:.15rem; font-weight:700}
+.why b .ltr-tag{font-family:"IBM Plex Mono",monospace; font-weight:600}
+.ans-line{margin:.75rem 0 0; font-size:.93rem; color:var(--verify); font-weight:600; display:none}
+.ans-line span{font-family:"IBM Plex Mono",monospace}
+
+/* حالة الإخفاء: ورقة تدريب */
+body.hide .opt.right{background:transparent; border-color:transparent}
+body.hide .opt.right .ltr{background:var(--surface-2); color:var(--ink-3)}
+body.hide .opt.right .txt{font-weight:400}
+body.hide .opt.right .mk::before{content:""}
+body.hide .why{display:none}
+body.hide .keygrid{filter:blur(6px); user-select:none}
+
+/* ---------- مفتاح الإجابات ---------- */
+.key{margin-top:4rem; padding-top:2rem; border-top:2px solid var(--rule)}
+.key h2{font-family:"Readex Pro",sans-serif; font-size:1.4rem; margin:0 0 .3rem}
+.key p{color:var(--ink-3); font-size:.9rem; margin:0 0 1.2rem}
+.keygrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(4.6rem,1fr)); gap:.35rem;
+  transition:filter .2s}
+.keycell{display:flex; justify-content:space-between; align-items:baseline; gap:.4rem;
+  background:var(--surface); border:1px solid var(--rule-soft); border-radius:6px;
+  padding:.3rem .55rem; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:.85rem}
+.keycell i{font-style:normal; color:var(--ink-3); font-size:.75rem}
+.keycell b{color:var(--verify)}
+
+footer{margin-top:3.5rem; padding-top:1.5rem; border-top:1px solid var(--rule);
+  color:var(--ink-3); font-size:.85rem; line-height:1.9}
+
+@media print{
+  body{background:#fff; color:#000; font-size:11.5pt}
+  .bar{display:none}
+  .q{break-inside:avoid; page-break-inside:avoid}
+  .why{box-shadow:none}
+  section.lesson{break-before:page}
+  section.lesson:first-of-type{break-before:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+<div class="wrap">
+
+<header class="masthead">
+  <div class="eyebrow"><span class="dot"></span><span>الوحدة 1 · علوم</span><span>·</span>
+    <span>الصفحات 6 – 39</span><span>·</span><span class="latin">McGraw-Hill Education</span></div>
+  <h1>الطاقة الحرارية — بنك أسئلة محلولة</h1>
+  <p class="standfirst">اختبار اختيار من متعدد يغطي دروس الوحدة الثلاثة كاملةً، مع الإجابة الصحيحة
+  وتفسيرها لكل سؤال. اضغط زر «إخفاء الإجابات» لتحويل الورقة إلى اختبار تدريبي، ثم أظهِرها للتصحيح.</p>
+  <div class="ramp"></div>
+  <dl class="facts">
+    <div><dt>عدد الأسئلة</dt><dd>130</dd></div>
+    <div><dt>الدروس</dt><dd>3 دروس</dd></div>
+    <div><dt>الخيارات</dt><dd>A · B · C · D</dd></div>
+    <div><dt>مفتاح الإجابات</dt><dd>في نهاية الورقة</dd></div>
+  </dl>
+</header>
+
+<div class="bar">
+  <span class="state" id="state">الإجابات ظاهرة</span>
+  <button class="toggle" id="toggle" type="button" aria-pressed="true">إخفاء الإجابات</button>
+</div>
+
+<section class="lesson" id="l1">
+<div class="lesson-head"><span class="lesson-num">1.1</span><h2>الطاقة الحرارية ودرجة الحرارة والحرارة</h2><span class="lesson-count">40 سؤالًا</span></div>
+<p class="lesson-topics">الطاقة الحركية وطاقة الوضع • الطاقة الحرارية • درجة الحرارة • قياس درجة الحرارة ومقاييسها • الحرارة</p>
+<article class="q">
+<div class="qn">1</div>
+<div>
+<p class="qtext">ما نوع الطاقة التي يمتلكها كل جسم متحرك؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الطاقة النووية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">طاقة الوضع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الطاقة الكيميائية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الطاقة الحركية هي الطاقة التي تكون لجسم أو جُسيم بسبب حركته، ولكل جسم متحرك طاقة حركية.</div>
+</div></article>
+<article class="q">
+<div class="qn">2</div>
+<div>
+<p class="qtext">الطاقة المخزَّنة بسبب التفاعل بين جسمين تسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحرارة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">طاقة الوضع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">درجة الحرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>طاقة الوضع هي طاقة مُخزَّنة بسبب التفاعل بين جسمين، مثل التفاعل بين الكرة والأرض بفعل الجاذبية.</div>
+</div></article>
+<article class="q">
+<div class="qn">3</div>
+<div>
+<p class="qtext">كلما ارتفعت كرة القدم في الهواء فإنّ مقدار طاقة وضعها الجذبية:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">يزداد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يقل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا يتغير</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يصبح صفرًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>طاقة الوضع الجذبية تعتمد على المسافة بين الكرة وسطح الأرض؛ فكلما ارتفعت الكرة ازداد مقدار طاقة وضعها.</div>
+</div></article>
+<article class="q">
+<div class="qn">4</div>
+<div>
+<p class="qtext">الطاقة الميكانيكية لجسم ما تساوي:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">الطاقة الحركية + طاقة الوضع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">طاقة الوضع ÷ عدد الجسيمات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الطاقة الحركية − طاقة الوضع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الطاقة الحركية ÷ عدد الجسيمات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الطاقة الميكانيكية = الطاقة الحركية + طاقة الوضع.</div>
+</div></article>
+<article class="q">
+<div class="qn">5</div>
+<div>
+<p class="qtext">أي العبارات التالية صحيحة عن الجسيمات التي تُكوّن المادة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ساكنة تمامًا في المواد الصلبة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">في حركة دائمة في المواد الصلبة والسائلة والغازية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تتحرك فقط عند تسخينها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تتحرك في الغازات فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تتكوَّن كل مادة صلبة أو سائلة أو غازية من تريليونات الجسيمات الدقيقة الدائمة الحركة؛ فجسيمات الجسم الصلب تهتز في مكانها، وجسيمات الغاز تنتشر وتتحرك بحرّية وبسرعة.</div>
+</div></article>
+<article class="q">
+<div class="qn">6</div>
+<div>
+<p class="qtext">كلما ازدادت سرعة حركة جسيمات المادة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">قلّت طاقتها الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">قلّت طاقة وضعها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لم تتغير طاقتها</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">ازدادت طاقتها الحركية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>كلما ازدادت سرعة حركة الجسيمات ازدادت طاقتها الحركية.</div>
+</div></article>
+<article class="q">
+<div class="qn">7</div>
+<div>
+<p class="qtext">كلما ازداد متوسط المسافة بين جسيمات المادة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">انخفضت درجة حرارتها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">قلّت طاقة وضعها</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">ازدادت طاقة وضعها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">ازدادت طاقتها الحركية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>كلما ازداد متوسط المسافة بين الجسيمات ازدادت طاقة وضع تلك الجسيمات.</div>
+</div></article>
+<article class="q">
+<div class="qn">8</div>
+<div>
+<p class="qtext">في أي حالة من حالات المادة تكون المسافات بين الجسيمات هي الأكبر؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">متساوية في الحالات الثلاث</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحالة الصلبة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الحالة السائلة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الحالة الغازية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تنتشر جسيمات الغاز بشكل أكبر بكثير مقارنةً بجسيمات المادة الصلبة أو السائلة.</div>
+</div></article>
+<article class="q">
+<div class="qn">9</div>
+<div>
+<p class="qtext">ما الذي يجعل جسيمات المواد الصلبة متماسكة بإحكام؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ارتفاع الحرارة النوعية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">قوى الجذب بينها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>تتماسك الجسيمات التي تُكوّن المواد الصلبة بعضها مع بعض بإحكام بفعل قوى الجذب.</div>
+</div></article>
+<article class="q">
+<div class="qn">10</div>
+<div>
+<p class="qtext">الطاقة الحرارية لمادة ما هي:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">ناتج جمع الطاقة الحركية وطاقة الوضع للجسيمات المكوّنة لها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الطاقة اللازمة لرفع درجة حرارة 1 g بمقدار 1°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">متوسط الطاقة الحركية لجسيماتها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">انتقال الطاقة من جسم دافئ إلى جسم أكثر برودة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الطاقة الحرارية هي ناتج جمع الطاقة الحركية وطاقة الوضع للجسيمات المكوّنة لمادة ما.</div>
+</div></article>
+<article class="q">
+<div class="qn">11</div>
+<div>
+<p class="qtext">درجة الحرارة هي:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">كمية الطاقة الحرارية المنتقلة بين جسمين</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">متوسط طاقة الوضع للجسيمات</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">متوسط الطاقة الحركية للجسيمات المكوّنة لمادة ما</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">مجموع طاقات جسيمات المادة كلها</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يُعرّف العلماء درجة الحرارة بأنها متوسط الطاقة الحركية للجسيمات المكوّنة لمادة ما.</div>
+</div></article>
+<article class="q">
+<div class="qn">12</div>
+<div>
+<p class="qtext">كلما ازداد متوسط الطاقة الحركية للجسيمات فإنّ درجة الحرارة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تنخفض</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">ترتفع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تبقى ثابتة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تصبح صفرًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>كلما ازداد متوسط الطاقة الحركية للجسيمات، ارتفعت درجة الحرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">13</div>
+<div>
+<p class="qtext">لماذا تكون درجة حرارة الهواء داخل منزل دافئ أعلى منها خارجه في ليلة شتوية باردة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ عدد جسيمات الهواء الداخلي أقل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">لأنّ متوسط الطاقة الحركية لجسيمات الهواء الداخلي أكبر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ جسيمات الهواء الخارجي أسرع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّ الهواء الداخلي لا يحتوي على جسيمات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تتحرك جسيمات الهواء الدافئ داخل المنزل بمتوسط سرعة أكبر، فيكون لها متوسط طاقة حركية أكبر، وبالتالي درجة حرارة أعلى.</div>
+</div></article>
+<article class="q">
+<div class="qn">14</div>
+<div>
+<p class="qtext">تحتوي بركة ماء متجمدة أثناء انصهارها على ماء سائل وجليد معًا. أي العبارات التالية صحيحة؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لجسيماتهما متوسط الطاقة الحركية نفسه، ولكن طاقتهما الحرارية مختلفة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لهما الطاقة الحرارية نفسها ومتوسط طاقة حركية مختلف</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لهما درجة الحرارة نفسها والطاقة الحرارية نفسها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لهما درجتا حرارة مختلفتان</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>للماء والجليد درجة الحرارة نفسها، فيكون لجسيماتهما متوسط الطاقة الحركية نفسه (السرعة نفسها)، لكن طاقتهما الحرارية مختلفة.</div>
+</div></article>
+<article class="q">
+<div class="qn">15</div>
+<div>
+<p class="qtext">ما سبب اختلاف الطاقة الحرارية بين الماء السائل والجليد رغم تساوي درجة حرارتهما؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">اختلاف طاقة الوضع الناتج عن اختلاف متوسط المسافة بين الجسيمات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">اختلاف كتلة الجسيمات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">اختلاف متوسط الطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">اختلاف عدد الجسيمات فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>يختلف متوسط المسافة بين جسيمات الماء السائل وجسيمات الجليد، فتكون لهما طاقات وضع مختلفة، وبالتالي طاقات حرارية مختلفة.</div>
+</div></article>
+<article class="q">
+<div class="qn">16</div>
+<div>
+<p class="qtext">لماذا نستخدم الثيرمومتر لقياس درجة الحرارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ الجسيمات لا تتحرك</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">لأنّه من المستحيل قياس الطاقة الحركية للجسيمات الفردية ثم حساب متوسطها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ درجة الحرارة لا علاقة لها بالطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّ كل الجسيمات لها الطاقة نفسها</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>من المستحيل قياس الطاقة الحركية للجسيمات الفردية وحساب متوسطها، لذا نستخدم الثيرمومترات بدلًا من ذلك.</div>
+</div></article>
+<article class="q">
+<div class="qn">17</div>
+<div>
+<p class="qtext">كيف يعمل الثيرمومتر ذو البصيلة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يعتمد على انتقال الإشعاع من البصيلة فقط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">يتمدَّد السائل ويرتفع في الأنبوب الزجاجي عند ارتفاع درجة الحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يتغيّر لون الزجاج بتغيّر درجة الحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يقيس مقاومة دائرة كهربائية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>الثيرمومتر ذو البصيلة أنبوب زجاجي متّصل ببصيلة تحتوي على سائل كالكحول؛ عندما ترتفع درجة حرارة السائل يتمدَّد ويرتفع في الأنبوب، وعندما تنخفض ينكمش عائدًا إلى البصيلة.</div>
+</div></article>
+<article class="q">
+<div class="qn">18</div>
+<div>
+<p class="qtext">ماذا يقيس الثيرمومتر الإلكتروني؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تمدُّد الكحول</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عدد الجسيمات في المادة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">التغيُّرات في مقاومة دائرة كهربائية ثم يحوّل القياس إلى درجة حرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">سرعة الصوت في المادة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يقيس الثيرمومتر الإلكتروني التغيُّرات في مقاومة دائرة كهربائية ويُحوِّل هذا القياس إلى درجة حرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">19</div>
+<div>
+<p class="qtext">في مقياس فهرنهايت، يتجمَّد الماء ويغلي عند:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">0° و100°</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">32° و212°</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">273° و373°</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">32° و100°</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>في مقياس فهرنهايت يتجمَّد الماء عند 32° ويغلي عند 212°.</div>
+</div></article>
+<article class="q">
+<div class="qn">20</div>
+<div>
+<p class="qtext">في المقياس السيليزيّ، يتجمَّد الماء ويغلي عند:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">0° و212°</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">0° و100°</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">32° و212°</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">273° و373°</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>في المقياس السيليزيّ يتجمَّد الماء عند 0° ويغلي عند 100°.</div>
+</div></article>
+<article class="q">
+<div class="qn">21</div>
+<div>
+<p class="qtext">في مقياس كلفن، يتجمَّد الماء ويغلي عند:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">32 K و212 K</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">273 K و373 K</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">100 K و273 K</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">0 K و100 K</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>في مقياس كلفن يتجمَّد الماء عند 273 K ويغلي عند 373 K.</div>
+</div></article>
+<article class="q">
+<div class="qn">22</div>
+<div>
+<p class="qtext">ما المقياس الذي يستخدمه العلماء في جميع أنحاء العالم؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">مقياس فهرنهايت</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">المقياس السيليزيّ</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">مقياس البصيلة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">المقياس الإلكتروني</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>يستخدم العلماء في جميع أنحاء العالم المقياس السيليزيّ.</div>
+</div></article>
+<article class="q">
+<div class="qn">23</div>
+<div>
+<p class="qtext">ما الصفر المطلق؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">0°F</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">0 K</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">273 K</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">0°C</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>أقل درجة حرارة ممكنة لأيّ مادة هي 0 K، ويُعرف ذلك بالصفر المطلق.</div>
+</div></article>
+<article class="q">
+<div class="qn">24</div>
+<div>
+<p class="qtext">ماذا يحدث لجسيمات المادة عند درجة الحرارة 0 K؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لا تتحرك ولا تكون لها طاقة حركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تنصهر جميع المواد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تتساوى طاقات وضعها فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تتحرك بأقصى سرعة ممكنة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>إذا كانت مادة ما عند درجة حرارة 0 K، فلن تتحرك الجسيمات الموجودة فيها ولن يكون لها طاقة حركيّة.</div>
+</div></article>
+<article class="q">
+<div class="qn">25</div>
+<div>
+<p class="qtext">أي العبارات التالية صحيحة عن الصفر المطلق؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لم يتمكّن العلماء من تبريد أيّ مادة إليه</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يساوي 0°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">هو أعلى درجة حرارة ممكنة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">بُرِّدت مواد كثيرة إليه</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>لم يتمكَّن العلماء من تبريد أيّ مادّة إلى درجة حرارة 0 K.</div>
+</div></article>
+<article class="q">
+<div class="qn">26</div>
+<div>
+<p class="qtext">انتقال الطاقة الحرارية من جسم دافئ إلى جسم أكثر برودة يسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">درجة الحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الحرارة النوعية</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الحرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يُسمى انتقال الطاقة الحرارية من جسم دافئ إلى جسم أكثر برودة بالحرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">27</div>
+<div>
+<p class="qtext">أي العبارات التالية صحيحة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الأجسام الساخنة فقط لها طاقة حرارية</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">لكل الأجسام طاقة حرارية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الحرارة والطاقة الحرارية مصطلحان لهما المعنى نفسه</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">درجة الحرارة والطاقة الحرارية الشيء نفسه</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>لكل الأجسام طاقة حرارية، غير أنّ الحرارة هي انتقال هذه الطاقة من جسم إلى آخر، فهما أمران مختلفان.</div>
+</div></article>
+<article class="q">
+<div class="qn">28</div>
+<div>
+<p class="qtext">على أي شيء يعتمد معدَّل حدوث التسخين؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لون الجسمين</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">اختلاف درجة الحرارة بين الجسمين</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">حجم الجسمين فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">كتلة الجسمين فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>يعتمد معدَّل حدوث التسخين على اختلاف درجة الحرارة بين الجسمين؛ فكلما زاد الفارق زاد معدَّل التسخين.</div>
+</div></article>
+<article class="q">
+<div class="qn">29</div>
+<div>
+<p class="qtext">عند إمساك كوب كاكاو ساخن في يوم بارد، تكون الحرارة المنتقلة من الكاكاو إلى الهواء أكبر من المنتقلة إلى اليدين؛ لأنّ:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الهواء موصّل أفضل من الجلد</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">الفارق في درجة الحرارة بين الكاكاو والهواء كبير للغاية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لليدين حرارة نوعية منخفضة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الهواء له طاقة حرارية أكبر</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>اختلاف درجة الحرارة بين الكاكاو الساخن والهواء أكبر من اختلافها بين الكاكاو واليدين، فيُسخِّن الكاكاو الهواء أكثر.</div>
+</div></article>
+<article class="q">
+<div class="qn">30</div>
+<div>
+<p class="qtext">متى يتوقف التسخين بين الأجسام المتصلة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">عندما تنعدم طاقتها الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عندما يتوقف الإشعاع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">عندما تصبح لكلها درجة الحرارة نفسها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">عندما تتجمد كلها</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يستمر التسخين حتى تُصبح لكل الأجسام المتصلة درجة الحرارة نفسها.</div>
+</div></article>
+<article class="q">
+<div class="qn">31</div>
+<div>
+<p class="qtext">حوِّل 86°F إلى الدرجات السيليزيّة.</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">20°C</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">30°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">48°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">54°C</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>‎°C = (°F − 32) ÷ 1.8 ← (86 − 32) = 54، ثم 54 ÷ 1.8 = 30°C.</div>
+</div></article>
+<article class="q">
+<div class="qn">32</div>
+<div>
+<p class="qtext">حوِّل 37°C إلى فهرنهايت.</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">88.6°F</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">98.6°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">102.6°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">66.6°F</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>‎°F = (°C × 1.8) + 32 ← (37 × 1.8) = 66.6، ثم 66.6 + 32 = 98.6°F.</div>
+</div></article>
+<article class="q">
+<div class="qn">33</div>
+<div>
+<p class="qtext">تغلي عصارة القيقب عند درجة حرارة 104°C. عند أي درجة حرارة فهرنهايت تغلي هذه العصارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">240.0°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">187.2°F</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">219.2°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">136.0°F</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>‎°F = (104 × 1.8) + 32 = 187.2 + 32 = 219.2°F.</div>
+</div></article>
+<article class="q">
+<div class="qn">34</div>
+<div>
+<p class="qtext">إذا كانت درجة حرارة الماء في حوضٍ ما 104°F، فما درجة حرارة الماء بالدرجات السيليزيّة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">72°C</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">40°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">36°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">58°C</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>‎°C = (104 − 32) ÷ 1.8 = 72 ÷ 1.8 = 40°C.</div>
+</div></article>
+<article class="q">
+<div class="qn">35</div>
+<div>
+<p class="qtext">حوِّل −40°C إلى فهرنهايت.</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">−40°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">−72°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">40°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">−8°F</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>‎°F = (−40 × 1.8) + 32 = −72 + 32 = −40°F، وهي الدرجة الوحيدة التي يتساوى عندها المقياسان.</div>
+</div></article>
+<article class="q">
+<div class="qn">36</div>
+<div>
+<p class="qtext">أي مما يلي يمثل أقل درجة حرارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">32°F</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">273 K</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">0°C</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">0°F</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>‏0°C و32°F و273 K كلها تمثل درجة الحرارة نفسها (تجمُّد الماء)، أما 0°F فتساوي نحو −17.8°C، وهي الأقل.</div>
+</div></article>
+<article class="q">
+<div class="qn">37</div>
+<div>
+<p class="qtext">أي مما يلي يسبب ازدياد الطاقة الحركية للجسيمات التي تُكوّن إناءً من الحساء؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">تسخين الحساء لمدة 1 min على موقد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تقليل المسافة بين الجسيمات المكوّنة للحساء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تقسيم الحساء عند درجة حرارة نصف باردة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">وضع الحساء في الثلاجة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>التسخين ينقل طاقة حرارية إلى الحساء فترتفع درجة حرارته، أي يزداد متوسط الطاقة الحركية لجسيماته.</div>
+</div></article>
+<article class="q">
+<div class="qn">38</div>
+<div>
+<p class="qtext">أخبرك أحد أصدقائك أنّ درجة حرارته 38°C، ودرجة حرارتك أنت 37°C. أي العبارات التالية صحيحة؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لجسيمات جسم صديقك متوسط طاقة حركية أكبر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">متوسط الطاقة الحركية متساوٍ في الجسمين</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا توجد علاقة بين درجة الحرارة والطاقة الحركية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لجسيمات جسمك متوسط طاقة حركية أكبر</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>درجة الحرارة هي متوسط الطاقة الحركية للجسيمات؛ ودرجة حرارة صديقك أعلى، فيكون متوسط الطاقة الحركية لجسيمات جسمه أكبر.</div>
+</div></article>
+<article class="q">
+<div class="qn">39</div>
+<div>
+<p class="qtext">أي مما يلي قد يقلل من الطاقة الحرارية للمادة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ازدياد درجة حرارة المادة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">نقل المادة إلى مكان تكون فيه درجة الحرارة أكثر انخفاضًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تسخين المادة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">ازدياد الطاقة الحركية للجسيمات المكوّنة للمادة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>في المكان الأكثر برودة تنتقل الطاقة الحرارية من المادة إلى محيطها، فتقلّ طاقتها الحرارية. أما الخيارات الأخرى فكلها تزيدها.</div>
+</div></article>
+<article class="q">
+<div class="qn">40</div>
+<div>
+<p class="qtext">كلمة temperature مشتقة من الكلمة اللاتينية temperatura، وتعني:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">«تلطيف أو تكييف»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">«مستقر»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">«الحمل»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">«حرارة»</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>أصل الكلمة: temperature مشتقة من اللاتينية temperatura وتعني «تلطيف، أو تكييف».</div>
+</div></article>
+</section>
+<section class="lesson" id="l2">
+<div class="lesson-head"><span class="lesson-num">1.2</span><h2>انتقال الطاقة الحرارية</h2><span class="lesson-count">55 سؤالًا</span></div>
+<p class="lesson-topics">الإشعاع • التوصيل • موصّلات وعوازل الحرارة • الحرارة النوعية • التمدُّد والانكماش الحراريان • الحمل الحراري وتيارات الحمل</p>
+<article class="q">
+<div class="qn">41</div>
+<div>
+<p class="qtext">بأي طرائق تنتقل الطاقة الحرارية؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">التوصيل والحمل الحراري والتمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الإشعاع والانكماش الحراري والعزل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الحرارة النوعية والتوصيل والإشعاع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الإشعاع والتوصيل والحمل الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تنتقل الطاقة الحرارية بثلاث طرائق هي: الإشعاع، والتوصيل، والحمل الحراري.</div>
+</div></article>
+<article class="q">
+<div class="qn">42</div>
+<div>
+<p class="qtext">انتقال الطاقة الحرارية من مادة إلى أخرى عبر موجات كهرومغناطيسية يسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">العزل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يُعرف انتقال الطاقة الحرارية من مادة إلى أخرى عبر موجات كهرومغناطيسية بالإشعاع.</div>
+</div></article>
+<article class="q">
+<div class="qn">43</div>
+<div>
+<p class="qtext">أي الأجسام تبعث إشعاعًا أكبر؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الأجسام الباردة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">الأجسام الدافئة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">المواد الصلبة فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الغازات فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>كل المواد تنقل الطاقة بالإشعاع، لكنّ الأجسام الدافئة تبعث إشعاعًا أكثر ممّا تفعل الأجسام الباردة.</div>
+</div></article>
+<article class="q">
+<div class="qn">44</div>
+<div>
+<p class="qtext">ما الطريقة الوحيدة التي يمكن أن تنتقل بها الطاقة الحرارية من الشمس إلى الأرض؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">التمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الإشعاع هو الطريقة الوحيدة التي يمكن للطاقة الحرارية أن تنتقل بها من الشمس إلى الأرض.</div>
+</div></article>
+<article class="q">
+<div class="qn">45</div>
+<div>
+<p class="qtext">لماذا لا تنتقل الطاقة الحرارية من الشمس إلى الأرض بالتوصيل أو الحمل الحراري؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ الشمس باردة من الخارج</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ الأرض معزولة حراريًّا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ الشمس بعيدة جدًّا فقط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لأنّ الفضاء عبارة عن فراغ</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>الفضاء عبارة عن فراغ، والتوصيل والحمل الحراري يحتاجان إلى جسيمات مادة لتنقل الطاقة، لذا يبقى الإشعاع وحده.</div>
+</div></article>
+<article class="q">
+<div class="qn">46</div>
+<div>
+<p class="qtext">ما الفراغ (vacuum) في الاستخدام العلمي؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">مادة صلبة عالية الكثافة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">جهاز لتنظيف السجاد والبُسُط باستخدام الشفط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">مساحة تحتوي على القليل أو لا شيء على الإطلاق من المادة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">غاز شديد السخونة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الاستخدام العلمي لكلمة «فراغ»: مساحة تحتوي على القليل أو لا شيء على الإطلاق من المادة، أما الاستخدام العام فهو جهاز تنظيف السجاد.</div>
+</div></article>
+<article class="q">
+<div class="qn">47</div>
+<div>
+<p class="qtext">أي العبارات التالية صحيحة بشأن الإشعاع؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">ينقل الطاقة الحرارية عبر الفراغ وعبر المواد الصلبة والسائلة والغازية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يحدث في الموائع فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">ينتقل عبر الفراغ فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لا ينتقل عبر المواد الصلبة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الإشعاع ينقل الطاقة الحرارية عبر الفراغ، كما ينقلها أيضًا عبر المواد الصلبة والسائلة والغازية.</div>
+</div></article>
+<article class="q">
+<div class="qn">48</div>
+<div>
+<p class="qtext">تسخين الشمس لداخل سيارة مغلقة في يوم صيفي حار مثال على:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">العزل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تُسخِّن الطاقة الحرارية النابعة من الشمس داخل السيارة بواسطة الإشعاع.</div>
+</div></article>
+<article class="q">
+<div class="qn">49</div>
+<div>
+<p class="qtext">انتقال الطاقة الحرارية بين المواد عن طريق اصطدام الجسيمات يسمى:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">التمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>يُسمى انتقال الطاقة الحرارية بين المواد عن طريق اصطدام الجُسيمات بالتوصيل.</div>
+</div></article>
+<article class="q">
+<div class="qn">50</div>
+<div>
+<p class="qtext">عندما تتصادم جسيمات ذات طاقات حركية مختلفة، فإنّ:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">الجسيمات ذات الطاقة الحركية الأكبر تنقل طاقةً إلى الجسيمات ذات الطاقة الأقل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الجسيمات ذات الطاقة الأقل تنقل طاقةً إلى الجسيمات ذات الطاقة الأكبر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا تنتقل أي طاقة بينها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تتوقف الجسيمات كلها عن الحركة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>عند تصادم جسيمات ذات طاقات حركية مختلفة، تنقل الجسيمات ذات الطاقة الحركية الأكبر طاقةً إلى الجسيمات ذات الطاقة الحركية الأقل.</div>
+</div></article>
+<article class="q">
+<div class="qn">51</div>
+<div>
+<p class="qtext">متى يتوقف التوصيل بين جسيمات في حالة اتصال؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">عندما تتجمد المادة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عندما يبدأ الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">عندما تنعدم حركة الجسيمات</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">عندما تصبح الطاقة الحرارية لكل الجسيمات التي في حالة اتصال متساوية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يستمر التوصيل حتى تصبح الطاقة الحرارية لكل الجسيمات التي في حالة اتصال متساويةً.</div>
+</div></article>
+<article class="q">
+<div class="qn">52</div>
+<div>
+<p class="qtext">موصّل الحرارة هو مادة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لا تتدفَّق الطاقة الحرارية عبرها بسهولة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تتدفَّق من خلالها الطاقة الحرارية بسهولة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تمنع انتقال الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لها حرارة نوعية مرتفعة دائمًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>موصّل الحرارة عبارة عن مادة تتدفَّق من خلالها الطاقة الحرارية بسهولة.</div>
+</div></article>
+<article class="q">
+<div class="qn">53</div>
+<div>
+<p class="qtext">لماذا تُعدّ الفلزات موصّلات جيدة للحرارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّها تبعث إشعاعًا أكبر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ ذراتها ثقيلة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ لها حرارة نوعية مرتفعة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لأنّ إلكتروناتها تتحرك بسهولة فتنقل طاقة حركية عند اصطدامها بالإلكترونات والذرات الأخرى</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تمتلك الذرات في الموصّلات الجيدة للحرارة إلكترونات تتحرك بسهولة، وتنقل هذه الإلكترونات طاقة حركية عندما تصطدم مع الإلكترونات والذرات الأخرى.</div>
+</div></article>
+<article class="q">
+<div class="qn">54</div>
+<div>
+<p class="qtext">عازل الحرارة هو مادة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تتدفَّق الطاقة الحرارية عبرها بسهولة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">مصنوعة من الفلزات دائمًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا تحتوي على جسيمات</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لا تتدفَّق الطاقة الحرارية عبرها بسهولة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>عازل الحرارة عبارة عن مادة لا تتدفَّق الطاقة الحرارية عبرها بسهولة.</div>
+</div></article>
+<article class="q">
+<div class="qn">55</div>
+<div>
+<p class="qtext">لماذا لا تنقل عوازل الحرارة الطاقة الحرارية بسهولة؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لوقوع عدد أقل من التصادمات بين الإلكترونات والذرات فيها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ درجة حرارتها مرتفعة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّها تبعث إشعاعًا قويًّا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّها لا تحتوي على ذرات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>لا تتحرك الإلكترونات في ذرات العازل الجيد بسهولة، فيقع عدد أقل من التصادمات بين الإلكترونات والذرات، ولذلك لا تنقل الطاقة الحرارية بسهولة.</div>
+</div></article>
+<article class="q">
+<div class="qn">56</div>
+<div>
+<p class="qtext">أيهما أفضل في توصيل الحرارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">اللافلزات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">القماش</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الفلّين</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الفلزات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>إنّ الفلزات أفضل من اللافلزات في توصيل الحرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">57</div>
+<div>
+<p class="qtext">الحرارة النوعية هي كمية الطاقة اللازمة لرفع درجة حرارة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">1 kg من المادة بمقدار 1 K</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">1 g من المادة بمقدار 1°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">1 g من الماء بمقدار 10°C</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">أي كمية من المادة بمقدار 1°C</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>الحرارة النوعية هي كمية الطاقة اللازمة لرفع درجة حرارة 1 g من المادة بمقدار 1°C، ولكل مادة حرارة نوعية خاصة بها.</div>
+</div></article>
+<article class="q">
+<div class="qn">58</div>
+<div>
+<p class="qtext">المادة ذات الحرارة النوعية المنخفضة:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لا يتطلب تغيُّر درجة حرارتها قدرًا كبيرًا من الطاقة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تحتاج إلى طاقة كبيرة حتى تتغيّر درجة حرارتها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا تتغيّر درجة حرارتها أبدًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تُعدّ عازلًا جيدًا للحرارة دائمًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>لا يتطلب تغيُّر درجة حرارة مادة ذات حرارة نوعية منخفضة قدرًا كبيرًا من الطاقة، فترتفع درجة حرارتها بسرعة.</div>
+</div></article>
+<article class="q">
+<div class="qn">59</div>
+<div>
+<p class="qtext">في يوم صيفي حار، ترتفع درجة حرارة الإبزيم المعدني لحزام الأمان أسرع من الحزام القماشي؛ لأنّ:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">للإبزيم حرارة نوعية أقل من الحرارة النوعية للحزام القماشي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">للحزام القماشي حرارة نوعية منخفضة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الإبزيم عازل جيد للحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الإبزيم يستقبل كمية طاقة حرارية أكبر من الشمس</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>يستقبل كل من الإبزيم والحزام الكمية نفسها من الطاقة الحرارية، لكنّ للإبزيم (موصّل) حرارة نوعية أقل، فيتطلب ازدياد درجة حرارته طاقة أقل.</div>
+</div></article>
+<article class="q">
+<div class="qn">60</div>
+<div>
+<p class="qtext">أي مما يلي لديه الحرارة النوعية الأكثر انخفاضًا؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">جسم لا ينقل الطاقة الحرارية بسهولة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">جسم مصنوع من الفلز</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">جسم لا تتحرك إلكتروناته بسهولة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">قطعة من القماش</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>لموصّلات الحرارة، مثل الفلزات، حرارة نوعية أقل ممّا لدى عوازل الحرارة. أما بقية الخيارات فكلها أوصاف لعوازل حرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">61</div>
+<div>
+<p class="qtext">الحرارة النوعية للماء:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">مرتفعة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">منخفضة جدًّا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تساوي الحرارة النوعية للفلزات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تساوي صفرًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>إنّ الحرارة النوعية للماء مرتفعة بصفة خاصة، ويتطلب ازدياد درجة حرارته كمية كبيرة من الطاقة.</div>
+</div></article>
+<article class="q">
+<div class="qn">62</div>
+<div>
+<p class="qtext">أي مما يلي ليس من نتائج الحرارة النوعية المرتفعة للماء؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">بقاء أحواض السباحة والبحيرات والمحيطات باردة في الصيف</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">استخدام الماء في تبريد محركات السيارات ومناشير تقطيع الصخور</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">جعل الماء موصّلًا ممتازًا للكهرباء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">حماية جسمك من السخونة المفرطة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>توصيل الكهرباء لا علاقة له بالحرارة النوعية. أما الخيارات الثلاثة الأخرى فهي من التأثيرات المفيدة للحرارة النوعية المرتفعة للماء.</div>
+</div></article>
+<article class="q">
+<div class="qn">63</div>
+<div>
+<p class="qtext">الازدياد في حجم المادة عند ارتفاع درجة حرارتها يسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الانكماش الحراري</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">التمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>التمدُّد الحراري عبارة عن ازدياد في حجم المادة عند ارتفاع درجة حرارتها.</div>
+</div></article>
+<article class="q">
+<div class="qn">64</div>
+<div>
+<p class="qtext">التناقص في حجم المادة عند انخفاض درجة حرارتها يسمى:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">الانكماش الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">العزل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">التمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الانكماش الحراري هو تناقص في حجم المادة عند انخفاض درجة حرارتها.</div>
+</div></article>
+<article class="q">
+<div class="qn">65</div>
+<div>
+<p class="qtext">في أي الحالات يكون التمدُّد والانكماش الحراريان أكثر وضوحًا؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">المواد الصلبة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">السوائل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الغازات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">متساوية في الحالات الثلاث</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يكون كل من التمدُّد الحراري والانكماش الحراري ملحوظَين بصورة كبيرة في الغازات.</div>
+</div></article>
+<article class="q">
+<div class="qn">66</div>
+<div>
+<p class="qtext">أي ترتيب صحيح لوضوح التمدُّد الحراري من الأكبر إلى الأقل؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">المواد الصلبة ← الغازات ← السوائل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">الغازات ← السوائل ← المواد الصلبة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">المواد الصلبة ← السوائل ← الغازات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">السوائل ← الغازات ← المواد الصلبة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>التمدُّد والانكماش الحراريان ملحوظان بصورة كبيرة في الغازات، وبصورة أقل في السوائل، وبأقل صورة لها في المواد الصلبة.</div>
+</div></article>
+<article class="q">
+<div class="qn">67</div>
+<div>
+<p class="qtext">ماذا يحدث لحجم الهواء داخل بالون عند تسخينه؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لا يتغير</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يصبح صفرًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يقل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">يزداد</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تزداد درجة حرارة الهواء فيزداد متوسط الطاقة الحركية للجسيمات، فتزداد سرعتها وتنتشر، مما يسبِّب ازدياد حجم الهواء داخل البالون.</div>
+</div></article>
+<article class="q">
+<div class="qn">68</div>
+<div>
+<p class="qtext">عند أخذ بالون منفوخ إلى الخارج في يوم بارد يتناقص حجمه؛ لأنّ جسيمات الهواء داخله:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تتحوّل إلى سائل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تفقد طاقتها الحرارية فتبطئ حركتها وتتقارب</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تكتسب طاقة حرارية وتتباعد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تخرج كلها من البالون</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تنتقل الطاقة الحرارية من الهواء داخل البالون إلى الهواء البارد خارجه، فتبطؤ حركة الجسيمات وتتقارب، ويؤدي ذلك إلى تناقص حجم البالون (انكماش حراري).</div>
+</div></article>
+<article class="q">
+<div class="qn">69</div>
+<div>
+<p class="qtext">لماذا توجد وصلات التحكم (الفواصل) في الأرصفة والجسور؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لزيادة الحرارة النوعية للخرسانة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لمنع انتقال الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لزيادة كثافة الخرسانة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لتحمُّل التمدُّد الحراري والانكماش الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يمكن للأرصفة تحمُّل التمدُّد الحراري والانكماش الحراري بسبب وصلات التحكم، وكذلك تسمح وصلات التمدد في الجسور بحركة الأقسام.</div>
+</div></article>
+<article class="q">
+<div class="qn">70</div>
+<div>
+<p class="qtext">كيف يرتفع المنطاد؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يُملأ بغاز أثقل من الهواء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">ينكمش غلاف المنطاد نفسه</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يبرد الهواء داخله فتزداد كثافته</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">يسخِّن الموقد الهواء داخله فيتمدَّد ويخرج بعض جسيماته، فيصبح المنطاد أقل كثافةً من الهواء الخارجي</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يسبب التسخين تمدُّدًا حراريًّا، فتخرج بعض الجسيمات عبر الفتحة السفلية؛ فيصبح عدد الجسيمات داخل المنطاد أقل من عددها في حجم مساوٍ من الهواء الخارجي، فيصبح المنطاد أقل كثافةً ويرتفع.</div>
+</div></article>
+<article class="q">
+<div class="qn">71</div>
+<div>
+<p class="qtext">كيف يهبط المنطاد؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يزداد حجمه فجأة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">ينكمش غلاف المنطاد نفسه</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">يبرد الهواء داخله تدريجيًّا فيملأ الهواء الخارجي الأكثر كثافةً الحيّز الموجود داخله، فتزداد كثافته</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يُضخّ فيه هواء ساخن إضافي</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يسمح المسؤول للهواء داخل البالون بأن يبرد تدريجيًّا، فيملأ الهواء الخارجي الأكثر كثافةً الحيّز الموجود داخل المنطاد، ما يزيد كثافته فيهبط ببطء.</div>
+</div></article>
+<article class="q">
+<div class="qn">72</div>
+<div>
+<p class="qtext">لماذا لا يتضرر الزجاج المقاوم للحرارة في فرن ساخن؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّه موصّل جيد للحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّه لا يتمدَّد إطلاقًا</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">لأنّه مصمَّم ليتمدَّد بمعدّل أقل من تمدُّد الزجاج العادي عند تسخينه</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّ حرارته النوعية منخفضة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الزجاج المقاوم للحرارة مصمَّم ليتمدَّد بمعدّل أقل من تمدُّد الزجاج العادي عند تسخينه، مما يعني أنه عادةً لا ينكسر في الفرن.</div>
+</div></article>
+<article class="q">
+<div class="qn">73</div>
+<div>
+<p class="qtext">ما سبب انكسار كوب زجاجي عادي عند وضعه في فرن ساخن؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تحوُّله إلى سائل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تمدُّد أجزائه المختلفة بمعدلات مختلفة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">انكماشه المفاجئ</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">ازدياد كثافته</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تتمدَّد الأجزاء المختلفة من الزجاج العادي بمعدلات مختلفة عند تسخينه، فيسبِّب هذا انكساره أو تهشُّمه.</div>
+</div></article>
+<article class="q">
+<div class="qn">74</div>
+<div>
+<p class="qtext">انتقال الطاقة الحرارية بواسطة حركة الجسيمات من أحد أجزاء المادة إلى جزء آخر يسمى:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">العزل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الحمل الحراري عبارة عن انتقال الطاقة الحرارية بواسطة حركة الجسيمات من أحد أجزاء المادة إلى جزء آخر.</div>
+</div></article>
+<article class="q">
+<div class="qn">75</div>
+<div>
+<p class="qtext">أين يحدث الحمل الحراري؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">في جميع المواد بالتساوي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">في المواد الصلبة فقط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">في الموائع فقط، مثل الماء والهواء والصهارة وشراب القيقب</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">في الفراغ فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يحدث الحمل الحراري في الموائع فقط (السوائل والغازات)، لأنّ جسيماتها تتحرك بسهولة.</div>
+</div></article>
+<article class="q">
+<div class="qn">76</div>
+<div>
+<p class="qtext">عند تسخين الماء الواقع عند قاع الإناء فإنّه:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ينكمش فيصبح أكثر كثافةً</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يبقى في القاع دون تغيُّر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يتجمد</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">يتمدَّد فيصبح أقل كثافةً فيرتفع</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يحدث التمدُّد الحراري للماء عند النقطة الأقرب إلى قاع الإناء، فيزيد التسخين من حجمه مما يجعله أقل كثافةً فيُدفع إلى الأعلى.</div>
+</div></article>
+<article class="q">
+<div class="qn">77</div>
+<div>
+<p class="qtext">ماذا يحدث للماء الواقع عند سطح الإناء؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">ينقل طاقة حرارية إلى الهواء فيبرد وينكمش وتزداد كثافته فيهبط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يتبخر كله على الفور</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا يتغير إطلاقًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تزداد سخونته فيرتفع أكثر</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>تنقل جزيئات الماء عند السطح الطاقة الحرارية إلى الهواء، مما يسبب تبريدًا وانكماشًا حراريًّا، فيهبط الماء الأكبر كثافةً إلى القاع دافعًا الماء الأقل كثافة إلى الأعلى.</div>
+</div></article>
+<article class="q">
+<div class="qn">78</div>
+<div>
+<p class="qtext">متى تتوقف دورة الحمل الحراري في إناء الماء؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">عندما يتجمد الماء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عندما تتوقف الجسيمات عن الحركة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">عندما يتبخر كل الماء</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">عندما يصبح كل الماء الموجود في الإناء عند درجة الحرارة نفسها</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تستمر هذه الدورة إلى أن يصبح كل الماء الموجود في الإناء عند درجة الحرارة نفسها.</div>
+</div></article>
+<article class="q">
+<div class="qn">79</div>
+<div>
+<p class="qtext">حركة الموائع في دورة ما بفعل الحمل الحراري تسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تيارات الحمل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الانكماش الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تُسمّى حركة الموائع في دورة ما بفعل الحمل الحراري تيارات الحمل.</div>
+</div></article>
+<article class="q">
+<div class="qn">80</div>
+<div>
+<p class="qtext">كلمة convection مشتقة من الكلمة اللاتينية convectionem، وتعني:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">«الحمل»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">«تلطيف»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">«حرارة»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">«مستقر»</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>أصل الكلمة: الحمل الحراري convection مشتقة من الكلمة اللاتينية convectionem وتعني «الحمل».</div>
+</div></article>
+<article class="q">
+<div class="qn">81</div>
+<div>
+<p class="qtext">تُحرِّك تيارات الحمل الهواء على الأرض بين خط الاستواء وخطوط العرض بالقرب من:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">60°N و60°S</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">القطبين الشمالي والجنوبي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">10°N و10°S</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">30°N و30°S</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>على الأرض، تُحرِّك تيارات الحمل الهواء بين خط الاستواء وخطوط العرض بالقرب من 30°N و30°S، ويلعب هذا دورًا مهمًّا في مناخات الأرض.</div>
+</div></article>
+<article class="q">
+<div class="qn">82</div>
+<div>
+<p class="qtext">ماذا يحدث للهواء عند خط الاستواء؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لا يتحرك إطلاقًا</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تُسخِّنه كمية هائلة من الطاقة الحرارية فتنخفض كثافته ويرتفع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يبرد ويهبط إلى السطح</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تزداد كثافته فيبقى ساكنًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تُسخَّن كمية كبيرة من الطاقة الحرارية القادمة من الشمس خط الاستواء أكثر من أي مكان آخر، فتنخفض كثافة الهواء ويرتفع.</div>
+</div></article>
+<article class="q">
+<div class="qn">83</div>
+<div>
+<p class="qtext">أين تقع معظم الغابات المطيرة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">عند خطي العرض 30°N و30°S</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عند القطبين</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">في وسط المحيطات فقط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">عند خط الاستواء أو بالقرب منه</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تقع معظم الغابات المطيرة عند خط الاستواء أو بالقرب منه، حيث يَنتُج عن الهواء الرطب الذي يرتفع هطول.</div>
+</div></article>
+<article class="q">
+<div class="qn">84</div>
+<div>
+<p class="qtext">أين تتكوَّن المناطق القاحلة (الصحاري)؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">حيث يتكثف بخار الماء باستمرار</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">حيث تنعدم تيارات الحمل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">حيث يرتفع الهواء الرطب باستمرار</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">حيث يهبط الهواء البارد الجاف باستمرار إلى سطح الكوكب</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تتكوَّن المناطق القاحلة حيث يهبط الهواء البارد الجاف باستمرار إلى سطح الكوكب، ثم ينتقل إلى خط الاستواء في صورة رياح سطحية.</div>
+</div></article>
+<article class="q">
+<div class="qn">85</div>
+<div>
+<p class="qtext">ماذا يحدث لبخار الماء الموجود في الهواء الصاعد عند خط الاستواء؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">يتكثف بينما يرتفع الهواء ويبرد، فيعود الماء إلى الأرض في صورة أمطار</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يتبدَّد في الفضاء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يتحول إلى فراغ</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يتجمد على الفور</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>يتكثف بخار الماء الموجود في الهواء الصاعد بينما يرتفع الهواء ويبرد، فيعود الماء إلى الأرض في صورة أمطار.</div>
+</div></article>
+<article class="q">
+<div class="qn">86</div>
+<div>
+<p class="qtext">ماذا تُحرِّك تيارات الحمل أيضًا؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الضوء في الفراغ</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">المادة في باطن الأرض، والطاقة الحرارية من داخل الشمس إلى سطحها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الإلكترونات في الفلزات فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الموجات الكهرومغناطيسية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تُحرِّك تيارات الحمل الماء في المحيطات، وتنشر الهواء في الغرفة، وتحرِّك المواد في باطن الأرض، وتنقل الطاقة الحرارية من داخل الشمس إلى سطحها.</div>
+</div></article>
+<article class="q">
+<div class="qn">87</div>
+<div>
+<p class="qtext">لماذا يكون التوصيل في الغاز أبطأ منه في السائل أو في مادة صلبة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ للغازات حرارة نوعية منخفضة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ الغازات لا تنقل الطاقة الحرارية إطلاقًا</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">لأنّ جسيمات الغاز متباعدة، فيقلّ عدد التصادمات بينها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّ الغازات لا تحتوي على جسيمات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يعتمد التوصيل على اصطدام الجسيمات؛ وجسيمات الغاز أكثر تباعدًا من جسيمات السائل أو الصلب، فتقلّ التصادمات ويصبح التوصيل أبطأ.</div>
+</div></article>
+<article class="q">
+<div class="qn">88</div>
+<div>
+<p class="qtext">عندما تلمس قطعة من الفلز وقطعة من الخشب موجودتين في الغرفة نفسها، يبدو الفلز أكثر برودة؛ لأنّه:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">موصّل جيد للحرارة، فينقل الطاقة الحرارية بعيدًا عن يدك بسرعة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">عازل جيد للحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">له حرارة نوعية مرتفعة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">درجة حرارته أقل فعلًا</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>المادتان في الغرفة نفسها ولهما درجة الحرارة نفسها، لكنّ الفلز موصّل جيد للحرارة وله حرارة نوعية منخفضة، فينقل الطاقة الحرارية من يدك بسرعة فتحسّ بأنه أكثر برودة.</div>
+</div></article>
+<article class="q">
+<div class="qn">89</div>
+<div>
+<p class="qtext">سُخِّن مكعبان لهما الكتلة والحجم نفساهما في وعاء الماء نفسه، فارتفعت درجة حرارة المكعب B أسرع من المكعب A. أي المكعبين له حرارة نوعية أكبر؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لهما الحرارة النوعية نفسها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لا يمكن تحديد ذلك</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">المكعب A</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">المكعب B</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>المكعب A ارتفعت درجة حرارته ببطء أكبر رغم حصوله على الطاقة نفسها، وهذا يعني أنه يتطلب طاقة أكبر لرفع درجة حرارته، أي أنّ حرارته النوعية أكبر.</div>
+</div></article>
+<article class="q">
+<div class="qn">90</div>
+<div>
+<p class="qtext">ملعقة من الألومنيوم وأخرى من الفولاذ لهما الكتلة نفسها، وللألومنيوم حرارة نوعية أعلى. أيهما يسخن بسرعة أكبر عند وضعه في إناء من الماء المغلي؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ملعقة الألومنيوم</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">ملعقة الفولاذ</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تسخنان بالمعدل نفسه</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لا تسخن أي منهما</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>الحرارة النوعية للفولاذ أقل، فيتطلب رفع درجة حرارته طاقة أقل، لذا يسخن أسرع من الألومنيوم.</div>
+</div></article>
+<article class="q">
+<div class="qn">91</div>
+<div>
+<p class="qtext">لماذا يكون لحمام سباحة درجة حرارته 30°C طاقة حرارية أكبر من كوب حساء درجة حرارته 60°C؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ الحساء عازل للحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ درجة حرارته أعلى</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">لأنّ عدد الجسيمات المكوّنة له أكبر بكثير، والطاقة الحرارية هي مجموع طاقات كل الجسيمات</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">لأنّ حرارته النوعية أقل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>درجة الحرارة متوسط، أما الطاقة الحرارية فهي مجموع الطاقة الحركية وطاقة الوضع لكل جسيمات المادة؛ وعدد جسيمات حمام السباحة أكبر بكثير، فطاقته الحرارية الكلية أكبر.</div>
+</div></article>
+<article class="q">
+<div class="qn">92</div>
+<div>
+<p class="qtext">لماذا تُستخدم قماشة عازلة عند إخراج أواني الطعام الساخن من الفرن؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ القماش موصّل جيد للحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ القماش يبعث إشعاعًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ للقماش حرارة نوعية منخفضة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لأنّ القماش لا تتدفَّق الطاقة الحرارية عبره بسهولة فيحمي يدك</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>القماش عازل جيد للحرارة، فلا تتدفَّق الطاقة الحرارية عبره بسهولة، ويمنع انتقالها السريع من الإناء الساخن إلى يدك.</div>
+</div></article>
+<article class="q">
+<div class="qn">93</div>
+<div>
+<p class="qtext">تحسّ بالاكتواء في فمك من الصلصة الموضوعة فوق البيتزا الحارة أكثر من الطبقة السفلية من العجينة؛ لأنّ:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">درجة حرارة العجينة أعلى من درجة حرارة الصلصة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">العجينة موصّل أفضل للحرارة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الصلصة، وأغلبها ماء، لها حرارة نوعية مرتفعة فتختزن طاقة حرارية أكبر عند درجة الحرارة نفسها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الصلصة عازل جيد للحرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>للماء (المكوّن الأساسي للصلصة) حرارة نوعية مرتفعة، فعند درجة الحرارة نفسها تختزن الصلصة طاقة حرارية أكبر من العجينة وتنقلها إلى فمك.</div>
+</div></article>
+<article class="q">
+<div class="qn">94</div>
+<div>
+<p class="qtext">تقلّب فتاة الحساء بملعقة معدنية فتدفأ يدها. ما العملية المسؤولة عن ذلك؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">العزل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>تنتقل الطاقة الحرارية من الحساء عبر جسم الملعقة المعدنية الملامسة ليدها عن طريق اصطدام الجسيمات، أي بالتوصيل.</div>
+</div></article>
+<article class="q">
+<div class="qn">95</div>
+<div>
+<p class="qtext">ما المصطلح الذي يصف ما يحدث لبالون بارد عند وضعه في سيارة ساخنة؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">التمدُّد الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">العزل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">التوصيل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الانكماش الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>ترتفع درجة حرارة الهواء داخل البالون فيزداد حجمه؛ وهذا هو التمدُّد الحراري.</div>
+</div></article>
+</section>
+<section class="lesson" id="l3">
+<div class="lesson-head"><span class="lesson-num">1.3</span><h2>استخدام الطاقة الحرارية</h2><span class="lesson-count">35 سؤالًا</span></div>
+<p class="lesson-topics">تحوُّلات الطاقة الحرارية • أجهزة التسخين • منظِّمات الحرارة • الثلاجات • المحركات الحرارية</p>
+<article class="q">
+<div class="qn">96</div>
+<div>
+<p class="qtext">أي مما يلي مثال على تحوُّل شكل آخر من الطاقة إلى طاقة حرارية؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">نقل الطاقة الحرارية خارج الثلاجة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">تمديد شريط مطاطي بشكل متكرر فيصبح ساخنًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تحوُّل الطاقة الحرارية إلى طاقة ميكانيكية في منظِّم الحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تحوُّل الطاقة الحرارية إلى كهرباء</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تمديد شريط مطاطي بشكل متكرر يجعله ساخنًا، ويسخِّن الخشب المحترق الهواء؛ وكلاهما تحوُّل من شكل آخر من الطاقة إلى طاقة حرارية.</div>
+</div></article>
+<article class="q">
+<div class="qn">97</div>
+<div>
+<p class="qtext">أي العبارات التالية صحيحة عن الطاقة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تزداد كميتها كلما تحوَّلت من شكل إلى آخر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تُستحدث داخل الأجهزة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">لا تُستحدث ولا تفنى، والكمية الكلية للطاقة لا تتغيَّر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تفنى داخل محرك السيارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الطاقة لا تُستحدث ولا تفنى؛ فالأجهزة تحوِّلها من شكل إلى آخر أو تنقلها من مكان إلى آخر، إلا أنّ الكمية الكلية للطاقة لا تتغيَّر.</div>
+</div></article>
+<article class="q">
+<div class="qn">98</div>
+<div>
+<p class="qtext">الجهاز الذي يحوِّل الطاقة الكهربائية إلى طاقة حرارية يسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الثلاجة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">منظِّم الحرارة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">المحرك الحراري</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">جهاز التسخين</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يُسمى الجهاز الذي يحوّل الطاقة الكهربائية إلى طاقة حرارية بجهاز التسخين.</div>
+</div></article>
+<article class="q">
+<div class="qn">99</div>
+<div>
+<p class="qtext">أي مما يلي ليس مثالًا على جهاز تسخين؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">مكواة تجعيد الشعر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">جهاز تحضير القهوة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">مكواة الملابس</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">الثلاجة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تُعدّ مكواة تجعيد الشعر وجهاز تحضير القهوة ومكواة الملابس أمثلة على أجهزة التسخين، أما الثلاجة فتنقل الطاقة الحرارية ولا تُصنَّف جهاز تسخين.</div>
+</div></article>
+<article class="q">
+<div class="qn">100</div>
+<div>
+<p class="qtext">لماذا تصبح أجهزة الحاسوب والهواتف المحمولة دافئة عند استخدامها؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">بسبب الإشعاع الشمسي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">بسبب عمل منظِّم الحرارة داخلها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">بسبب الحمل الحراري في الشاشة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">بسبب التحوُّل الدائم لبعض الطاقة الكهربائية إلى طاقة حرارية داخل الجهاز</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تصبح هذه الأجهزة دافئة بسبب التحوُّل الدائم لبعض الطاقة الكهربائية إلى طاقة حرارية داخل الجهاز الإلكتروني.</div>
+</div></article>
+<article class="q">
+<div class="qn">101</div>
+<div>
+<p class="qtext">الطاقة الحرارية التي تولّدها معظم الأجهزة الإلكترونية:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">لا تُستخدم لأي غرض</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تتحوَّل إلى كهرباء من جديد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تُخزَّن في البطارية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تُستخدم في تشغيلها</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>لا تُستخدم الطاقة الحرارية التي تولّدها معظم الأجهزة الإلكترونية لأي غرض.</div>
+</div></article>
+<article class="q">
+<div class="qn">102</div>
+<div>
+<p class="qtext">الجهاز الذي ينظِّم درجة حرارة نظام ما يسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">المحرك الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الثيرمومتر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الضاغط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">منظِّم الحرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>منظِّم الحرارة هو جهاز ينظِّم درجة حرارة نظام ما.</div>
+</div></article>
+<article class="q">
+<div class="qn">103</div>
+<div>
+<p class="qtext">مِمَّ يتكوَّن الملف الثنائي الفلز الموجود في منظِّم الحرارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">فلز واحد ملفوف على شكل حلزون</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">فلزين مختلفين مرتبطين معًا يُثنيان في صورة ملف</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">فلز ولافلز</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">زجاج وفلز</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>يتكوَّن الملف الثنائي الفلز من فلزين مختلفين مرتبطين معًا يُثنيان في صورة ملف.</div>
+</div></article>
+<article class="q">
+<div class="qn">104</div>
+<div>
+<p class="qtext">لماذا ينثني الملف الثنائي الفلز أو ينفتح؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ أحد الفلزين ينصهر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">لأنّ للفلزين الحرارة النوعية نفسها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ الفلزين يبعثان إشعاعًا</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لأنّ الفلزين يتمدَّدان وينكمشان بمعدلات مختلفة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يحتوي الملف على معدنين مختلفين يتمدَّدان بمعدلين مختلفين، فيتمدَّد الفلز الموجود داخل الملف ويتقلَّص أكثر من الفلز الموجود خارجه، مما يجعل الملف ينثني أو ينفتح.</div>
+</div></article>
+<article class="q">
+<div class="qn">105</div>
+<div>
+<p class="qtext">ماذا يحدث في منظِّم الحرارة بعد أن تبرد الغرفة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ينفتح الملف فيشغِّل مكيِّف الهواء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">ينصهر الملف</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا يحدث أي تغيير</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">ينثني الملف الثنائي الفلز ببطء فيحرِّك مفتاحًا يوقف تشغيل مكيِّف الهواء</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>بعد أن تبرد الغرفة، تتسبب الطاقة الحرارية الموجودة في الهواء في أن ينثني الملف الثنائي الفلز ببطء، فيحرك مفتاحًا يوقف تشغيل مكيِّف الهواء.</div>
+</div></article>
+<article class="q">
+<div class="qn">106</div>
+<div>
+<p class="qtext">ماذا يحدث في منظِّم الحرارة عندما ترتفع درجة حرارة الهواء في الغرفة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تنخفض الحرارة النوعية للفلز</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يتوقف الملف عن العمل</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">يتمدَّد الفلز داخل الملف أكثر من الفلز خارجه فينفتح الملف ويحرِّك المفتاح ليشغِّل مكيِّف الهواء</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">ينثني الملف فيوقف تشغيل المكيِّف</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>عندما ترتفع درجة حرارة الهواء في الغرفة، يتمدَّد الفلز الموجود داخل الملف أكثر من تمدُّد الفلز الموجود خارجه، فينفتح الملف ويحرِّك المفتاح في الاتجاه الآخر ليشغِّل مكيِّف الهواء.</div>
+</div></article>
+<article class="q">
+<div class="qn">107</div>
+<div>
+<p class="qtext">كلمة thermostat مشتقة من الكلمتين اليونانيتين therme وstatos، وتعنيان على الترتيب:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">«حرارة» و«مستقر»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">«الحمل» و«ضوء»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">«تلطيف» و«ثابت»</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">«بارد» و«متحرك»</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>أصل الكلمة: منظِّم الحرارة thermostat مشتقة من اليونانية therme وتعني «حرارة»، وstatos وتعني «مستقر».</div>
+</div></article>
+<article class="q">
+<div class="qn">108</div>
+<div>
+<p class="qtext">أي الأجهزة التالية مجهَّزة بمنظِّمات حرارة؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">ثلاجات المطبخ وآلات تحميص الخبز والأفران الكهربائية كلها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">ثلاجات المطبخ فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">آلات تحميص الخبز فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الأفران الكهربائية فقط</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>إنّ ثلاجات المطبخ وآلات تحميص الخبز والأفران الكهربائية كلها مجهَّزة بمنظِّمات حرارة.</div>
+</div></article>
+<article class="q">
+<div class="qn">109</div>
+<div>
+<p class="qtext">الجهاز الذي يستخدم الطاقة الكهربائية لنقل الطاقة الحرارية من مكان أكثر برودة إلى مكان أكثر دفئًا هو:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">المحرك الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">جهاز التسخين</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الثلاجة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">منظِّم الحرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يُطلق على الجهاز الذي يستخدم الطاقة الكهربائية لنقل الطاقة الحرارية من مكان أكثر برودة إلى مكان أكثر دفئًا اسم الثلاجة.</div>
+</div></article>
+<article class="q">
+<div class="qn">110</div>
+<div>
+<p class="qtext">في أي اتجاه تتدفق الطاقة الحرارية بشكل طبيعي؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لا تتدفق إطلاقًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">من المنطقة الأكثر برودة إلى المنطقة الأكثر دفئًا</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">من المنطقة الأكثر دفئًا إلى المنطقة الأكثر برودة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">في الاتجاهين بالتساوي</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>تتدفق الطاقة الحرارية بشكل طبيعي من المنطقة الأكثر دفئًا إلى المنطقة الأكثر برودة، والثلاجة تعكس هذا الاتجاه باستخدام الطاقة الكهربائية.</div>
+</div></article>
+<article class="q">
+<div class="qn">111</div>
+<div>
+<p class="qtext">السائل المبرِّد هو مادة:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">تتبخر عند درجة حرارة منخفضة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تتجمد عند درجة حرارة مرتفعة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لا تتغير حالتها الفيزيائية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">موصّلة جيدة للكهرباء</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>السائل المبرِّد هو مادة تتبخر عند درجة حرارة منخفضة.</div>
+</div></article>
+<article class="q">
+<div class="qn">112</div>
+<div>
+<p class="qtext">عبر أي جزء يمرّ السائل المبرِّد وهو في صورة سائل فيبرد؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ملفات المكثِّف</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">مقصورة الثلاجة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">الضاغط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">صمام التمدُّد</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يمرّ السائل المبرِّد، الذي يبدأ في صورة سائل، عبر صمام التمدُّد ويبرد.</div>
+</div></article>
+<article class="q">
+<div class="qn">113</div>
+<div>
+<p class="qtext">ماذا يحدث للغاز المبرِّد البارد وهو يتدفق عبر الأنابيب داخل الثلاجة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يزداد برودةً أكثر</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يتجمد</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">يمتص الطاقة الحرارية من مقصورة الثلاجة ويتبخر فيصبح دافئًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يتكثف ويتحول إلى سائل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>بينما يتدفق الغاز البارد عبر الأنابيب داخل الثلاجة، يمتص الطاقة الحرارية من مقصورة الثلاجة ويتبخر، فيصبح الغاز المبرِّد دافئًا ويصبح داخل الثلاجة أكثر برودة.</div>
+</div></article>
+<article class="q">
+<div class="qn">114</div>
+<div>
+<p class="qtext">ما وظيفة الضاغط في الثلاجة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يوقف دورة التبريد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يبرِّد الغاز مباشرة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">يضغط السائل المبرِّد ويدفعه إلى الدخول في حيّز أصغر مما يزيد من طاقته الحرارية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يحوِّل الغاز إلى ثلج</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>يتدفق السائل المبرِّد إلى ضاغط كهربائي في قاع الثلاجة، فيضغطه أو يدفعه إلى الدخول في حيّز أصغر، مما يزيد من طاقته الحرارية.</div>
+</div></article>
+<article class="q">
+<div class="qn">115</div>
+<div>
+<p class="qtext">ماذا يحدث في ملفات المكثِّف؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">يتبخر السائل المبرِّد</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تزداد الطاقة الحرارية للغاز</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">تنتقل الطاقة الحرارية من الغاز المبرِّد إلى الهواء الموجود وراء الثلاجة فيتكثف الغاز ويتحول إلى سائل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يتجمد الغاز داخل الملفات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>في الملفات تُصبح الطاقة الحرارية للغاز أكبر من الطاقة الحرارية للهواء المحيط، فتتدفق الطاقة الحرارية من الغاز إلى الهواء وراء الثلاجة، وعندما تُزال الطاقة الحرارية من الغاز يتكثف ويتحول إلى سائل.</div>
+</div></article>
+<article class="q">
+<div class="qn">116</div>
+<div>
+<p class="qtext">لماذا يدفأ الهواء المحيط بالثلاجة في الوقت الذي تعمل فيه على تبريد الطعام؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">لأنّ الثلاجة تولِّد البرودة داخلها</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">بسبب الإشعاع الشمسي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">لأنّ السائل المبرِّد يتجمد</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">لأنّ الثلاجة تنقل الطاقة الحرارية من داخلها إلى محيطها الخارجي</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>تحافظ الثلاجة على برودة الطعام عن طريق نقل الطاقة الحرارية من داخل الثلاجة إلى محيط الثلاجة الخارجي، فيدفأ الهواء المحيط بها.</div>
+</div></article>
+<article class="q">
+<div class="qn">117</div>
+<div>
+<p class="qtext">الآلة التي تحوِّل الطاقة الحرارية إلى طاقة ميكانيكية تسمى:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الثلاجة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">منظِّم الحرارة</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">المحرك الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">جهاز التسخين</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>المحرك الحراري آلة تحوِّل الطاقة الحرارية إلى طاقة ميكانيكية.</div>
+</div></article>
+<article class="q">
+<div class="qn">118</div>
+<div>
+<p class="qtext">أي نوع من المحركات الحرارية تستخدمه معظم السيارات والحافلات والقوارب والشاحنات؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">مولّد كهربائي</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">محرك احتراق داخلي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">محرك كهربائي</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">محرك بخاري خارجي</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>تستخدم معظم السيارات والحافلات والقوارب والشاحنات وجزازات الأعشاب نوعًا من المحرك الحراري يُسمى محرك احتراق داخلي.</div>
+</div></article>
+<article class="q">
+<div class="qn">119</div>
+<div>
+<p class="qtext">الأسطوانة في محرك السيارة هي:</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">أنبوب يحتوي على مكبس يتحرك إلى الأعلى وإلى الأسفل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">صمام لتصريف غازات العادم</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">شمعة الإشعال</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">عمود ذراع التدوير</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>الأسطوانة هي أنبوب يحتوي على مكبس يتحرك إلى الأعلى وإلى الأسفل.</div>
+</div></article>
+<article class="q">
+<div class="qn">120</div>
+<div>
+<p class="qtext">ما الترتيب الصحيح لخطوات دورة محرك الاحتراق الداخلي؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تخرج الغازات ← يُشعَل الخليط ← يُضغط الخليط ← يُسحب الخليط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">يُضغط الخليط ← يُسحب الخليط ← يُشعَل الخليط ← تخرج الغازات</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">ينفتح صمام الإدخال ويُسحب خليط الوقود والهواء ← ينغلق الصمام ويُضغط الخليط ← تُشعل شمعة الإشعال الخليط فتتمدَّد الغازات وتدفع المكبس إلى الأسفل ← ينفتح صمام العادم وتُدفع الغازات الساخنة خارج الأسطوانة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">يُشعَل الخليط ← يُسحب الخليط ← يُضغط الخليط ← تخرج الغازات</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>دورة المحرك: (1) ينفتح صمام الإدخال عندما يتحرك المكبس إلى الأسفل ليسحب خليطًا من الوقود والهواء، (2) ينغلق صمام الإدخال عندما يتحرك المكبس إلى الأعلى ليضغط الخليط، (3) تُشعل شمعة الإشعال الخليط فتتمدَّد الغازات الساخنة وتدفع المكبس إلى الأسفل، (4) بينما يتحرك المكبس إلى الأعلى ينفتح صمام العادم وتُدفع الغازات الساخنة خارج الأسطوانة.</div>
+</div></article>
+<article class="q">
+<div class="qn">121</div>
+<div>
+<p class="qtext">ما الذي يدفع المكبس إلى الأسفل في محرك الاحتراق الداخلي؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">انكماش الغازات الباردة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">فتح صمام العادم</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">انثناء الملف الثنائي الفلز</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">تمدُّد خليط الهواء والوقود المشتعل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يتمدَّد خليط الهواء والوقود المشتعل ويدفع المكبس إلى الأسفل، ويحدث ذلك بسبب تحوُّل طاقة الوقود الكيميائية إلى طاقة حرارية.</div>
+</div></article>
+<article class="q">
+<div class="qn">122</div>
+<div>
+<p class="qtext">أي تسلسل يصف تحوُّل الطاقة في محرك السيارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">حرارية ← حركية ← وضع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">حرارية ← ميكانيكية ← وضع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">حرارية ← كيميائية ← ميكانيكية</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">كيميائية ← حرارية ← ميكانيكية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>في محرك السيارة تتحوَّل الطاقة الكيميائية الموجودة في الوقود إلى طاقة حرارية، ثم يتحوَّل بعض هذه الطاقة الحرارية على الفور إلى طاقة ميكانيكية.</div>
+</div></article>
+<article class="q">
+<div class="qn">123</div>
+<div>
+<p class="qtext">ما نسبة الطاقة الكيميائية في الجازولين التي تحوِّلها معظم محركات السيارات إلى طاقة ميكانيكية؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">حوالي 20% فقط</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">حوالي 50%</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">حوالي 80%</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">‏100%</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>المحرك الحراري منخفض الكفاءة؛ إذ تحوِّل معظم محركات السيارات حوالي 20% فقط من الطاقة الكيميائية في الجازولين إلى طاقة ميكانيكية.</div>
+</div></article>
+<article class="q">
+<div class="qn">124</div>
+<div>
+<p class="qtext">ماذا يحدث للطاقة المتبقية في محرك السيارة؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">تتحوَّل إلى طاقة كيميائية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تفنى تمامًا</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">تُخزَّن في الوقود</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">تتبدَّد في البيئة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>أمّا الطاقة المتبقية فتتبدَّد في البيئة.</div>
+</div></article>
+<article class="q">
+<div class="qn">125</div>
+<div>
+<p class="qtext">أي مما يلي لا يحدث في محرك احتراق داخلي؟</p>
+<ul class="opts">
+<li class="opt right"><span class="ltr">A</span><span class="txt">تتحوَّل الطاقة الحرارية إلى طاقة كيميائية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">تتحوَّل الطاقة الحرارية إلى طاقة ميكانيكية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">يضيع معظم الطاقة الحرارية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">تدفع الطاقة الحرارية المكبس إلى الأسفل</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">A</span></b>في المحرك تتحوَّل الطاقة الكيميائية إلى حرارية ثم إلى ميكانيكية، ولا يحدث العكس؛ فلا تتحوَّل الطاقة الحرارية إلى طاقة كيميائية.</div>
+</div></article>
+<article class="q">
+<div class="qn">126</div>
+<div>
+<p class="qtext">ما المصطلح الذي يصف انتقال الطاقة الحرارية بين لوح التسخين وإبريق الشاي الملامس له؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">العزل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الإشعاع</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">التوصيل</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الحمل الحراري</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الجسمان متلامسان، فتنتقل الطاقة الحرارية بينهما عن طريق اصطدام الجسيمات، أي بالتوصيل.</div>
+</div></article>
+<article class="q">
+<div class="qn">127</div>
+<div>
+<p class="qtext">ما تحوُّلات الطاقة في نظام مكوَّن من لوح تسخين وإبريق شاي ومروحة ورقية يديرها البخار؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">كهربائية ← حرارية ← كيميائية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">حرارية ← كهربائية ← كيميائية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">حرارية ← كهربائية ← ميكانيكية</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">D</span><span class="txt">كهربائية ← حرارية ← ميكانيكية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">D</span></b>يحوِّل لوح التسخين الطاقة الكهربائية إلى طاقة حرارية، ثم يحوِّل البخار المتمدِّد هذه الطاقة الحرارية إلى طاقة ميكانيكية تدير المروحة.</div>
+</div></article>
+<article class="q">
+<div class="qn">128</div>
+<div>
+<p class="qtext">ما نوع الآلة التي يمثِّلها لوح التسخين وإبريق الشاي والبخار والمروحة الورقية عندما تعمل معًا؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">ملف ثنائي الفلز</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">B</span><span class="txt">محرك حراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">ثلاجة</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">منظِّم حرارة</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">B</span></b>المنظومة كلها تحوِّل الطاقة الحرارية إلى طاقة ميكانيكية (حركة المروحة)، وهذا هو تعريف المحرك الحراري.</div>
+</div></article>
+<article class="q">
+<div class="qn">129</div>
+<div>
+<p class="qtext">أي تحوُّل للطاقة يحدث عادةً في جهاز التسخين؟</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الطاقة الحرارية إلى طاقة ميكانيكية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الطاقة الكيميائية إلى طاقة حرارية</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">الطاقة الكهربائية إلى طاقة حرارية</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">الطاقة الحرارية إلى طاقة كيميائية</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>جهاز التسخين هو الجهاز الذي يحوّل الطاقة الكهربائية إلى طاقة حرارية.</div>
+</div></article>
+<article class="q">
+<div class="qn">130</div>
+<div>
+<p class="qtext">الفكرة الرئيسة للوحدة 1: يمكن أن تنتقل الطاقة الحرارية بواسطة:</p>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">الحرارة النوعية أو العزل أو الإشعاع</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">الإشعاع فقط</span><span class="mk"></span></li>
+<li class="opt right"><span class="ltr">C</span><span class="txt">التوصيل أو الإشعاع أو الحمل الحراري</span><span class="mk"></span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">التوصيل أو التمدُّد أو الانكماش</span><span class="mk"></span></li>
+</ul>
+<div class="why"><b>الإجابة الصحيحة: <span class="ltr-tag">C</span></b>الفكرة الرئيسة: يمكن أن تنتقل الطاقة الحرارية بواسطة التوصيل أو الإشعاع أو الحمل الحراري، كما يمكن أن تتحوَّل إلى أشكال أخرى من الطاقة وتُستخدم في أجهزة مثل منظِّمات الحرارة والثلاجات ومحركات السيارات.</div>
+</div></article>
+</section>
+<section class="key"><h2>مفتاح الإجابات</h2><p>الأسئلة من 1 إلى 130 بالترتيب.</p><div class="keygrid">
+<div class="keycell"><i>1</i><b>C</b></div>
+<div class="keycell"><i>2</i><b>C</b></div>
+<div class="keycell"><i>3</i><b>A</b></div>
+<div class="keycell"><i>4</i><b>A</b></div>
+<div class="keycell"><i>5</i><b>B</b></div>
+<div class="keycell"><i>6</i><b>D</b></div>
+<div class="keycell"><i>7</i><b>C</b></div>
+<div class="keycell"><i>8</i><b>D</b></div>
+<div class="keycell"><i>9</i><b>C</b></div>
+<div class="keycell"><i>10</i><b>A</b></div>
+<div class="keycell"><i>11</i><b>C</b></div>
+<div class="keycell"><i>12</i><b>B</b></div>
+<div class="keycell"><i>13</i><b>B</b></div>
+<div class="keycell"><i>14</i><b>A</b></div>
+<div class="keycell"><i>15</i><b>A</b></div>
+<div class="keycell"><i>16</i><b>B</b></div>
+<div class="keycell"><i>17</i><b>B</b></div>
+<div class="keycell"><i>18</i><b>C</b></div>
+<div class="keycell"><i>19</i><b>B</b></div>
+<div class="keycell"><i>20</i><b>B</b></div>
+<div class="keycell"><i>21</i><b>B</b></div>
+<div class="keycell"><i>22</i><b>B</b></div>
+<div class="keycell"><i>23</i><b>B</b></div>
+<div class="keycell"><i>24</i><b>A</b></div>
+<div class="keycell"><i>25</i><b>A</b></div>
+<div class="keycell"><i>26</i><b>D</b></div>
+<div class="keycell"><i>27</i><b>B</b></div>
+<div class="keycell"><i>28</i><b>B</b></div>
+<div class="keycell"><i>29</i><b>B</b></div>
+<div class="keycell"><i>30</i><b>C</b></div>
+<div class="keycell"><i>31</i><b>B</b></div>
+<div class="keycell"><i>32</i><b>B</b></div>
+<div class="keycell"><i>33</i><b>C</b></div>
+<div class="keycell"><i>34</i><b>B</b></div>
+<div class="keycell"><i>35</i><b>A</b></div>
+<div class="keycell"><i>36</i><b>D</b></div>
+<div class="keycell"><i>37</i><b>A</b></div>
+<div class="keycell"><i>38</i><b>A</b></div>
+<div class="keycell"><i>39</i><b>B</b></div>
+<div class="keycell"><i>40</i><b>A</b></div>
+<div class="keycell"><i>41</i><b>D</b></div>
+<div class="keycell"><i>42</i><b>C</b></div>
+<div class="keycell"><i>43</i><b>B</b></div>
+<div class="keycell"><i>44</i><b>C</b></div>
+<div class="keycell"><i>45</i><b>D</b></div>
+<div class="keycell"><i>46</i><b>C</b></div>
+<div class="keycell"><i>47</i><b>A</b></div>
+<div class="keycell"><i>48</i><b>D</b></div>
+<div class="keycell"><i>49</i><b>A</b></div>
+<div class="keycell"><i>50</i><b>A</b></div>
+<div class="keycell"><i>51</i><b>D</b></div>
+<div class="keycell"><i>52</i><b>B</b></div>
+<div class="keycell"><i>53</i><b>D</b></div>
+<div class="keycell"><i>54</i><b>D</b></div>
+<div class="keycell"><i>55</i><b>A</b></div>
+<div class="keycell"><i>56</i><b>D</b></div>
+<div class="keycell"><i>57</i><b>B</b></div>
+<div class="keycell"><i>58</i><b>A</b></div>
+<div class="keycell"><i>59</i><b>A</b></div>
+<div class="keycell"><i>60</i><b>B</b></div>
+<div class="keycell"><i>61</i><b>A</b></div>
+<div class="keycell"><i>62</i><b>C</b></div>
+<div class="keycell"><i>63</i><b>B</b></div>
+<div class="keycell"><i>64</i><b>A</b></div>
+<div class="keycell"><i>65</i><b>C</b></div>
+<div class="keycell"><i>66</i><b>B</b></div>
+<div class="keycell"><i>67</i><b>D</b></div>
+<div class="keycell"><i>68</i><b>B</b></div>
+<div class="keycell"><i>69</i><b>D</b></div>
+<div class="keycell"><i>70</i><b>D</b></div>
+<div class="keycell"><i>71</i><b>C</b></div>
+<div class="keycell"><i>72</i><b>C</b></div>
+<div class="keycell"><i>73</i><b>B</b></div>
+<div class="keycell"><i>74</i><b>A</b></div>
+<div class="keycell"><i>75</i><b>C</b></div>
+<div class="keycell"><i>76</i><b>D</b></div>
+<div class="keycell"><i>77</i><b>A</b></div>
+<div class="keycell"><i>78</i><b>D</b></div>
+<div class="keycell"><i>79</i><b>B</b></div>
+<div class="keycell"><i>80</i><b>A</b></div>
+<div class="keycell"><i>81</i><b>D</b></div>
+<div class="keycell"><i>82</i><b>B</b></div>
+<div class="keycell"><i>83</i><b>D</b></div>
+<div class="keycell"><i>84</i><b>D</b></div>
+<div class="keycell"><i>85</i><b>A</b></div>
+<div class="keycell"><i>86</i><b>B</b></div>
+<div class="keycell"><i>87</i><b>C</b></div>
+<div class="keycell"><i>88</i><b>A</b></div>
+<div class="keycell"><i>89</i><b>C</b></div>
+<div class="keycell"><i>90</i><b>B</b></div>
+<div class="keycell"><i>91</i><b>C</b></div>
+<div class="keycell"><i>92</i><b>D</b></div>
+<div class="keycell"><i>93</i><b>C</b></div>
+<div class="keycell"><i>94</i><b>A</b></div>
+<div class="keycell"><i>95</i><b>A</b></div>
+<div class="keycell"><i>96</i><b>B</b></div>
+<div class="keycell"><i>97</i><b>C</b></div>
+<div class="keycell"><i>98</i><b>D</b></div>
+<div class="keycell"><i>99</i><b>D</b></div>
+<div class="keycell"><i>100</i><b>D</b></div>
+<div class="keycell"><i>101</i><b>A</b></div>
+<div class="keycell"><i>102</i><b>D</b></div>
+<div class="keycell"><i>103</i><b>B</b></div>
+<div class="keycell"><i>104</i><b>D</b></div>
+<div class="keycell"><i>105</i><b>D</b></div>
+<div class="keycell"><i>106</i><b>C</b></div>
+<div class="keycell"><i>107</i><b>A</b></div>
+<div class="keycell"><i>108</i><b>A</b></div>
+<div class="keycell"><i>109</i><b>C</b></div>
+<div class="keycell"><i>110</i><b>C</b></div>
+<div class="keycell"><i>111</i><b>A</b></div>
+<div class="keycell"><i>112</i><b>D</b></div>
+<div class="keycell"><i>113</i><b>C</b></div>
+<div class="keycell"><i>114</i><b>C</b></div>
+<div class="keycell"><i>115</i><b>C</b></div>
+<div class="keycell"><i>116</i><b>D</b></div>
+<div class="keycell"><i>117</i><b>C</b></div>
+<div class="keycell"><i>118</i><b>B</b></div>
+<div class="keycell"><i>119</i><b>A</b></div>
+<div class="keycell"><i>120</i><b>C</b></div>
+<div class="keycell"><i>121</i><b>D</b></div>
+<div class="keycell"><i>122</i><b>D</b></div>
+<div class="keycell"><i>123</i><b>A</b></div>
+<div class="keycell"><i>124</i><b>D</b></div>
+<div class="keycell"><i>125</i><b>A</b></div>
+<div class="keycell"><i>126</i><b>C</b></div>
+<div class="keycell"><i>127</i><b>D</b></div>
+<div class="keycell"><i>128</i><b>B</b></div>
+<div class="keycell"><i>129</i><b>C</b></div>
+<div class="keycell"><i>130</i><b>C</b></div>
+</div></section>
+
+<footer>
+  أُعدَّت هذه الورقة من محتوى الوحدة 1 «الطاقة الحرارية»: الدرس 1.1 الطاقة الحرارية ودرجة الحرارة والحرارة،
+  والدرس 1.2 انتقال الطاقة الحرارية، والدرس 1.3 استخدام الطاقة الحرارية — بما في ذلك التعريفات المميَّزة،
+  والأشكال، وصناديق «التأكد من المفاهيم الرئيسة»، وأصل الكلمة، ومهارات الرياضيات، ومراجعة الوحدة.
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var b=document.body, t=document.getElementById('toggle'), s=document.getElementById('state');
+  function apply(hidden){
+    b.classList.toggle('hide',hidden);
+    t.textContent = hidden ? 'إظهار الإجابات' : 'إخفاء الإجابات';
+    t.setAttribute('aria-pressed', String(!hidden));
+    s.textContent = hidden ? 'وضع التدريب — الإجابات مخفية' : 'الإجابات ظاهرة';
+    try{ localStorage.setItem('heat-mcq-hidden', hidden ? '1' : '0'); }catch(e){}
+  }
+  try{ if(localStorage.getItem('heat-mcq-hidden')==='1') apply(true); }catch(e){}
+  t.addEventListener('click', function(){ apply(!b.classList.contains('hide')); });
+})();
+</script>
