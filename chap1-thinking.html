@@ -1,0 +1,293 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<title>الطاقة الحرارية — أسئلة تفكير ناقد</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+@page{ size:A4 portrait; }
+*{box-sizing:border-box}
+html,body{margin:0; padding:0}
+:root{
+  --ink:#1A2430; --ink-2:#3E4E5C; --ink-3:#6E7F8E;
+  --line:#DCE4EB; --tint:#F6F9FB;
+  --c1:#0E6E88; --c1-tint:#E4F1F6; --c1-deep:#08556A;
+  --c2:#A8620C; --c2-tint:#FBF0E0; --c2-deep:#874E08;
+  --c3:#B0301F; --c3-tint:#FBEAE7; --c3-deep:#8C2517;
+  --ok:#14713C; --ok-tint:#E6F4EB; --ok-line:#8FC7A6;
+  --accent:var(--c1); --accent-tint:var(--c1-tint); --accent-deep:var(--c1-deep);
+}
+body{background:#fff; color:var(--ink);
+  font-family:"Tajawal","Segoe UI",Tahoma,sans-serif;
+  font-size:11pt; line-height:1.78; direction:rtl;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact}
+h1,h2,h3,h4{font-family:"Reem Kufi","Tajawal",sans-serif; font-weight:600; margin:0}
+.k1{--accent:var(--c1); --accent-tint:var(--c1-tint); --accent-deep:var(--c1-deep)}
+.k2{--accent:var(--c2); --accent-tint:var(--c2-tint); --accent-deep:var(--c2-deep)}
+.k3{--accent:var(--c3); --accent-tint:var(--c3-tint); --accent-deep:var(--c3-deep)}
+
+.cover{break-after:page; page-break-after:always}
+.hero{background:linear-gradient(115deg,var(--c3) 0%,var(--c2) 34%,var(--c1-deep) 72%,var(--c1) 100%);
+  color:#fff; border-radius:14pt; padding:24pt 24pt 22pt; position:relative; overflow:hidden}
+.hero::after{content:""; position:absolute; inset:auto auto -80pt -40pt; width:210pt; height:210pt;
+  border-radius:50%; border:16pt solid rgba(255,255,255,.10)}
+.hero .top{font-size:9pt; opacity:.92; margin-bottom:12pt}
+.hero h1{font-size:32pt; line-height:1.15; font-weight:700; margin-bottom:6pt}
+.hero p{margin:0; font-size:12pt; opacity:.96; max-width:32em; line-height:1.6}
+.hero .stats{display:flex; gap:7pt; margin-top:14pt; flex-wrap:wrap; position:relative; z-index:1}
+.hero .chip{background:rgba(255,255,255,.18); border:.7pt solid rgba(255,255,255,.42);
+  border-radius:999pt; padding:3.5pt 11pt; font-size:9pt; font-weight:500}
+.howto{margin-top:16pt; border:.8pt solid var(--line); border-radius:10pt; padding:12pt 15pt}
+.howto h3{font-size:12pt; margin-bottom:5pt; color:var(--c1-deep)}
+.howto p{margin:0; font-size:10.5pt; color:var(--ink-2); line-height:1.8}
+.covergrid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:9pt; margin-top:14pt}
+.ccard{border:.8pt solid var(--line); border-top:3.4pt solid var(--accent); border-radius:10pt;
+  padding:10pt 11pt 11pt; background:var(--tint)}
+.ccard .n{font-family:"IBM Plex Mono",monospace; font-size:15pt; font-weight:600; color:var(--accent)}
+.ccard h3{font-size:11pt; margin:4pt 0 3pt; line-height:1.35}
+.ccard span{font-size:9pt; color:var(--ink-2)}
+.cover .note{margin-top:14pt; font-size:9pt; color:var(--ink-3); line-height:1.7}
+
+section.part{break-before:page; page-break-before:always}
+.band{background:var(--accent-tint); border-radius:11pt; padding:12pt 15pt;
+  border-inline-start:5pt solid var(--accent); margin-bottom:11pt;
+  break-after:avoid; page-break-after:avoid}
+.band .row{display:flex; align-items:baseline; gap:10pt}
+.band .num{font-family:"IBM Plex Mono",monospace; font-size:16pt; font-weight:600; color:var(--accent-deep)}
+.band h2{font-size:15pt; color:var(--accent-deep)}
+.band .count{margin-inline-start:auto; background:var(--accent); color:#fff; border-radius:999pt;
+  padding:2pt 9pt; font-size:8.4pt; font-weight:700; white-space:nowrap}
+
+.item{break-inside:avoid; page-break-inside:avoid; margin-bottom:9pt;
+  border:.8pt solid var(--line); border-radius:11pt; padding:10pt 12pt 11pt; background:#fff}
+.qline{display:grid; grid-template-columns:20pt 1fr; gap:8pt; align-items:start}
+.qn{width:20pt; height:20pt; border-radius:50%; background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono",monospace;
+  font-size:8.6pt; font-weight:600; margin-top:1pt}
+.qtext{margin:0; font-weight:700; line-height:1.6; font-size:11.2pt}
+.ans{margin:8pt 0 0 0; background:var(--ok-tint); border:.8pt solid var(--ok-line);
+  border-radius:8pt; padding:7pt 11pt; font-size:10.8pt; line-height:1.65}
+.ans b{color:var(--ok); font-weight:700}
+.why{margin:6pt 0 0; background:var(--accent-tint); border-radius:8pt;
+  border-inline-start:2.6pt solid var(--accent); padding:7pt 11pt;
+  font-size:10.2pt; color:var(--ink-2); line-height:1.72}
+.why b{color:var(--accent-deep); font-weight:700}
+.extra{margin:6pt 0 0; border:.7pt dashed var(--ink-3); border-radius:8pt; padding:6pt 11pt;
+  font-size:9.4pt; color:var(--ink-3); line-height:1.65}
+.extra b{color:var(--ink-2)}
+footer.note{margin-top:14pt; padding-top:8pt; border-top:.8pt solid var(--line);
+  font-size:9pt; color:var(--ink-3); line-height:1.7}
+</style>
+</head><body>
+<section class="cover">
+<div class="hero"><div class="top">علوم · الوحدة الأولى: الطاقة الحرارية · الصفحات 6 – 39</div><h1>أسئلة تفكير ناقد</h1><p>سؤال ثم إجابته ثم سببها — بلغة سهلة، وكلها من داخل الوحدة.</p><div class="stats"><span class="chip">38 سؤالًا</span><span class="chip">3 أقسام</span><span class="chip">إجابة + تفسير لكل سؤال</span></div></div>
+<div class="howto"><h3>كيف تستفيد من هذه الورقة</h3><p>هذه أسئلة تجعلك تُفكِّر، لا أن تحفظ فقط. اقرأ السؤال، وحاول أن تجيب بنفسك قبل أن تقرأ الإجابة، ثم اقرأ خانة «لماذا؟» لتعرف الفكرة العلمية التي وراءها. كل إجابة هنا مبنية على ما درسته في الوحدة نفسها.</p></div>
+<div class="covergrid">
+<div class="ccard k1"><div class="n">1</div><h3>الطاقة والحرارة ودرجة الحرارة</h3><span>12 سؤالًا</span></div>
+<div class="ccard k2"><div class="n">2</div><h3>انتقال الطاقة الحرارية</h3><span>18 سؤالًا</span></div>
+<div class="ccard k3"><div class="n">3</div><h3>استخدام الطاقة الحرارية</h3><span>8 سؤالًا</span></div>
+</div>
+<div class="note">كل الإجابات مبنية على مبادئ الوحدة نفسها. وحيثما استُعين بمعلومة من خارج الكتاب، وُضِعت في إطار منفصل ومُيِّزت بوضوح.</div>
+</section>
+<section class="part k1">
+<div class="band"><div class="row"><span class="num">1</span><h2>الطاقة والحرارة ودرجة الحرارة</h2><span class="count">12 سؤالًا</span></div></div>
+<article class="item">
+<div class="qline"><span class="qn">1</span><p class="qtext">تُمسك كوبًا من الشاي الساخن بيدك. هل ينتقل «البرد» من يدك إلى الكوب، أم تنتقل الطاقة من الكوب إلى يدك؟</p></div>
+<div class="ans"><b>الإجابة:</b> تنتقل الطاقة الحرارية من الكوب إلى يدك.</div>
+<div class="why"><b>لماذا؟</b> الحرارة هي انتقال الطاقة الحرارية من جسم دافئ إلى جسم أكثر برودة. لا يوجد شيء اسمه «انتقال البرد»؛ فالبرودة تعني ببساطة أنّ الطاقة الحرارية أقل.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">2</span><p class="qtext">قال لك صديقك: «هذا الجسم فيه حرارة كثيرة». صحِّح له العبارة.</p></div>
+<div class="ans"><b>الإجابة:</b> الصحيح: «هذا الجسم فيه طاقة حرارية كثيرة».</div>
+<div class="why"><b>لماذا؟</b> الطاقة الحرارية شيء تملكه المادة، أمّا الحرارة فهي اسمٌ لانتقال هذه الطاقة من جسم إلى آخر. لكل الأجسام طاقة حرارية، لكن لا يملك أيّ جسم «حرارة» وهو ساكن.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">3</span><p class="qtext">ملعقتان من الفلز نفسه، واحدة كبيرة والأخرى صغيرة، تُركتا في كوب الشاي وقتًا طويلًا. أيّهما درجة حرارتها أعلى؟ وأيّهما طاقتها الحرارية أكبر؟</p></div>
+<div class="ans"><b>الإجابة:</b> درجة حرارتهما متساوية، لكنّ الطاقة الحرارية للملعقة الكبيرة أكبر.</div>
+<div class="why"><b>لماذا؟</b> يستمر التسخين حتى تصبح لكل الأجسام المتصلة درجة الحرارة نفسها. ودرجة الحرارة «متوسط» الطاقة الحركية، أمّا الطاقة الحرارية فهي «مجموع» طاقات كل الجسيمات — والملعقة الكبيرة فيها جسيمات أكثر.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">4</span><p class="qtext">حمّام سباحة درجة حرارته <bdi dir="ltr">30°C</bdi>، وكوب حساء درجة حرارته <bdi dir="ltr">60°C</bdi>. أيّهما أسخن؟ وأيّهما طاقته الحرارية أكبر؟</p></div>
+<div class="ans"><b>الإجابة:</b> الحساء أسخن، لكنّ حمّام السباحة طاقته الحرارية أكبر بكثير.</div>
+<div class="why"><b>لماذا؟</b> درجة الحرارة تخبرنا عن سرعة الجسيمات في المتوسط، لا عن عددها. وعدد جسيمات حمّام السباحة أكبر بملايين المرات، والطاقة الحرارية مجموع طاقات كل الجسيمات.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">5</span><p class="qtext">كوب شاي ساخن تُرك على الطاولة ساعة كاملة. ماذا حدث لطاقته الحرارية؟ وأين ذهبت؟</p></div>
+<div class="ans"><b>الإجابة:</b> قلَّت طاقته الحرارية، وانتقلت إلى الهواء والطاولة حوله.</div>
+<div class="why"><b>لماذا؟</b> تنتقل الطاقة الحرارية من الجسم الأدفأ إلى الأبرد، ويستمر ذلك حتى تتساوى درجات الحرارة. فالطاقة لم تختفِ، بل انتشرت في ما حول الكوب.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">6</span><p class="qtext">كوبان متماثلان من الماء في غرفة درجة حرارتها <bdi dir="ltr">25°C</bdi>: الأول عند <bdi dir="ltr">5°C</bdi> والثاني عند <bdi dir="ltr">20°C</bdi>. أيّهما ترتفع درجة حرارته أسرع في البداية؟</p></div>
+<div class="ans"><b>الإجابة:</b> الكوب الذي عند <bdi dir="ltr">5°C</bdi>.</div>
+<div class="why"><b>لماذا؟</b> يعتمد معدَّل التسخين على اختلاف درجة الحرارة بين الجسمين. الفرق هنا 20 درجة (25 − 5)، بينما الفرق عند الكوب الآخر 5 درجات فقط (25 − 20).</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">7</span><p class="qtext">مكعب ثلج يذوب في ماء، وللماء والجليد درجة الحرارة نفسها. فلماذا نقول إنّ طاقتهما الحرارية مختلفة؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ طاقة الوضع مختلفة بينهما.</div>
+<div class="why"><b>لماذا؟</b> الطاقة الحرارية = الطاقة الحركية + طاقة الوضع. تساوي درجة الحرارة يعني تساوي متوسط الطاقة الحركية فقط. لكنّ متوسط المسافة بين جسيمات الماء السائل يختلف عنه بين جسيمات الجليد، فتختلف طاقة الوضع، وبالتالي تختلف الطاقة الحرارية.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">8</span><p class="qtext">لو استطعنا تبريد مادة إلى <bdi dir="ltr">0 K</bdi>، ماذا يحدث لجسيماتها؟ وهل نجح العلماء في ذلك؟</p></div>
+<div class="ans"><b>الإجابة:</b> تتوقف جسيماتها عن الحركة ولا تكون لها طاقة حركية. ولم يتمكّن العلماء من تبريد أيّ مادة إلى <bdi dir="ltr">0 K</bdi>.</div>
+<div class="why"><b>لماذا؟</b> ‏<bdi dir="ltr">0 K</bdi> هي الصفر المطلق، وهي أقل درجة حرارة ممكنة لأيّ مادة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">9</span><p class="qtext">من أرقام الكتاب: يتجمَّد الماء عند <bdi dir="ltr">0°C</bdi> وعند <bdi dir="ltr">273 K</bdi>، ويغلي عند <bdi dir="ltr">100°C</bdi> وعند <bdi dir="ltr">373 K</bdi>. استنتج قاعدة التحويل من السيليزيّ إلى كلفن، ثم حوِّل <bdi dir="ltr">37°C</bdi>.</p></div>
+<div class="ans"><b>الإجابة:</b> القاعدة: K = <bdi dir="ltr">°C</bdi> + 273. إذن <bdi dir="ltr">37°C</bdi> = <bdi dir="ltr">310 K</bdi>.</div>
+<div class="why"><b>لماذا؟</b> بين التجمُّد والغليان 100 درجة في المقياسين معًا (من 0 إلى 100، ومن 273 إلى 373)، أي أنّ خطوة الدرجة الواحدة متساوية في المقياسين، والفارق الثابت بينهما 273.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">10</span><p class="qtext">درجة الحرارة في الخارج <bdi dir="ltr">95°F</bdi>. هل هذا يوم حار أم بارد؟ أثبت ذلك بالحساب.</p></div>
+<div class="ans"><b>الإجابة:</b> يوم حار: <bdi dir="ltr">95°F</bdi> تساوي <bdi dir="ltr">35°C</bdi>.</div>
+<div class="why"><b>لماذا؟</b> نستخدم قاعدة الكتاب: <bdi dir="ltr">°C</bdi> = (<bdi dir="ltr">°F</bdi> − 32) ÷ 1.8. إذن (95 − 32) = 63، ثم 63 ÷ 1.8 = 35.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">11</span><p class="qtext">الثيرمومتر: هل يقيس الحرارة أم درجة الحرارة؟</p></div>
+<div class="ans"><b>الإجابة:</b> يقيس درجة الحرارة.</div>
+<div class="why"><b>لماذا؟</b> درجة الحرارة هي متوسط الطاقة الحركية لجسيمات المادة، وهذا ما يستجيب له الثيرمومتر. أمّا الحرارة فهي انتقال الطاقة الحرارية بين جسمين، ولا يقيسها الثيرمومتر.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">12</span><p class="qtext">لماذا يرتفع السائل داخل الثيرمومتر ذي البصيلة عند وضعه في ماء ساخن؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّه يتمدَّد.</div>
+<div class="why"><b>لماذا؟</b> ترتفع درجة حرارة السائل، فتتحرك جسيماته أسرع وتتباعد، فيزداد حجمه ويرتفع في الأنبوب الزجاجي. وعندما تنخفض درجة حرارته ينكمش عائدًا إلى البصيلة.</div>
+</article>
+</section>
+<section class="part k2">
+<div class="band"><div class="row"><span class="num">2</span><h2>انتقال الطاقة الحرارية</h2><span class="count">18 سؤالًا</span></div></div>
+<article class="item">
+<div class="qline"><span class="qn">13</span><p class="qtext">تجلس قرب نار المخيَّم في ليلة باردة فتشعر بالدفء في وجهك دون أن تلمس النار. ما طريقة انتقال الطاقة؟</p></div>
+<div class="ans"><b>الإجابة:</b> الإشعاع.</div>
+<div class="why"><b>لماذا؟</b> الإشعاع ينقل الطاقة الحرارية عبر موجات كهرومغناطيسية دون حاجة إلى لمس. وكل المواد تشعّ، لكنّ الأجسام الدافئة — مثل النار — تبعث إشعاعًا أكثر ممّا تفعل الأجسام الباردة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">14</span><p class="qtext">لماذا يصلنا دفء الشمس رغم أنّ بيننا وبينها فضاء لا تكاد توجد فيه مادة؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الإشعاع وحده لا يحتاج إلى مادة لينتقل.</div>
+<div class="why"><b>لماذا؟</b> الفضاء فراغ، أي مساحة تحتوي على القليل أو لا شيء على الإطلاق من المادة. والتوصيل يحتاج إلى جسيمات تتصادم، والحمل الحراري يحتاج إلى مائع يتحرك — وكلاهما غير ممكن في الفراغ.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">15</span><p class="qtext">ملعقة معدنية وأخرى خشبية تُركتا في إناء الحساء الساخن. أيّهما تُسخِّن يدك أسرع؟</p></div>
+<div class="ans"><b>الإجابة:</b> الملعقة المعدنية.</div>
+<div class="why"><b>لماذا؟</b> الفلز موصّل جيد للحرارة: إلكتروناته تتحرك بسهولة وتنقل الطاقة عند اصطدامها بالإلكترونات والذرات الأخرى. والخشب عازل: تصادمات أقل، فينقل الطاقة ببطء.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">16</span><p class="qtext">الإبزيم المعدني لحزام الأمان والحزام القماشي تحت الشمس نفسها والمدة نفسها. لماذا يبدو الإبزيم أسخن بكثير؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ حرارته النوعية أقل.</div>
+<div class="why"><b>لماذا؟</b> استقبل الجسمان الكمية نفسها من الطاقة الحرارية، لكنّ المادة ذات الحرارة النوعية المنخفضة لا يتطلّب تغيّر درجة حرارتها قدرًا كبيرًا من الطاقة، فترتفع بسرعة. والإبزيم أيضًا موصّل جيد، فينقل الطاقة إلى يدك بسرعة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">17</span><p class="qtext">في الغرفة نفسها، لماذا يبدو بلاط الأرضية أبرد من السجادة رغم أنّ درجة حرارتهما واحدة؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ البلاط موصّل للحرارة أفضل من السجادة.</div>
+<div class="why"><b>لماذا؟</b> البلاط ينقل الطاقة الحرارية بعيدًا عن قدمك بسرعة فتحسّ بالبرودة. والسجادة قماش، والقماش عازل جيد، فينقل الطاقة ببطء. إحساس اللمس ليس مقياسًا دقيقًا لدرجة الحرارة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">18</span><p class="qtext">لماذا تُصنع مقابض أواني الطهي من الخشب أو البلاستيك بدلًا من الفلز؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الخشب والبلاستيك عازلان للحرارة.</div>
+<div class="why"><b>لماذا؟</b> لا تتدفَّق الطاقة الحرارية عبر العوازل بسهولة، فيبقى المقبض باردًا بما يكفي لتمسكه. ولو كان من الفلز — وهو موصّل جيد — لانتقلت الطاقة إلى يدك بسرعة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">19</span><p class="qtext">لماذا نستخدم قماشة سميكة عند إخراج صينية ساخنة من الفرن؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ القماش عازل للحرارة.</div>
+<div class="why"><b>لماذا؟</b> العازل لا تتدفَّق الطاقة الحرارية عبره بسهولة، فيُبطئ انتقالها من الصينية الساخنة إلى يدك.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">20</span><p class="qtext">لماذا يُستخدم الماء تحديدًا في تبريد محرّك السيارة؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ حرارته النوعية مرتفعة.</div>
+<div class="why"><b>لماذا؟</b> يستطيع الماء امتصاص كمية كبيرة من الطاقة الحرارية قبل أن ترتفع درجة حرارته كثيرًا، فيسحب من المحرك حرارة كثيرة. وللسبب نفسه يُستخدم في تبريد مناشير تقطيع الصخور.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">21</span><p class="qtext">على الشاطئ في الصيف: الرمل يحرق قدميك، وماء البحر بارد — والشمس واحدة! لماذا؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الحرارة النوعية للماء أعلى بكثير من الحرارة النوعية للرمل.</div>
+<div class="why"><b>لماذا؟</b> الرمل يحتاج إلى طاقة قليلة لترتفع درجة حرارته فيسخن بسرعة، أمّا الماء فيحتاج إلى طاقة كبيرة، فتبقى درجة حرارته منخفضة. وهذا نفسه سبب بقاء أحواض السباحة والبحيرات والمحيطات باردة في الصيف.</div>
+<div class="extra"><b>ملاحظة:</b> أرقام من خارج الكتاب: الحرارة النوعية للرمل نحو <bdi dir="ltr">0.84 J/g·°C</bdi>، وللماء نحو <bdi dir="ltr">4.2 J/g·°C</bdi> — أي إنّ الماء يحتاج إلى نحو خمسة أضعاف الطاقة ليسخن بالقدر نفسه.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">22</span><p class="qtext">بالون منفوخ تركته داخل السيارة تحت الشمس. ماذا يحدث لحجمه؟ ولماذا؟</p></div>
+<div class="ans"><b>الإجابة:</b> يكبر — وهذا هو التمدُّد الحراري.</div>
+<div class="why"><b>لماذا؟</b> ترتفع درجة حرارة الهواء داخله، فيزداد متوسط الطاقة الحركية لجسيماته، فتتحرك أسرع وتنتشر، فيزداد حجم الهواء. ولو أخذته إلى مكان بارد لحدث العكس: انكماش حراري.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">23</span><p class="qtext">لماذا تُترك فواصل صغيرة بين أجزاء الرصيف وفي الجسور؟</p></div>
+<div class="ans"><b>الإجابة:</b> لتتحمَّل التمدُّد الحراري والانكماش الحراري.</div>
+<div class="why"><b>لماذا؟</b> تتمدَّد المادة عند ارتفاع درجة حرارتها وتنكمش عند انخفاضها. تعطي الفواصل مكانًا لهذه الحركة، فلا تتشقَّق الأجزاء ولا تتصادم.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">24</span><p class="qtext">لماذا يرتفع المنطاد عند تسخين الهواء الموجود داخله؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّه يصبح أقل كثافةً من الهواء الخارجي.</div>
+<div class="why"><b>لماذا؟</b> التسخين يمدِّد الهواء داخل المنطاد، فيُجبَر بعض الجسيمات على الخروج من الفتحة السفلية. فيصبح عدد الجسيمات داخل المنطاد أقل من عددها في حجم مساوٍ من الهواء الخارجي — أي أقل كثافة — فيبدأ في الارتفاع.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">25</span><p class="qtext">شغّلت المدفأة في الغرفة. لماذا يصبح الهواء قرب السقف أدفأ من الهواء قرب الأرض؟</p></div>
+<div class="ans"><b>الإجابة:</b> بسبب الحمل الحراري.</div>
+<div class="why"><b>لماذا؟</b> يتمدَّد الهواء الدافئ فيصبح أقل كثافةً فيرتفع، ويهبط الهواء البارد الأكثر كثافةً ليحلّ محلَّه، فتتكوَّن دورة تُسمّى تيار الحمل.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">26</span><p class="qtext">لماذا يكون الهواء فوق شمعة مشتعلة أسخن بكثير من الهواء الذي على جانبها بالمسافة نفسها؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ فوق اللهب يجتمع الحمل الحراري مع الإشعاع، أمّا على الجانب فيصل الإشعاع وحده.</div>
+<div class="why"><b>لماذا؟</b> الهواء الساخن فوق اللهب يتمدَّد ويصبح أقل كثافةً فيرتفع مباشرةً إلى أعلى حاملًا معه طاقة حرارية. أمّا على الجانب فلا يصعد هذا الهواء نحوك، فلا يبقى إلا الإشعاع الذي ينتشر في كل الاتجاهات.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">27</span><p class="qtext">لماذا لا يحدث الحمل الحراري داخل قطعة حديد صلبة؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الحمل الحراري يحدث في الموائع فقط.</div>
+<div class="why"><b>لماذا؟</b> الحمل الحراري ينقل الطاقة بحركة الجسيمات من جزء إلى آخر، وهذا ممكن في السوائل والغازات لأنّ جسيماتها تتحرك بسهولة. أمّا جسيمات الحديد الصلب فتهتز في مكانها ولا تنتقل، فتنتقل الطاقة فيه بالتوصيل.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">28</span><p class="qtext">لماذا ينتقل التوصيل في الهواء أبطأ منه في الحديد؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ جسيمات الهواء متباعدة.</div>
+<div class="why"><b>لماذا؟</b> التوصيل يعتمد على اصطدام الجسيمات. جسيمات الغاز منتشرة ومتباعدة، فيقع عدد أقل من التصادمات. أمّا الحديد فجسيماته متقاربة وإلكتروناته تتحرك بسهولة، فينقل الطاقة بسرعة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">29</span><p class="qtext">بعض قوارير حفظ الشراب الساخن فيها فراغ بين جدارَيها. كيف يساعد الفراغ على بقاء الشراب ساخنًا؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الفراغ يمنع التوصيل والحمل الحراري.</div>
+<div class="why"><b>لماذا؟</b> التوصيل يحتاج إلى جسيمات تتصادم، والحمل الحراري يحتاج إلى مائع يتحرك. والفراغ مساحة لا تحتوي على شيء تقريبًا من المادة، فلا يجد أيٌّ من الطريقتين ما ينقل الطاقة عبره.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">30</span><p class="qtext">عند خط الاستواء غابات مطيرة، وقرب <bdi dir="ltr">30°N</bdi> و<bdi dir="ltr">30°S</bdi> صحاري. ما سبب هذا الاختلاف الكبير؟</p></div>
+<div class="ans"><b>الإجابة:</b> تيارات الحمل في الغلاف الجوي.</div>
+<div class="why"><b>لماذا؟</b> عند خط الاستواء تُسخِّن الشمس الهواء بشدّة فتنخفض كثافته ويرتفع؛ ومع ارتفاعه يبرد فيتكثَّف بخار الماء ويعود مطرًا — فتنمو الغابات المطيرة. وقرب <bdi dir="ltr">30°N</bdi> و<bdi dir="ltr">30°S</bdi> يهبط الهواء البارد الجاف باستمرار إلى سطح الكوكب، فتتكوَّن المناطق القاحلة.</div>
+</article>
+</section>
+<section class="part k3">
+<div class="band"><div class="row"><span class="num">3</span><h2>استخدام الطاقة الحرارية</h2><span class="count">8 سؤالًا</span></div></div>
+<article class="item">
+<div class="qline"><span class="qn">31</span><p class="qtext">تفرك يديك بسرعة في يوم بارد فتدفآن. من أين جاءت هذه الطاقة الحرارية؟</p></div>
+<div class="ans"><b>الإجابة:</b> من الطاقة الميكانيكية لحركة يديك، وقد تحوَّلت إلى طاقة حرارية.</div>
+<div class="why"><b>لماذا؟</b> الطاقة لا تُستحدث ولا تفنى، لكنها تتحوَّل من شكل إلى آخر. وهذا يشبه الشريط المطاطي الذي يصبح ساخنًا عند تمديده بشكل متكرر.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">32</span><p class="qtext">الحاسوب يسخن أثناء الاستخدام. فهل نسمّيه جهاز تسخين؟</p></div>
+<div class="ans"><b>الإجابة:</b> لا.</div>
+<div class="why"><b>لماذا؟</b> جهاز التسخين مصنوع خصيصًا ليحوّل الطاقة الكهربائية إلى طاقة حرارية نستفيد منها، مثل مكواة الملابس وجهاز تحضير القهوة. أمّا حرارة الحاسوب فناتجة عن تحوُّل دائم لبعض الطاقة الكهربائية إلى طاقة حرارية داخله، وهي لا تُستخدم لأي غرض.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">33</span><p class="qtext">الطاقة الحرارية تتدفق طبيعيًّا من الأدفأ إلى الأبرد. فكيف تنقلها الثلاجة من داخلها البارد إلى هواء المطبخ الدافئ؟</p></div>
+<div class="ans"><b>الإجابة:</b> باستخدام الطاقة الكهربائية.</div>
+<div class="why"><b>لماذا؟</b> يضغط الضاغطُ السائلَ المبرِّد في حيّز أصغر، فتزداد طاقته الحرارية حتى تصبح أكبر من الطاقة الحرارية للهواء المحيط. وعندئذٍ تتدفق الطاقة منه إلى الهواء بشكل طبيعي — من الأدفأ إلى الأبرد.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">34</span><p class="qtext">هل يبرد المطبخ لو تركتَ باب الثلاجة مفتوحًا طوال اليوم؟</p></div>
+<div class="ans"><b>الإجابة:</b> لا، بل يزداد المطبخ دفئًا.</div>
+<div class="why"><b>لماذا؟</b> الثلاجة تسحب الطاقة الحرارية من داخلها وتطردها إلى هواء المطبخ نفسه، فلا ينقص مجموع الطاقة في الغرفة. ويُضاف إلى ذلك أنّ الكهرباء التي تشغّل الثلاجة ينتهي جزء منها طاقةً حرارية في الغرفة أيضًا، فترتفع درجة حرارة المطبخ بدل أن تنخفض.</div>
+<div class="extra"><b>ملاحظة:</b> نتيجة مؤكَّدة من مصادر خارج الكتاب، ومبنية على ما درسته فيه: الثلاجة تنقل الطاقة ولا تُفنيها.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">35</span><p class="qtext">لماذا يُصنع الملف داخل منظِّم الحرارة من فلزين مختلفين وليس من فلز واحد؟</p></div>
+<div class="ans"><b>الإجابة:</b> لأنّ الفلزين يتمدَّدان وينكمشان بمعدَّلين مختلفين.</div>
+<div class="why"><b>لماذا؟</b> هذا الاختلاف هو الذي يجعل الملف ينثني أو ينفتح عند تغيّر درجة الحرارة، وهذه الحركة تحرّك المفتاح الذي يشغّل الجهاز أو يوقفه. ولو كان الفلز واحدًا لتمدَّد كله بالقدر نفسه ولما انثنى.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">36</span><p class="qtext">محرك السيارة يحوّل نحو <bdi dir="ltr">20%</bdi> فقط من الطاقة الكيميائية في الوقود إلى حركة. أين ذهب الباقي؟ وهل فُقدت تلك الطاقة؟</p></div>
+<div class="ans"><b>الإجابة:</b> الباقي — نحو <bdi dir="ltr">80%</bdi> — يتبدَّد في البيئة على صورة طاقة حرارية. ولم تُفقد الطاقة.</div>
+<div class="why"><b>لماذا؟</b> الطاقة لا تُستحدث ولا تفنى، والكمية الكلية لا تتغيَّر. لكن جزءًا كبيرًا منها تحوَّل إلى شكل لا نستفيد منه في تحريك السيارة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">37</span><p class="qtext">لوح تسخين كهربائي يغلي ماءً في إبريق، والبخار الخارج يدير مروحة ورقية. ما نوع هذه الآلة؟ وما تسلسل تحوُّل الطاقة فيها؟</p></div>
+<div class="ans"><b>الإجابة:</b> محرك حراري. والتسلسل: كهربائية ← حرارية ← ميكانيكية.</div>
+<div class="why"><b>لماذا؟</b> المحرك الحراري آلة تحوّل الطاقة الحرارية إلى طاقة ميكانيكية — وهنا تحوَّلت طاقة البخار الحرارية إلى حركة المروحة.</div>
+</article>
+<article class="item">
+<div class="qline"><span class="qn">38</span><p class="qtext">اذكر جهازين قرأت عنهما في هذه الوحدة يعملان معًا داخل آلة واحدة، واشرح كيف.</p></div>
+<div class="ans"><b>الإجابة:</b> الثلاجة ومنظِّم الحرارة.</div>
+<div class="why"><b>لماذا؟</b> ثلاجات المطبخ مجهَّزة بمنظِّمات حرارة. يتابع منظِّم الحرارة درجة الحرارة داخل الثلاجة: فإذا ارتفعت شغَّل الضاغط ليبرِّد، وإذا انخفضت بما يكفي أوقفه — فتبقى البرودة ثابتة.</div>
+</article>
+</section>
+<footer class="note">أُعدَّت هذه الأسئلة من محتوى الوحدة 1 «الطاقة الحرارية»: الدرس 1.1 الطاقة الحرارية ودرجة الحرارة والحرارة، والدرس 1.2 انتقال الطاقة الحرارية، والدرس 1.3 استخدام الطاقة الحرارية.</footer>
+</body></html>
