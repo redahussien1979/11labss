@@ -1,0 +1,288 @@
+<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<title>الطاقة الحرارية — ملخّص مبسّط</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@400;500;600;700&family=Tajawal:wght@300;400;500;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+@page{ size:A4 portrait; }
+*{box-sizing:border-box}
+html,body{margin:0; padding:0}
+:root{
+  --ink:#1A2430; --ink-2:#3E4E5C; --ink-3:#6E7F8E;
+  --line:#DCE4EB; --tint:#F6F9FB;
+  --c1:#0E6E88; --c1-tint:#E4F1F6; --c1-deep:#08556A;
+  --c2:#A8620C; --c2-tint:#FBF0E0; --c2-deep:#874E08;
+  --c3:#B0301F; --c3-tint:#FBEAE7; --c3-deep:#8C2517;
+  --ok:#14713C; --ok-tint:#E6F4EB;
+  --accent:var(--c1); --accent-tint:var(--c1-tint); --accent-deep:var(--c1-deep);
+}
+body{
+  background:#fff; color:var(--ink);
+  font-family:"Tajawal","Segoe UI",Tahoma,sans-serif;
+  font-size:11.2pt; line-height:1.8; direction:rtl;
+  -webkit-print-color-adjust:exact; print-color-adjust:exact;
+}
+h1,h2,h3,h4{font-family:"Reem Kufi","Tajawal",sans-serif; font-weight:600; margin:0}
+.k1{--accent:var(--c1); --accent-tint:var(--c1-tint); --accent-deep:var(--c1-deep)}
+.k2{--accent:var(--c2); --accent-tint:var(--c2-tint); --accent-deep:var(--c2-deep)}
+.k3{--accent:var(--c3); --accent-tint:var(--c3-tint); --accent-deep:var(--c3-deep)}
+
+/* ---------- الغلاف ---------- */
+.cover{break-after:page; page-break-after:always}
+.hero{background:linear-gradient(115deg,var(--c3) 0%,var(--c2) 34%,var(--c1-deep) 72%,var(--c1) 100%);
+  color:#fff; border-radius:14pt; padding:24pt 24pt 22pt; position:relative; overflow:hidden}
+.hero::after{content:""; position:absolute; inset:auto auto -80pt -40pt; width:210pt; height:210pt;
+  border-radius:50%; border:16pt solid rgba(255,255,255,.10)}
+.hero .top{font-size:9pt; opacity:.92; margin-bottom:12pt}
+.hero h1{font-size:33pt; line-height:1.14; font-weight:700; margin-bottom:6pt}
+.hero p{margin:0; font-size:12.5pt; opacity:.96; max-width:32em; line-height:1.6}
+.covergrid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:9pt; margin-top:16pt}
+.ccard{border:.8pt solid var(--line); border-top:3.4pt solid var(--accent); border-radius:10pt;
+  padding:11pt 11pt 12pt; background:var(--tint)}
+.ccard .n{font-family:"IBM Plex Mono",monospace; font-size:16pt; font-weight:600; color:var(--accent)}
+.ccard h3{font-size:11.5pt; margin:5pt 0 4pt; line-height:1.35}
+.ccard p{margin:0; font-size:9pt; color:var(--ink-2); line-height:1.6}
+.bigidea{margin-top:16pt; background:var(--c1-tint); border:.8pt solid var(--c1);
+  border-radius:10pt; padding:13pt 15pt}
+.bigidea h3{font-size:12pt; color:var(--c1-deep); margin-bottom:4pt}
+.bigidea p{margin:0; font-size:10.5pt; color:var(--ink-2); line-height:1.75}
+.cover .note{margin-top:14pt; font-size:9pt; color:var(--ink-3); line-height:1.7}
+
+/* ---------- عناوين الدروس ---------- */
+section.lesson{break-before:page; page-break-before:always}
+.band{background:var(--accent-tint); border-radius:11pt; padding:13pt 15pt;
+  border-inline-start:5pt solid var(--accent); margin-bottom:12pt;
+  break-after:avoid; page-break-after:avoid}
+.band .row{display:flex; align-items:baseline; gap:10pt}
+.band .num{font-family:"IBM Plex Mono",monospace; font-size:17pt; font-weight:600; color:var(--accent-deep)}
+.band h2{font-size:16pt; color:var(--accent-deep)}
+.band .big{margin:6pt 0 0; font-size:11pt; color:var(--ink-2); line-height:1.7; font-weight:500}
+
+/* ---------- الكتل ---------- */
+.blk{break-inside:avoid; page-break-inside:avoid; margin-bottom:7pt}
+.blk h3{font-size:12.5pt; margin-bottom:4pt; color:var(--accent-deep)}
+.blk p{margin:0; line-height:1.8}
+.idea{border:.8pt solid var(--line); border-radius:10pt; padding:9pt 12pt; background:#fff}
+.fact{border:.8pt solid var(--accent); border-radius:10pt; padding:9pt 12pt; background:var(--accent-tint)}
+.warn{border:.8pt solid #C99000; border-radius:10pt; padding:9pt 12pt; background:#FFF7E3}
+.warn h3{color:#8A6200}
+.pair{display:grid; grid-template-columns:1fr 1fr; gap:9pt}
+.pair .p{border:.8pt solid var(--line); border-top:2.6pt solid var(--accent); border-radius:10pt;
+  padding:9pt 12pt; background:var(--tint)}
+.pair .p h4{font-size:11.5pt; color:var(--accent-deep); margin-bottom:3pt}
+.pair .p p{font-size:10.5pt; color:var(--ink-2); line-height:1.72}
+.formula{display:grid; gap:7pt}
+.frow{display:grid; grid-template-columns:auto 1fr auto; gap:10pt; align-items:center;
+  border:.8pt solid var(--line); border-radius:10pt; padding:8pt 12pt; background:var(--tint)}
+.frow b{font-size:11.5pt; color:var(--accent-deep); white-space:nowrap}
+.frow .eq{font-weight:700; font-size:11pt}
+.frow .hint{font-size:9pt; color:var(--ink-3); white-space:nowrap}
+table.tbl{width:100%; border-collapse:collapse; font-size:10.5pt}
+table.tbl th{background:var(--accent); color:#fff; font-weight:700; padding:5pt 9pt; text-align:start;
+  font-size:10pt}
+table.tbl th:first-child{border-start-start-radius:8pt}
+table.tbl th:last-child{border-start-end-radius:8pt}
+table.tbl td{border:.7pt solid var(--line); padding:5pt 9pt}
+table.tbl tr:nth-child(even) td{background:var(--tint)}
+.math{display:grid; gap:7pt}
+.mrow{border:.8pt solid var(--line); border-radius:10pt; padding:8pt 12pt; background:#fff}
+.mrow b{display:block; font-size:10.5pt; color:var(--accent-deep)}
+.mrow .f{font-family:"IBM Plex Mono",monospace; font-size:11.5pt; font-weight:600; margin:3pt 0;
+  background:var(--accent-tint); border-radius:6pt; padding:3pt 9pt; display:inline-block;
+  direction:ltr; unicode-bidi:isolate}
+.mrow .ex{font-size:9.5pt; color:var(--ink-2)}
+.mrow .ex .m{font-family:"IBM Plex Mono",monospace; direction:ltr; unicode-bidi:isolate;
+  display:inline-block}
+ul.bul{margin:0; padding-inline-start:16pt}
+ul.bul li{margin-bottom:4pt; line-height:1.75; font-size:10.8pt}
+ul.bul li::marker{color:var(--accent); font-weight:700}
+.steps{display:grid; gap:5pt}
+.step{display:grid; grid-template-columns:17pt 1fr; gap:9pt; align-items:start;
+  border:.8pt solid var(--line); border-radius:9pt; padding:6pt 10pt; background:#fff; font-size:10.6pt;
+  line-height:1.65}
+.step .b{width:17pt; height:17pt; border-radius:50%; background:var(--accent); color:#fff;
+  display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono",monospace;
+  font-size:8.5pt; font-weight:600; margin-top:2pt}
+.compare{display:grid; grid-template-columns:1fr 1fr; gap:9pt}
+.cbox{border:.8pt solid var(--line); border-radius:10pt; padding:9pt 12pt; background:var(--tint)}
+.cbox h4{font-size:11pt; margin-bottom:2pt}
+.cbox .tagline{font-size:9pt; color:var(--accent-deep); font-weight:700; margin-bottom:3pt}
+.cbox p{font-size:10.3pt; color:var(--ink-2); margin:0; line-height:1.7}
+.chain{display:flex; align-items:center; gap:8pt; flex-wrap:wrap; margin-top:2pt}
+.chain .c{background:var(--accent-tint); border:.8pt solid var(--accent); border-radius:999pt;
+  padding:5pt 14pt; font-weight:700; font-size:10.5pt; color:var(--accent-deep)}
+.chain .ar{color:var(--accent); font-size:14pt; font-weight:700}
+figure{margin:0}
+figure svg{display:block; width:100%; height:auto}
+figcaption{font-size:9pt; color:var(--ink-3); margin-top:5pt; text-align:center}
+.figlegend{display:grid; gap:4pt; margin-top:8pt}
+.lrow{display:grid; grid-template-columns:10pt auto 1fr; gap:7pt; align-items:baseline;
+  font-size:10pt; line-height:1.6}
+.lrow .dot{width:10pt; height:10pt; border-radius:50%; align-self:center}
+.lrow b{color:var(--ink); white-space:nowrap}
+.lrow .v{color:var(--ink-2)}
+
+/* ---------- المراجعة ---------- */
+.recap{break-before:page; page-break-before:always}
+.recap .head{background:linear-gradient(115deg,var(--c3),var(--c2) 45%,var(--c1) 100%);
+  color:#fff; border-radius:11pt; padding:13pt 16pt; margin-bottom:11pt}
+.recap .head h2{font-size:17pt}
+.recap .head p{margin:2pt 0 0; font-size:10pt; opacity:.95}
+.rgrid{display:grid; grid-template-columns:1fr 1fr; gap:6pt}
+.ritem{border:.8pt solid var(--line); border-radius:9pt; padding:7pt 11pt; background:#fff;
+  break-inside:avoid}
+.ritem b{display:block; font-size:10.8pt; color:var(--c1-deep)}
+.ritem span{display:block; font-size:9.8pt; color:var(--ink-2); line-height:1.65}
+footer.note{margin-top:14pt; padding-top:8pt; border-top:.8pt solid var(--line);
+  font-size:9pt; color:var(--ink-3); line-height:1.7}
+</style>
+</head><body>
+<section class="cover">
+<div class="hero"><div class="top">علوم · الوحدة الأولى · الصفحات 6 – 39</div><h1>الطاقة الحرارية</h1><p>ملخّص الوحدة بلغة سهلة — كل ما تحتاج أن تعرفه عن الحرارة، وكيف تنتقل، وكيف نستفيد منها.</p></div>
+<div class="covergrid">
+<div class="ccard k1"><div class="n">1.1</div><h3>الطاقة الحرارية ودرجة الحرارة والحرارة</h3><p>كل شيء حولك مصنوع من جسيمات صغيرة جدًّا لا تتوقف عن الحركة أبدًا.</p></div>
+<div class="ccard k2"><div class="n">1.2</div><h3>انتقال الطاقة الحرارية</h3><p>تنتقل الطاقة الحرارية بثلاث طرائق فقط: الإشعاع، والتوصيل، والحمل الحراري.</p></div>
+<div class="ccard k3"><div class="n">1.3</div><h3>استخدام الطاقة الحرارية</h3><p>نستطيع تحويل الطاقة الحرارية والاستفادة منها في أجهزة نستخدمها كل يوم.</p></div>
+</div>
+<div class="bigidea"><h3>الفكرة الرئيسة للوحدة</h3><p>يمكن أن تنتقل الطاقة الحرارية بواسطة التوصيل أو الإشعاع أو الحمل الحراري. كذلك يمكن أن تتحوَّل الطاقة الحرارية إلى أشكال أخرى من الطاقة، وتُستخدم في أجهزة مثل منظِّمات الحرارة والثلاجات ومحركات السيارات.</p></div>
+<div class="note">في نهاية الملخّص صفحة مراجعة سريعة فيها كل المصطلحات المهمّة وتعريفها في سطر واحد.</div>
+</section>
+<section class="lesson k1">
+<div class="band"><div class="row"><span class="num">1.1</span><h2>الطاقة الحرارية ودرجة الحرارة والحرارة</h2></div><p class="big">كل شيء حولك مصنوع من جسيمات صغيرة جدًّا لا تتوقف عن الحركة أبدًا.</p></div>
+<div class="blk idea"><h3>الجسيمات لا تهدأ أبدًا</h3><p>تتكوَّن كل مادة — صلبة أو سائلة أو غازية — من تريليونات الجسيمات الدقيقة الدائمة الحركة. جسيمات الجسم الصلب تهتز في مكانها، وجسيمات الغاز تنتشر وتتحرك بحرّية وبسرعة.</p><figure><svg viewBox="0 0 600 152" xmlns="http://www.w3.org/2000/svg" role="img"
+ aria-label="ترتيب الجسيمات في المواد الصلبة والسائلة والغازية">
+<rect x="404" y="20" width="180" height="106" rx="10" fill="#F2F6F9" stroke="#C3D2DC" stroke-width="1"/>
+<rect x="208" y="20" width="180" height="106" rx="10" fill="#F2F6F9" stroke="#C3D2DC" stroke-width="1"/>
+<rect x="16"  y="20" width="180" height="106" rx="10" fill="#F2F6F9" stroke="#C3D2DC" stroke-width="1"/>
+<circle cx="430" cy="44" r="5.5" fill="#46617A"/><circle cx="458" cy="44" r="5.5" fill="#46617A"/><circle cx="486" cy="44" r="5.5" fill="#46617A"/><circle cx="514" cy="44" r="5.5" fill="#46617A"/><circle cx="542" cy="44" r="5.5" fill="#46617A"/><circle cx="430" cy="66" r="5.5" fill="#46617A"/><circle cx="458" cy="66" r="5.5" fill="#46617A"/><circle cx="486" cy="66" r="5.5" fill="#46617A"/><circle cx="514" cy="66" r="5.5" fill="#46617A"/><circle cx="542" cy="66" r="5.5" fill="#46617A"/><circle cx="430" cy="88" r="5.5" fill="#46617A"/><circle cx="458" cy="88" r="5.5" fill="#46617A"/><circle cx="486" cy="88" r="5.5" fill="#46617A"/><circle cx="514" cy="88" r="5.5" fill="#46617A"/><circle cx="542" cy="88" r="5.5" fill="#46617A"/><circle cx="430" cy="110" r="5.5" fill="#46617A"/><circle cx="458" cy="110" r="5.5" fill="#46617A"/><circle cx="486" cy="110" r="5.5" fill="#46617A"/><circle cx="514" cy="110" r="5.5" fill="#46617A"/><circle cx="542" cy="110" r="5.5" fill="#46617A"/><circle cx="222" cy="50" r="5.5" fill="#46617A"/><circle cx="258" cy="62" r="5.5" fill="#46617A"/><circle cx="296" cy="48" r="5.5" fill="#46617A"/><circle cx="334" cy="64" r="5.5" fill="#46617A"/><circle cx="240" cy="88" r="5.5" fill="#46617A"/><circle cx="280" cy="92" r="5.5" fill="#46617A"/><circle cx="320" cy="86" r="5.5" fill="#46617A"/><circle cx="356" cy="100" r="5.5" fill="#46617A"/><circle cx="232" cy="116" r="5.5" fill="#46617A"/><circle cx="272" cy="118" r="5.5" fill="#46617A"/><circle cx="312" cy="116" r="5.5" fill="#46617A"/><circle cx="350" cy="60" r="5.5" fill="#46617A"/><line x1="36" y1="44" x2="45" y2="50" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="92" y1="36" x2="101" y2="42" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="148" y1="54" x2="157" y2="60" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="58" y1="88" x2="67" y2="94" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="118" y1="100" x2="127" y2="106" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="164" y1="88" x2="173" y2="94" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><line x1="88" y1="66" x2="97" y2="72" stroke="#9BAEBD" stroke-width="2.4" stroke-linecap="round"/><circle cx="48" cy="52" r="5.5" fill="#46617A"/><circle cx="104" cy="44" r="5.5" fill="#46617A"/><circle cx="160" cy="62" r="5.5" fill="#46617A"/><circle cx="70" cy="96" r="5.5" fill="#46617A"/><circle cx="130" cy="108" r="5.5" fill="#46617A"/><circle cx="176" cy="96" r="5.5" fill="#46617A"/><circle cx="100" cy="74" r="5.5" fill="#46617A"/>
+<text x="494" y="144" text-anchor="middle" font-family="Tajawal" font-size="13" fill="#3E4E5C">صلبة: تهتز في مكانها</text>
+<text x="298" y="144" text-anchor="middle" font-family="Tajawal" font-size="13" fill="#3E4E5C">سائلة: متباعدة قليلًا</text>
+<text x="106" y="144" text-anchor="middle" font-family="Tajawal" font-size="13" fill="#3E4E5C">غازية: تنتشر بحرّية</text>
+</svg><figcaption>الجسيمات موجودة في كل مادة، وتختلف المسافات بينها باختلاف الحالة.</figcaption></figure></div>
+<div class="blk"><h3>نوعان من الطاقة في كل جسيم</h3><div class="pair"><div class="p"><h4>الطاقة الحركية</h4><p>طاقة الحركة. كل جسم متحرك له طاقة حركية — مثل كرة القدم التي يركلها اللاعب. وكلما تحرَّك الجسيم أسرع، زادت طاقته الحركية.</p></div><div class="p"><h4>طاقة الوضع</h4><p>طاقة مُخزَّنة بسبب التفاعل بين جسمين. الكرة المرتفعة في الهواء لها طاقة وضع لأنّ الأرض تجذبها. وكلما ارتفعت الكرة، زادت طاقة وضعها. وكذلك كلما تباعدت الجسيمات عن بعضها، زادت طاقة وضعها.</p></div></div></div>
+<div class="blk"><h3>اجمعهما فتحصل على…</h3><div class="formula"><div class="frow"><b>الطاقة الميكانيكية</b><span class="eq">= الطاقة الحركية + طاقة الوضع</span><span class="hint">لجسم واحد، مثل الكرة</span></div><div class="frow"><b>الطاقة الحرارية</b><span class="eq">= الطاقة الحركية + طاقة الوضع</span><span class="hint">لكل جسيمات المادة معًا</span></div></div></div>
+<div class="blk idea"><h3>ما درجة الحرارة؟</h3><p>درجة الحرارة هي متوسط الطاقة الحركية للجسيمات المكوّنة لمادة ما. بكلمات أسهل: كم تتحرك الجسيمات بسرعة في المتوسط. جسيمات أسرع = درجة حرارة أعلى. لهذا يكون الهواء داخل البيت الدافئ أعلى حرارة من الهواء خارجه في ليلة شتوية باردة: جسيماته تتحرك بمتوسط سرعة أكبر.</p></div>
+<div class="blk warn"><h3>انتبه! درجة الحرارة ≠ الطاقة الحرارية</h3><p>في بركة ماء متجمِّدة أثناء انصهارها يوجد ماء وجليد معًا، ولهما درجة الحرارة نفسها، أي أنّ متوسط الطاقة الحركية لجسيماتهما واحد. لكنّ طاقتهما الحرارية مختلفة، لأنّ متوسط المسافة بين الجسيمات مختلف، فتكون طاقة الوضع مختلفة.</p></div>
+<div class="blk idea"><h3>كيف نقيس درجة الحرارة؟</h3><p>من المستحيل قياس طاقة كل جسيم على حدة، لذلك نستخدم الثيرمومتر. الثيرمومتر ذو البصيلة أنبوب زجاجي فيه سائل كالكحول: عندما ترتفع درجة الحرارة يتمدَّد السائل ويرتفع في الأنبوب، وعندما تنخفض ينكمش عائدًا إلى البصيلة. أمّا الثيرمومتر الإلكتروني فيقيس التغيُّرات في مقاومة دائرة كهربائية ويحوّلها إلى درجة حرارة.</p><figure><svg viewBox="0 0 600 132" xmlns="http://www.w3.org/2000/svg" role="img"
+ aria-label="ثيرمومتر عليه علامتا غليان الماء وتجمُّده">
+<line x1="252" y1="28" x2="348" y2="28" stroke="#B0301F" stroke-width="1.6" stroke-dasharray="5 4"/>
+<line x1="252" y1="86" x2="348" y2="86" stroke="#0E6E88" stroke-width="1.6" stroke-dasharray="5 4"/>
+<rect x="286" y="8" width="28" height="98" rx="14" fill="#F6F9FB" stroke="#6E7F8E" stroke-width="1.4"/>
+<rect x="293" y="60" width="14" height="52" rx="7" fill="#B0301F"/>
+<circle cx="300" cy="114" r="16" fill="#B0301F"/>
+<circle cx="252" cy="28" r="4.5" fill="#B0301F"/><circle cx="348" cy="28" r="4.5" fill="#B0301F"/>
+<circle cx="252" cy="86" r="4.5" fill="#0E6E88"/><circle cx="348" cy="86" r="4.5" fill="#0E6E88"/>
+</svg><div class="figlegend"><div class="lrow"><span class="dot" style="background:#B0301F"></span><b>يغلي الماء عند</b><span class="v"><bdi><bdi dir="ltr">212°F</bdi> · <bdi dir="ltr">100°C</bdi> · <bdi dir="ltr">373 K</bdi></bdi></span></div><div class="lrow"><span class="dot" style="background:#0E6E88"></span><b>يتجمَّد الماء عند</b><span class="v"><bdi><bdi dir="ltr">32°F</bdi> · <bdi dir="ltr">0°C</bdi> · <bdi dir="ltr">273 K</bdi></bdi></span></div><div class="lrow"><span class="dot" style="background:#6E7F8E"></span><b>الصفر المطلق</b><span class="v"><bdi><bdi dir="ltr">0 K</bdi> — لا تتحرك الجسيمات ولا تكون لها طاقة حركية</bdi></span></div></div><figcaption>المقاييس الثلاثة تصف الشيء نفسه بأرقام مختلفة.</figcaption></figure></div>
+<div class="blk"><h3>ثلاثة مقاييس لدرجة الحرارة</h3><table class="tbl"><thead><tr><th>المقياس</th><th>يتجمَّد الماء عند</th><th>يغلي الماء عند</th></tr></thead><tbody><tr><td><bdi>فهرنهايت</bdi></td><td><bdi>32°</bdi></td><td><bdi>212°</bdi></td></tr><tr><td><bdi>السيليزيّ — يستخدمه العلماء في العالم كله</bdi></td><td><bdi>0°</bdi></td><td><bdi>100°</bdi></td></tr><tr><td><bdi>كلفن</bdi></td><td><bdi><bdi dir="ltr">273 K</bdi></bdi></td><td><bdi><bdi dir="ltr">373 K</bdi></bdi></td></tr></tbody></table></div>
+<div class="blk fact"><h3>أبرد درجة حرارة ممكنة</h3><p>هي <bdi dir="ltr">0 K</bdi>، وتُسمّى الصفر المطلق. عندها لا تتحرك الجسيمات ولا تكون لها طاقة حركية. ولم يتمكّن العلماء من تبريد أيّ مادة إلى <bdi dir="ltr">0 K</bdi>.</p></div>
+<div class="blk"><h3>تحويل بين المقياسين</h3><div class="math"><div class="mrow"><b>من فهرنهايت إلى سيليزيّ</b><span class="f">°C = (°F − 32) ÷ 1.8</span><div class="ex">مثال: <span class="m">86°F → (86 − 32) ÷ 1.8 = 30°C</span></div></div><div class="mrow"><b>من سيليزيّ إلى فهرنهايت</b><span class="f">°F = (°C × 1.8) + 32</span><div class="ex">مثال: <span class="m">37°C → (37 × 1.8) + 32 = 98.6°F</span></div></div></div></div>
+<div class="blk idea"><h3>ما الحرارة؟</h3><p>الحرارة هي انتقال الطاقة الحرارية من جسم دافئ إلى جسم أكثر برودة. عندما تُمسك كوب كاكاو ساخن، تنتقل طاقة حرارية من الكوب إلى يديك فتدفآن. لكل الأجسام طاقة حرارية، لكنّ الحرارة هي انتقال هذه الطاقة من جسم إلى آخر.</p></div>
+<div class="blk idea"><h3>قواعد التسخين</h3><ul class="bul"><li>كلما زاد الفرق في درجة الحرارة بين جسمين، زاد معدَّل التسخين.</li><li>لهذا يُسخِّن الكاكاو الساخن الهواء البارد أكثر مما يسخِّن الكوب.</li><li>يستمر التسخين حتى تُصبح لكل الأجسام المتصلة درجة الحرارة نفسها.</li></ul></div>
+</section>
+<section class="lesson k2">
+<div class="band"><div class="row"><span class="num">1.2</span><h2>انتقال الطاقة الحرارية</h2></div><p class="big">تنتقل الطاقة الحرارية بثلاث طرائق فقط: الإشعاع، والتوصيل، والحمل الحراري.</p></div>
+<div class="blk"><figure><svg viewBox="0 0 600 168" xmlns="http://www.w3.org/2000/svg" role="img"
+ aria-label="الإشعاع والتوصيل والحمل الحراري">
+<rect x="404" y="10" width="180" height="116" rx="10" fill="#FFF" stroke="#DCE4EB" stroke-width="1"/>
+<rect x="208" y="10" width="180" height="116" rx="10" fill="#FFF" stroke="#DCE4EB" stroke-width="1"/>
+<rect x="16"  y="10" width="180" height="116" rx="10" fill="#FFF" stroke="#DCE4EB" stroke-width="1"/>
+
+<circle cx="540" cy="58" r="20" fill="#E8A33D" stroke="#B0301F" stroke-width="1.5"/>
+<line x1="518" y1="58" x2="452" y2="62" stroke="#B0301F" stroke-width="2.6" stroke-linecap="round"/><line x1="518" y1="58" x2="452" y2="76" stroke="#B0301F" stroke-width="2.6" stroke-linecap="round"/><line x1="518" y1="58" x2="452" y2="90" stroke="#B0301F" stroke-width="2.6" stroke-linecap="round"/>
+<rect x="418" y="72" width="30" height="26" rx="4" fill="#0E6E88"/>
+<text x="494" y="118" text-anchor="middle" font-family="Tajawal" font-size="14" font-weight="700" fill="#8C2517">الإشعاع</text>
+
+<rect x="238" y="46" width="120" height="20" rx="6" fill="#EAF0F4" stroke="#6E7F8E" stroke-width="1"/>
+<circle cx="256" cy="56" r="6" fill="#B0301F"/><circle cx="284" cy="56" r="6" fill="#C9702F"/>
+<circle cx="312" cy="56" r="6" fill="#A8620C"/><circle cx="340" cy="56" r="6" fill="#0E6E88"/>
+<path d="M262 34 L278 34" stroke="#A8620C" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M290 34 L306 34" stroke="#A8620C" stroke-width="2.4" stroke-linecap="round"/>
+<path d="M318 34 L334 34" stroke="#A8620C" stroke-width="2.4" stroke-linecap="round"/>
+<text x="298" y="90" text-anchor="middle" font-family="Tajawal" font-size="12" fill="#6E7F8E">تصطدم فتنقل الطاقة</text>
+<text x="298" y="118" text-anchor="middle" font-family="Tajawal" font-size="14" font-weight="700" fill="#874E08">التوصيل</text>
+
+<path d="M52 84 h108 v-46 h-108 z" fill="#DCEBF2" stroke="#0E6E88" stroke-width="1.4"/>
+<path d="M76 78 C76 58, 98 58, 98 44" fill="none" stroke="#B0301F" stroke-width="2.6"
+ stroke-linecap="round" marker-end="url(#ah)"/>
+<path d="M136 44 C136 64, 114 64, 114 78" fill="none" stroke="#0E6E88" stroke-width="2.6"
+ stroke-linecap="round" marker-end="url(#ab)"/>
+<path d="M62 92 l14 -8 M86 92 l14 -8 M110 92 l14 -8 M134 92 l14 -8"
+ stroke="#E8A33D" stroke-width="2.6" stroke-linecap="round"/>
+<text x="106" y="118" text-anchor="middle" font-family="Tajawal" font-size="14" font-weight="700" fill="#08556A">الحمل الحراري</text>
+
+<text x="494" y="150" text-anchor="middle" font-family="Tajawal" font-size="12.5" fill="#3E4E5C">بلا لمس، حتى عبر الفراغ</text>
+<text x="298" y="150" text-anchor="middle" font-family="Tajawal" font-size="12.5" fill="#3E4E5C">بالتلامس والتصادم</text>
+<text x="106" y="150" text-anchor="middle" font-family="Tajawal" font-size="12.5" fill="#3E4E5C">بحركة الموائع</text>
+<defs>
+<marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0 0 L10 5 L0 10 z" fill="#B0301F"/></marker>
+<marker id="ab" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0 0 L10 5 L0 10 z" fill="#0E6E88"/></marker>
+</defs>
+</svg><figcaption>ثلاث طرائق فقط تنتقل بها الطاقة الحرارية.</figcaption></figure></div>
+<div class="blk idea"><h3>أولًا: الإشعاع</h3><p>انتقال الطاقة الحرارية من مادة إلى أخرى عبر موجات كهرومغناطيسية. كل المواد تنقل الطاقة بالإشعاع — الشمس والنار وأنت وحتى الجليد — لكنّ الأجسام الدافئة تبعث إشعاعًا أكثر ممّا تفعل الأجسام الباردة. الشمس تُسخِّن داخل السيارة بالإشعاع.</p></div>
+<div class="blk fact"><h3>لماذا الإشعاع وحده يصلنا من الشمس؟</h3><p>لأنّ الفضاء عبارة عن فراغ، أي مساحة تحتوي على القليل أو لا شيء على الإطلاق من المادة. فالإشعاع هو الطريقة الوحيدة التي تنتقل بها الطاقة الحرارية من الشمس إلى الأرض. ومع ذلك ينقل الإشعاع الطاقة أيضًا عبر المواد الصلبة والسائلة والغازية.</p></div>
+<div class="blk idea"><h3>ثانيًا: التوصيل</h3><p>انتقال الطاقة الحرارية بين المواد عن طريق اصطدام الجسيمات. عندما تتصادم جسيمات ذات طاقات حركية مختلفة، تنقل الجسيمات الأسرع طاقةً إلى الجسيمات الأبطأ. الهواء الحار يُسخِّن كوب الليموناضة بالتوصيل، ويستمر التوصيل حتى تصبح الطاقة الحرارية لكل الجسيمات المتصلة متساوية.</p></div>
+<div class="blk"><h3>موصِّل أم عازل؟</h3><div class="pair"><div class="p"><h4>موصّل الحرارة</h4><p>مادة تتدفَّق من خلالها الطاقة الحرارية بسهولة، مثل الفلزات. إلكتروناتها تتحرك بسهولة فتنقل الطاقة عندما تصطدم. الفلزات أفضل من اللافلزات في توصيل الحرارة.</p></div><div class="p"><h4>عازل الحرارة</h4><p>مادة لا تتدفَّق الطاقة الحرارية عبرها بسهولة، مثل القماش. إلكتروناتها لا تتحرك بسهولة، فيقع عدد أقل من التصادمات.</p></div></div></div>
+<div class="blk idea"><h3>ثالثًا: الحرارة النوعية</h3><p>هي كمية الطاقة اللازمة لرفع درجة حرارة <bdi dir="ltr">1 g</bdi> من المادة بمقدار <bdi dir="ltr">1°C</bdi>، ولكل مادة حرارة نوعية خاصة بها. المادة ذات الحرارة النوعية المنخفضة تسخن بسرعة، والمادة ذات الحرارة النوعية المرتفعة تحتاج إلى طاقة كثيرة لتسخن.</p></div>
+<div class="blk"><h3>في السيارة في يوم حار</h3><div class="compare"><div class="cbox"><h4>الإبزيم المعدني لحزام الأمان</h4><div class="tagline">موصّل · حرارة نوعية منخفضة</div><p>يسخن بسرعة فتحسّ به حارًّا</p></div><div class="cbox"><h4>حزام الأمان القماشي</h4><div class="tagline">عازل · حرارة نوعية مرتفعة</div><p>يسخن ببطء رغم أنه أخذ الطاقة نفسها</p></div></div></div>
+<div class="blk fact"><h3>الماء بطل الحرارة النوعية</h3><p>للماء حرارة نوعية مرتفعة بصفة خاصة، ويحتاج إلى كمية كبيرة من الطاقة لترتفع درجة حرارته. لذلك: يحمي جسمك من السخونة المفرطة (لأنّ الماء يمثل نسبة كبيرة منه)، وتبقى أحواض السباحة والبحيرات والمحيطات باردة في الصيف، ويُستخدم الماء لتبريد الآلات مثل محركات السيارات ومناشير تقطيع الصخور.</p></div>
+<div class="blk"><h3>رابعًا: التمدُّد والانكماش الحراريان</h3><div class="pair"><div class="p"><h4>التمدُّد الحراري</h4><p>ازدياد في حجم المادة عند ارتفاع درجة حرارتها. تتحرك الجسيمات أسرع وتنتشر، فيكبر الحجم — مثل بالون تسخّنه بمجفِّف الشعر.</p></div><div class="p"><h4>الانكماش الحراري</h4><p>تناقص في حجم المادة عند انخفاض درجة حرارتها. تبطؤ حركة الجسيمات وتتقارب — مثل بالون تأخذه إلى الخارج في يوم بارد.</p></div></div></div>
+<div class="blk idea"><h3>أين نرى ذلك؟</h3><ul class="bul"><li>التمدُّد والانكماش ملحوظان بصورة كبيرة في الغازات، وبصورة أقل في السوائل، وبأقل صورة في المواد الصلبة.</li><li>الأرصفة يمكنها تحمُّل التمدُّد والانكماش بسبب وصلات التحكُّم (الفواصل) بين أجزائها.</li><li>المنطاد: يسخِّن الموقد الهواء فيتمدَّد ويخرج بعض الجسيمات من الفتحة، فيصبح المنطاد أقل كثافةً من الهواء الخارجي فيرتفع. ولإنزاله يُترك الهواء ليبرد تدريجيًّا فيملأ الهواء الخارجي الأكثر كثافةً حيِّزه، فتزداد كثافته ويهبط ببطء.</li><li>الزجاج العادي ينكسر في الفرن لأنّ أجزاءه تتمدَّد بمعدلات مختلفة، أمّا الزجاج المقاوم للحرارة فمصمَّم ليتمدَّد بمعدّل أقل، فلا ينكسر عادةً.</li></ul></div>
+<div class="blk idea"><h3>خامسًا: الحمل الحراري</h3><p>انتقال الطاقة الحرارية بواسطة حركة الجسيمات من أحد أجزاء المادة إلى جزء آخر. ويحدث في الموائع فقط، أي في السوائل والغازات، لأنّ جسيماتها تتحرك بسهولة.</p><figure><svg viewBox="0 0 600 190" xmlns="http://www.w3.org/2000/svg" role="img"
+ aria-label="دورة الحمل الحراري في إناء ماء على موقد">
+<path d="M150 30 h300 v122 h-300 z" fill="#DCEBF2" stroke="#0E6E88" stroke-width="2"/>
+<rect x="140" y="22" width="320" height="12" rx="6" fill="#B7C6D0"/>
+<path d="M226 140 C226 96, 262 96, 262 50" fill="none" stroke="#B0301F" stroke-width="3.6"
+ stroke-linecap="round" marker-end="url(#up)"/>
+<path d="M374 50 C374 94, 338 94, 338 140" fill="none" stroke="#0E6E88" stroke-width="3.6"
+ stroke-linecap="round" marker-end="url(#dn)"/>
+<path d="M176 172 l16 -13 M216 172 l16 -13 M256 172 l16 -13 M296 172 l16 -13
+ M336 172 l16 -13 M376 172 l16 -13 M416 172 l16 -13"
+ stroke="#E8A33D" stroke-width="3.6" stroke-linecap="round"/>
+<defs>
+<marker id="up" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0 0 L10 5 L0 10 z" fill="#B0301F"/></marker>
+<marker id="dn" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+<path d="M0 0 L10 5 L0 10 z" fill="#0E6E88"/></marker>
+</defs>
+</svg><div class="figlegend"><div class="lrow"><span class="dot" style="background:#B0301F"></span><b>الماء الساخن (السهم الأحمر)</b><span class="v"><bdi>يتمدَّد ← يصبح أقل كثافةً ← يرتفع</bdi></span></div><div class="lrow"><span class="dot" style="background:#0E6E88"></span><b>الماء البارد (السهم الأزرق)</b><span class="v"><bdi>ينكمش ← يصبح أكثر كثافةً ← يهبط</bdi></span></div><div class="lrow"><span class="dot" style="background:#E8A33D"></span><b>الموقد</b><span class="v"><bdi>يمنح الماء عند القاع طاقة حرارية</bdi></span></div></div><figcaption>دورة تتكرَّر حتى يصبح كل الماء عند درجة الحرارة نفسها.</figcaption></figure></div>
+<div class="blk"><h3>ماذا يحدث في إناء الماء على الموقد؟</h3><div class="steps"><div class="step"><span class="b">1</span><span>يُسخِّن الموقد الماء عند القاع، فيتمدَّد ويصبح أقل كثافةً فيُدفع إلى الأعلى.</span></div><div class="step"><span class="b">2</span><span>عند السطح ينقل الماء طاقة حرارية إلى الهواء، فيبرد وينكمش وتزداد كثافته.</span></div><div class="step"><span class="b">3</span><span>يهبط الماء الأكبر كثافةً إلى القاع دافعًا الماء الأقل كثافةً إلى الأعلى.</span></div><div class="step"><span class="b">4</span><span>تستمر الدورة حتى يصبح كل الماء في الإناء عند درجة الحرارة نفسها.</span></div></div></div>
+<div class="blk fact"><h3>تيارات الحمل تصنع المناخ</h3><p>تُسمّى حركة الموائع في دورة ما بفعل الحمل الحراري «تيارات الحمل». على الأرض تُحرِّك تيارات الحمل الهواء بين خط الاستواء وخطوط العرض بالقرب من <bdi dir="ltr">30°N</bdi> و<bdi dir="ltr">30°S</bdi>. عند خط الاستواء تُسخَّن كمية هائلة من الطاقة الحرارية الهواءَ فتنخفض كثافته ويرتفع، ويتكثف بخار الماء فيه فيعود مطرًا — ولهذا تقع معظم الغابات المطيرة هناك. وحيث يهبط الهواء البارد الجاف باستمرار تتكوَّن المناطق القاحلة (الصحاري). وتُحرِّك تيارات الحمل أيضًا ماء المحيطات، والمواد في باطن الأرض، والطاقة الحرارية من داخل الشمس إلى سطحها.</p></div>
+</section>
+<section class="lesson k3">
+<div class="band"><div class="row"><span class="num">1.3</span><h2>استخدام الطاقة الحرارية</h2></div><p class="big">نستطيع تحويل الطاقة الحرارية والاستفادة منها في أجهزة نستخدمها كل يوم.</p></div>
+<div class="blk idea"><h3>الطاقة تتحوَّل ولا تختفي</h3><p>يمكنك تحويل أشكال عديدة من الطاقة إلى طاقة حرارية: تمديد شريط مطاطي بشكل متكرر يجعله ساخنًا، والخشب المحترق يسخِّن الهواء. ويمكن أيضًا تحويل الطاقة الحرارية إلى أشكال أخرى. وتذكَّر: الطاقة لا تُستحدث ولا تفنى، فالأجهزة تحوِّلها من شكل إلى آخر أو تنقلها من مكان إلى آخر، لكنّ الكمية الكلية للطاقة لا تتغيَّر.</p></div>
+<div class="blk idea"><h3>أولًا: جهاز التسخين</h3><p>هو الجهاز الذي يحوّل الطاقة الكهربائية إلى طاقة حرارية. من أمثلته مكواة تجعيد الشعر، وجهاز تحضير القهوة، ومكواة الملابس. وتصبح أجهزة الحاسوب والهواتف المحمولة دافئة بسبب التحوُّل الدائم لبعض الطاقة الكهربائية إلى طاقة حرارية داخلها — وهذه الطاقة الحرارية لا تُستخدم لأي غرض.</p></div>
+<div class="blk idea"><h3>ثانيًا: منظِّم الحرارة</h3><p>جهاز ينظِّم درجة حرارة نظام ما. داخله ملف ثنائي الفلز، أي فلزان مختلفان مرتبطان معًا يُثنيان في صورة ملف، ويتمدَّد أحدهما ويتقلَّص أكثر من الآخر.</p></div>
+<div class="blk"><h3>كيف يُشغِّل المكيّف ويُطفئه؟</h3><div class="steps"><div class="step"><span class="b">1</span><span>بعد أن تبرد الغرفة، تتسبب الطاقة الحرارية في الهواء في أن ينثني الملف ببطء، فيحرك مفتاحًا يوقف تشغيل مكيّف الهواء.</span></div><div class="step"><span class="b">2</span><span>وعندما ترتفع درجة حرارة الهواء في الغرفة، يتمدَّد الفلز داخل الملف أكثر من الفلز خارجه، فينفتح الملف ويحرّك المفتاح في الاتجاه الآخر ليشغّل مكيّف الهواء.</span></div></div></div>
+<div class="blk fact"><h3>أين تجد منظِّمات الحرارة؟</h3><p>ثلاجات المطبخ، وآلات تحميص الخبز، والأفران الكهربائية — كلها مجهَّزة بمنظِّمات حرارة.</p></div>
+<div class="blk idea"><h3>ثالثًا: الثلاجة</h3><p>جهاز يستخدم الطاقة الكهربائية لنقل الطاقة الحرارية من مكان أكثر برودة إلى مكان أكثر دفئًا. وهذا عكس الاتجاه الطبيعي، فالطاقة الحرارية تتدفق طبيعيًّا من المنطقة الأكثر دفئًا إلى الأكثر برودة. ولهذا يدفأ الهواء المحيط بالثلاجة بينما يبرد الطعام داخلها.</p></div>
+<div class="blk"><h3>دورة السائل المبرِّد</h3><div class="steps"><div class="step"><span class="b">1</span><span>السائل المبرِّد مادة تتبخر عند درجة حرارة منخفضة. يمرّ في صورة سائل عبر صمام التمدُّد ويبرد.</span></div><div class="step"><span class="b">2</span><span>يتدفق الغاز البارد عبر الأنابيب داخل الثلاجة، فيمتص الطاقة الحرارية من مقصورة الثلاجة ويتبخر، فيصبح دافئًا ويصبح داخل الثلاجة أكثر برودة.</span></div><div class="step"><span class="b">3</span><span>يتدفق إلى ضاغط كهربائي في قاع الثلاجة يضغطه في حيّز أصغر، مما يزيد من طاقته الحرارية.</span></div><div class="step"><span class="b">4</span><span>في ملفات المكثِّف تتدفق الطاقة الحرارية من الغاز إلى الهواء وراء الثلاجة، فيتكثَّف الغاز ويتحوّل إلى سائل، ثم يُضخّ إلى الأعلى عبر صمام التمدُّد وتتكرَّر الدورة.</span></div></div></div>
+<div class="blk idea"><h3>رابعًا: المحرك الحراري</h3><p>آلة تحوِّل الطاقة الحرارية إلى طاقة ميكانيكية. ومحرك السيارة العادي محرك حراري من نوع محرك الاحتراق الداخلي، وتستخدمه أيضًا الحافلات والقوارب والشاحنات وجزازات الأعشاب. والأسطوانة فيه أنبوب يحتوي على مكبس يتحرك إلى الأعلى وإلى الأسفل.</p></div>
+<div class="blk"><h3>دورة محرك الاحتراق الداخلي</h3><div class="steps"><div class="step"><span class="b">1</span><span>ينفتح صمام الإدخال عندما يتحرك المكبس إلى الأسفل، ليسحب خليطًا من الوقود والهواء إلى الأسطوانة.</span></div><div class="step"><span class="b">2</span><span>ينغلق صمام الإدخال عندما يتحرك المكبس إلى الأعلى، ليضغط خليط الوقود والهواء.</span></div><div class="step"><span class="b">3</span><span>تشعل شمعة الإشعال خليط الهواء والوقود. وأثناء احتراق الخليط تتمدَّد الغازات الساخنة وتدفع المكبس إلى الأسفل.</span></div><div class="step"><span class="b">4</span><span>بينما يتحرك المكبس إلى الأعلى، ينفتح صمام العادم وتُدفع الغازات الساخنة خارج الأسطوانة.</span></div></div></div>
+<div class="blk idea"><h3>تحوُّل الطاقة في محرك السيارة</h3><div class="chain"><span class="c">طاقة كيميائية في الوقود</span><span class="ar">←</span><span class="c">طاقة حرارية</span><span class="ar">←</span><span class="c">طاقة ميكانيكية</span></div></div>
+<div class="blk warn"><h3>المحرك الحراري ليس ممتازًا!</h3><p>المحرك الحراري منخفض الكفاءة: تحوِّل معظم محركات السيارات حوالي <bdi dir="ltr">20%</bdi> فقط من الطاقة الكيميائية في الجازولين إلى طاقة ميكانيكية، أمّا الطاقة المتبقية فتتبدَّد في البيئة.</p></div>
+</section>
+<section class="recap"><div class="head"><h2>مراجعة سريعة</h2><p>كل مصطلح في الوحدة، وتعريفه في سطر واحد.</p></div><div class="rgrid">
+<div class="ritem"><b>الطاقة الحركية</b><span>طاقة الحركة؛ تزداد كلما تحرّك الجسم أسرع.</span></div>
+<div class="ritem"><b>طاقة الوضع</b><span>طاقة مخزَّنة بسبب التفاعل بين جسمين؛ تزداد كلما تباعدا.</span></div>
+<div class="ritem"><b>الطاقة الحرارية</b><span>ناتج جمع الطاقة الحركية وطاقة الوضع لجسيمات المادة.</span></div>
+<div class="ritem"><b>درجة الحرارة</b><span>متوسط الطاقة الحركية لجسيمات المادة.</span></div>
+<div class="ritem"><b>الحرارة</b><span>انتقال الطاقة الحرارية من جسم دافئ إلى جسم أكثر برودة.</span></div>
+<div class="ritem"><b>الإشعاع</b><span>انتقال الطاقة الحرارية عبر موجات كهرومغناطيسية — حتى عبر الفراغ.</span></div>
+<div class="ritem"><b>التوصيل</b><span>انتقال الطاقة الحرارية عن طريق اصطدام الجسيمات.</span></div>
+<div class="ritem"><b>الحمل الحراري</b><span>انتقال الطاقة الحرارية بحركة الجسيمات؛ في الموائع فقط.</span></div>
+<div class="ritem"><b>موصّل الحرارة</b><span>تتدفق الطاقة الحرارية عبره بسهولة، مثل الفلزات.</span></div>
+<div class="ritem"><b>عازل الحرارة</b><span>لا تتدفق الطاقة الحرارية عبره بسهولة، مثل القماش.</span></div>
+<div class="ritem"><b>الحرارة النوعية</b><span>الطاقة اللازمة لرفع درجة حرارة <bdi dir="ltr">1 g</bdi> من المادة <bdi dir="ltr">1°C</bdi>.</span></div>
+<div class="ritem"><b>التمدُّد الحراري</b><span>ازدياد حجم المادة عند ارتفاع درجة حرارتها.</span></div>
+<div class="ritem"><b>الانكماش الحراري</b><span>تناقص حجم المادة عند انخفاض درجة حرارتها.</span></div>
+<div class="ritem"><b>تيارات الحمل</b><span>حركة الموائع في دورة بفعل الحمل الحراري.</span></div>
+<div class="ritem"><b>جهاز التسخين</b><span>يحوّل الطاقة الكهربائية إلى طاقة حرارية.</span></div>
+<div class="ritem"><b>منظِّم الحرارة</b><span>جهاز ينظِّم درجة حرارة نظام ما بملف ثنائي الفلز.</span></div>
+<div class="ritem"><b>الثلاجة</b><span>تنقل الطاقة الحرارية من مكان أبرد إلى مكان أدفأ بالكهرباء.</span></div>
+<div class="ritem"><b>المحرك الحراري</b><span>يحوّل الطاقة الحرارية إلى طاقة ميكانيكية.</span></div>
+</div>
+<footer class="note">أُعِدَّ هذا الملخّص من محتوى الوحدة 1 «الطاقة الحرارية»: الدرس 1.1 الطاقة الحرارية ودرجة الحرارة والحرارة، والدرس 1.2 انتقال الطاقة الحرارية، والدرس 1.3 استخدام الطاقة الحرارية.</footer>
+</section></body></html>
