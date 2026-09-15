@@ -1,0 +1,1357 @@
+<title>Space Exam Paper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Readex+Pro:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#F3F2F8; --surface:#FFFFFF; --surface-2:#E9E7F2;
+  --ink:#16131F; --ink-2:#453F55; --ink-3:#74708A;
+  --rule:#D4D0E2; --rule-soft:#E5E2EE;
+  --violet:#5A32A3; --azure:#14688F; --ember:#B4441F;
+  --verify:#1F7A4D; --verify-bg:#E7F3EC; --verify-rule:#9FCFB4;
+  --star:#8A5A00; --star-bg:#FBF1DC; --star-rule:#E3C98F;
+  --accent:var(--violet);
+  --shadow:0 1px 2px rgba(22,19,31,.06), 0 8px 24px -18px rgba(22,19,31,.5);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E0C15; --surface:#171423; --surface-2:#211D31;
+    --ink:#ECE9F5; --ink-2:#B7B1CA; --ink-3:#847EA0;
+    --rule:#302B44; --rule-soft:#262238;
+    --violet:#A98BEA; --azure:#5FB0D8; --ember:#EE8465;
+    --verify:#63C494; --verify-bg:#152D22; --verify-rule:#2E5F45;
+    --star:#E3B35E; --star-bg:#2B2213; --star-rule:#5C4820;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E0C15; --surface:#171423; --surface-2:#211D31;
+  --ink:#ECE9F5; --ink-2:#B7B1CA; --ink-3:#847EA0;
+  --rule:#302B44; --rule-soft:#262238;
+  --violet:#A98BEA; --azure:#5FB0D8; --ember:#EE8465;
+  --verify:#63C494; --verify-bg:#152D22; --verify-rule:#2E5F45;
+  --star:#E3B35E; --star-bg:#2B2213; --star-rule:#5C4820;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 28px -20px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans","Segoe UI",system-ui,sans-serif; font-size:16.5px; line-height:1.72}
+.wrap{max-width:62rem; margin:0 auto; padding:0 clamp(1rem,4vw,2.5rem) 5rem}
+a{color:var(--azure)}
+
+.masthead{padding:clamp(2.2rem,6vw,4rem) 0 1.75rem; border-bottom:1px solid var(--rule)}
+.eyebrow{font-size:.78rem; font-weight:500; color:var(--ink-3);
+  display:flex; gap:.6rem; align-items:center; flex-wrap:wrap; margin-bottom:1rem}
+.eyebrow .dot{width:5px;height:5px;border-radius:50%;background:var(--ember)}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase}
+h1{font-family:"Readex Pro","IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:clamp(2rem,5.5vw,3.05rem); line-height:1.22; margin:0 0 .6rem; text-wrap:balance}
+.standfirst{margin:0; max-width:62ch; color:var(--ink-2); font-size:1.02rem}
+.standfirst strong{color:var(--ink)}
+.ramp{height:4px; border-radius:2px; margin:1.6rem 0 1.3rem;
+  background:linear-gradient(to right,var(--violet),var(--azure),var(--ember))}
+.facts{display:flex; flex-wrap:wrap; gap:0 2.1rem; padding:0; margin:0}
+.facts div{padding:.55rem 0}
+.facts dt{font-size:.76rem; font-weight:500; color:var(--ink-3)}
+.facts dd{margin:.15rem 0 0; font-weight:600; font-size:.97rem; font-variant-numeric:tabular-nums}
+
+.bar{position:sticky; top:env(safe-area-inset-top, 0px); z-index:20;
+  background:color-mix(in srgb,var(--paper) 90%, transparent); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+  margin:0 calc(-1 * clamp(1rem,4vw,2.5rem)); padding:.55rem clamp(1rem,4vw,2.5rem);
+  display:flex; align-items:center; gap:.5rem 1rem; flex-wrap:wrap}
+.navlabel{font-size:.78rem; font-weight:500; color:var(--ink-3)}
+.navlinks{display:flex; gap:.3rem; flex-wrap:wrap}
+.navlinks a{font-family:"IBM Plex Mono",monospace; font-size:.82rem; font-weight:600;
+  text-decoration:none; color:var(--ink-2); background:var(--surface);
+  border:1px solid var(--rule); border-radius:6px; padding:.1rem .5rem}
+.navlinks a:hover{border-color:var(--violet); color:var(--violet)}
+.jump{margin-inline-start:auto; font-size:.85rem; font-weight:600; text-decoration:none;
+  color:var(--surface); background:var(--ink); border-radius:999px; padding:.3rem .95rem}
+a:focus-visible,.navlinks a:focus-visible{outline:3px solid var(--azure); outline-offset:2px}
+
+.partline{font-family:"Readex Pro",sans-serif; font-weight:600; font-size:clamp(1.5rem,4vw,2.1rem);
+  margin:3.2rem 0 0; padding-bottom:.6rem; border-bottom:3px solid var(--ink); scroll-margin-top:4rem}
+
+section.part{margin-top:2.8rem}
+.part-head{display:flex; gap:1rem; align-items:baseline; border-bottom:2px solid var(--accent);
+  padding-bottom:.7rem; flex-wrap:wrap; scroll-margin-top:4rem}
+.part-letter{font-family:"IBM Plex Mono",monospace; font-size:1.5rem; font-weight:600;
+  color:var(--accent); letter-spacing:-.02em}
+.part-head h2{font-family:"Readex Pro",sans-serif; font-weight:600;
+  font-size:clamp(1.2rem,3.2vw,1.6rem); margin:0; line-height:1.3; text-wrap:balance}
+.part-count{margin-inline-start:auto; font-size:.82rem; font-weight:500; color:var(--ink-3);
+  font-variant-numeric:tabular-nums; white-space:nowrap}
+.pv{--accent:var(--violet)} .pa{--accent:var(--azure)} .pe{--accent:var(--ember)}
+
+.q{padding:1.35rem 0; border-bottom:1px solid var(--rule-soft);
+  display:grid; grid-template-columns:2.7rem 1fr; gap:0 .9rem; align-items:start}
+.q:last-of-type{border-bottom:0}
+.qn{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+  font-size:.95rem; font-weight:600; color:var(--accent); padding-top:.15rem;
+  border-inline-end:2px solid var(--accent); padding-inline-end:.5rem}
+.qhead{display:flex; gap:.6rem; align-items:baseline; flex-wrap:wrap; margin:0 0 .75rem}
+.qtext{margin:0; font-weight:600; line-height:1.68; flex:1 1 20rem; min-width:0}
+.src{font-family:"IBM Plex Mono",monospace; font-size:.64rem; letter-spacing:.08em;
+  text-transform:uppercase; font-weight:600; padding:.12rem .5rem; border-radius:999px;
+  white-space:nowrap; border:1px solid var(--rule); color:var(--ink-3); background:var(--surface)}
+.src.x{color:var(--star); background:var(--star-bg); border-color:var(--star-rule)}
+.opts{display:grid; gap:.3rem; margin:0; padding:0; list-style:none}
+@media (min-width:54rem){ .opts{grid-template-columns:1fr 1fr; gap:.3rem .9rem} }
+.opt{display:grid; grid-template-columns:1.7rem 1fr; gap:.55rem; align-items:start;
+  padding:.4rem .6rem; border:1px solid var(--rule-soft); border-radius:7px;
+  background:var(--surface); line-height:1.58}
+.opt .ltr{font-family:"IBM Plex Mono",monospace; font-size:.8rem; font-weight:600;
+  color:var(--ink-3); background:var(--surface-2); border-radius:5px; text-align:center;
+  padding:.05rem 0; line-height:1.55}
+
+.key{margin-top:2.4rem}
+.key h2,.expl h2{font-family:"Readex Pro",sans-serif; font-size:1.35rem; margin:0 0 .3rem}
+.key p{color:var(--ink-3); font-size:.9rem; margin:0 0 1.1rem}
+.keygrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(4.4rem,1fr)); gap:.35rem}
+.keycell{display:flex; justify-content:space-between; align-items:baseline; gap:.4rem;
+  background:var(--surface); border:1px solid var(--rule-soft); border-radius:6px;
+  padding:.28rem .5rem; font-family:"IBM Plex Mono",monospace;
+  font-variant-numeric:tabular-nums; font-size:.85rem}
+.keycell i{font-style:normal; color:var(--ink-3); font-size:.75rem}
+.keycell b{color:var(--verify)}
+
+.expl{margin-top:3rem}
+.ehead{font-family:"Readex Pro",sans-serif; font-weight:600; font-size:1.02rem; margin:2rem 0 .8rem;
+  padding-bottom:.4rem; border-bottom:2px solid var(--accent); color:var(--accent)}
+.ehead span{color:var(--ink-3); font-weight:400; font-family:"IBM Plex Mono",monospace; font-size:.8rem}
+.elist{list-style:none; margin:0; padding:0; display:grid; gap:.45rem}
+.e{display:grid; grid-template-columns:2.4rem 1.5rem 1fr; gap:.6rem; align-items:start;
+  background:var(--surface); border:1px solid var(--rule-soft); border-radius:8px; padding:.6rem .8rem}
+.en{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.9rem;
+  font-weight:600; color:var(--ink-3); text-align:end}
+.ea{font-family:"IBM Plex Mono",monospace; font-size:.82rem; font-weight:700; color:#fff;
+  background:var(--verify); border-radius:5px; text-align:center; line-height:1.5; padding:.06rem 0}
+.eb{min-width:0}
+.et{margin:0; font-weight:600; font-size:.95rem; line-height:1.5}
+.ew{margin:.2rem 0 0; color:var(--ink-2); font-size:.9rem; line-height:1.68}
+
+footer{margin-top:3.2rem; padding-top:1.4rem; border-top:1px solid var(--rule);
+  color:var(--ink-3); font-size:.85rem; line-height:1.8}
+footer strong{color:var(--ink-2)}
+
+@media print{
+  :root{--paper:#fff; --surface:#fff; --surface-2:#F0EEF6}
+  body{background:#fff; color:#000; font-size:10.2pt; line-height:1.55}
+  .wrap{max-width:none; padding:0}
+  .bar{display:none}
+  .masthead{padding-top:0}
+  h1{font-size:23pt}
+  .standfirst{font-size:10pt}
+  .partline{break-before:page; font-size:16pt; margin-top:0}
+  .masthead + .partline, .partline:first-of-type{break-before:auto}
+  section.part{break-before:page; margin-top:0}
+  .part-head h2{font-size:13pt}
+  .q{break-inside:avoid; page-break-inside:avoid; padding:.5rem 0}
+  .qhead{margin-bottom:.35rem}
+  .opts{grid-template-columns:1fr 1fr; gap:.25rem .6rem}
+  .opt{padding:.2rem .45rem; border-color:#DEDAE9}
+  .opt .ltr{background:#EDEAF4}
+  .keygrid{grid-template-columns:repeat(10,1fr)}
+  .e{break-inside:avoid; page-break-inside:avoid; padding:.35rem .6rem}
+  .ehead{break-after:avoid}
+  .expl{break-before:page}
+  footer{break-inside:avoid}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important; animation:none!important}}
+</style>
+
+<div class="wrap">
+<header class="masthead">
+  <div class="eyebrow"><span class="dot"></span><span>Unit 2 &middot; Space</span><span>&middot;</span>
+    <span>Lessons 2A&ndash;2E + Review</span><span>&middot;</span><span class="mono">MOE &mdash; United Arab Emirates</span></div>
+  <h1>Space &mdash; Standalone Exam Paper</h1>
+  <p class="standfirst">One hundred and ten multiple-choice questions on vocabulary, the second conditional and the
+  unit&rsquo;s reading texts. Every item is answerable on its own &mdash; no audio track, and no page references back
+  to the coursebook. <strong>All answers and explanations are at the end, in Part&nbsp;2.</strong></p>
+  <div class="ramp"></div>
+  <dl class="facts">
+    <div><dt>Questions</dt><dd>110</dd></div>
+    <div><dt>Sections</dt><dd>10</dd></div>
+    <div><dt>From the book</dt><dd>65</dd></div>
+    <div><dt>Extra practice</dt><dd>45</dd></div>
+    <div><dt>Listening items</dt><dd>0</dd></div>
+    <div><dt>Answers</dt><dd>Part 2</dd></div>
+  </dl>
+</header>
+<nav class="bar"><span class="navlabel">Sections</span><span class="navlinks"><a href="#part-a">A</a> <a href="#part-b">B</a> <a href="#part-c">C</a> <a href="#part-d">D</a> <a href="#part-e">E</a> <a href="#part-f">F</a> <a href="#part-g">G</a> <a href="#part-h">H</a> <a href="#part-i">I</a> <a href="#part-j">J</a></span><a class="jump" href="#answers">Answers &rarr;</a></nav>
+<h2 class="partline">Part 1 &mdash; The Exam</h2>
+<section class="part pv" id="part-a">
+<div class="part-head"><span class="part-letter">A</span><h2>Vocabulary: Word Meanings</h2><span class="part-count">Questions 1&ndash;20</span></div>
+<article class="q"><div class="qn">1</div><div>
+<div class="qhead"><p class="qtext">Which word means &quot;everything above the Earth&quot;?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">gravity</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">space</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">climate</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">crew</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">2</div><div>
+<div class="qhead"><p class="qtext">An object that is sent into space to collect information is called a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">capsule</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">rocket</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">satellite</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">launch pad</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">3</div><div>
+<div class="qhead"><p class="qtext">The adjective &quot;lunar&quot; describes something connected with:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the Sun</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">the Moon</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">the stars</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">the Earth</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">4</div><div>
+<div class="qhead"><p class="qtext">Someone whose job is to explore space is an:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">astronomer</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">architect</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">athlete</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">astronaut</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">5</div><div>
+<div class="qhead"><p class="qtext">The verb &quot;to launch&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to send something up into the air</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to bring something down to the ground</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to repair a machine</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to travel slowly in a circle</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">6</div><div>
+<div class="qhead"><p class="qtext">The verb &quot;to land&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to send something into the air</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to bring something down to the ground</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to grow food in space</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to float without moving</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">7</div><div>
+<div class="qhead"><p class="qtext">A small container in which astronauts live during a space flight is a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">capsule</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">station</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">pad</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">disc</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">8</div><div>
+<div class="qhead"><p class="qtext">&quot;Exploration&quot; is:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the activity of going somewhere never visited by humans before</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">the activity of staying safely in one place</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">the job of repairing spacecraft</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">the science of growing plants</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">9</div><div>
+<div class="qhead"><p class="qtext">One inch is equal to:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">1.54 centimetres</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">2.54 centimetres</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">25.4 centimetres</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">39.37 centimetres</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">10</div><div>
+<div class="qhead"><p class="qtext">A short audio or video file is called a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">disc</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">record</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">clip</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">report</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">11</div><div>
+<div class="qhead"><p class="qtext">&quot;Research&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to look for information</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to travel very quickly</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to agree with another person</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to build a machine</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">12</div><div>
+<div class="qhead"><p class="qtext">Bad weather with rain, thunder and lightning is called a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">dust storm</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">thunderstorm</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">snowstorm</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">sunrise</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">13</div><div>
+<div class="qhead"><p class="qtext">A round, flat item such as a CD, a DVD or a record is a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">clip</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">seed</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">pad</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">disc</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">14</div><div>
+<div class="qhead"><p class="qtext">The adjective &quot;golden&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">very old and broken</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">made of gold, or gold-coloured</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">extremely fast</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">very heavy</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">15</div><div>
+<div class="qhead"><p class="qtext">A person who works in science is a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">journalist</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">presenter</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">scientist</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">passenger</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">16</div><div>
+<div class="qhead"><p class="qtext">&quot;To imagine&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to prove something with facts</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to think or dream about something</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to measure something carefully</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to build something with your hands</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">17</div><div>
+<div class="qhead"><p class="qtext">A type of book or film about space and the future is called:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">science fiction</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">a biography</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">a documentary</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">a newspaper</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">18</div><div>
+<div class="qhead"><p class="qtext">&quot;To be proud&quot; means to feel:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">worried about a difficult problem</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">tired after a long journey</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">happy because you, or someone you know, did something good</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">angry with a friend</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">19</div><div>
+<div class="qhead"><p class="qtext">Which word is the OPPOSITE of &quot;launch&quot;?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">explore</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">land</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">float</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">imagine</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">20</div><div>
+<div class="qhead"><p class="qtext">Which word in this list is a VERB?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">exploration</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">lunar</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">golden</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">launch</span></li>
+</ul></div></article>
+</section>
+<section class="part pv" id="part-b">
+<div class="part-head"><span class="part-letter">B</span><h2>Vocabulary: Compound Nouns and Word Building</h2><span class="part-count">Questions 21&ndash;32</span></div>
+<article class="q"><div class="qn">21</div><div>
+<div class="qhead"><p class="qtext">A compound noun is:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">two words put together to make a new word</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">a verb written in the past simple</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">a noun that has no plural form</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">a question word used with &quot;if&quot;</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">22</div><div>
+<div class="qhead"><p class="qtext">A flat surface from which rockets are sent into space is a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">landing strip</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">launch pad</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">control room</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">space capsule</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">23</div><div>
+<div class="qhead"><p class="qtext">&quot;Lunar landing&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to land a capsule on the Moon</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to launch a rocket from Earth</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to fly around the Sun</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to leave the space station</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">24</div><div>
+<div class="qhead"><p class="qtext">The air that astronauts breathe inside the capsule is the:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">sunlight</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">spaceflight</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">air supply</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">growing condition</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">25</div><div>
+<div class="qhead"><p class="qtext">The light that comes from the sun is called:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">moonlight</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">sunlight</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">artificial light</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">starlight</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">26</div><div>
+<div class="qhead"><p class="qtext">&quot;Spaceflight&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to fly through space</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to walk on the Moon</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to build a rocket</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to watch the stars from Earth</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">27</div><div>
+<div class="qhead"><p class="qtext">&quot;Upward&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">to move down</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">to move backwards</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">to move up</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">to stay still</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">28</div><div>
+<div class="qhead"><p class="qtext">A place where astronauts live in space and carry out research is a:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">launch pad</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">rocket engine</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">space station</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">space capsule</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">29</div><div>
+<div class="qhead"><p class="qtext">When there is no force holding you down to the Earth, this is called:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">zero gravity</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">artificial light</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">outer space</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">extreme weather</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">30</div><div>
+<div class="qhead"><p class="qtext">Light that does NOT come from the sun is called:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">daylight</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">sunlight</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">moonlight</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">artificial light</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">31</div><div>
+<div class="qhead"><p class="qtext">Which of the following is NOT a compound noun?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">spacesuit</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">sunlight</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">astronaut</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">launch pad</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">32</div><div>
+<div class="qhead"><p class="qtext">The part of a rocket that burns fuel and produces power is the rocket:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">capsule</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">engine</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">pad</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">satellite</span></li>
+</ul></div></article>
+</section>
+<section class="part pa" id="part-c">
+<div class="part-head"><span class="part-letter">C</span><h2>Vocabulary in Context</h2><span class="part-count">Questions 33&ndash;44</span></div>
+<article class="q"><div class="qn">33</div><div>
+<div class="qhead"><p class="qtext">Astronauts wear a ______ to protect them in space.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">launch pad</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">spacesuit</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">space station</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">space capsule</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">34</div><div>
+<div class="qhead"><p class="qtext">The doctor checked the ______ of the sick patients before the flight.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">climate</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">weather</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">condition</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">planet</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">35</div><div>
+<div class="qhead"><p class="qtext">Earth, Venus and Mars are all types of ______.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">planets</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">satellites</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">stars</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">moons</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">36</div><div>
+<div class="qhead"><p class="qtext">______ is the measure of how warm or cold something is.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Gravity</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Temperature</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Climate</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Weather</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">37</div><div>
+<div class="qhead"><p class="qtext">Many scientists say that ______ change is an important issue on our planet.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">condition</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">temperature</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">weather</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">climate</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">38</div><div>
+<div class="qhead"><p class="qtext">If you don&#x27;t like the rainy ______, you shouldn&#x27;t go out this evening.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">weather</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">climate</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">gravity</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">planet</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">39</div><div>
+<div class="qhead"><p class="qtext">The ______ on the two planets is very different: a person who weighs 100 lbs on Earth would weigh only 38 lbs on Mars.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">temperature</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">climate</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">gravity</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">condition</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">40</div><div>
+<div class="qhead"><p class="qtext">Mars has ______ weather conditions, with very strong winds and huge dust storms.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">mild</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">gentle</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">calm</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">extreme</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">41</div><div>
+<div class="qhead"><p class="qtext">The amount of water and sunlight that a plant needs are called its ______.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">growing conditions</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">science experiments</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">space missions</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">plant seeds</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">42</div><div>
+<div class="qhead"><p class="qtext">Satellites travel in ______, far beyond the Earth&#x27;s atmosphere.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the launch pad</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">outer space</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">the space station</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">zero gravity</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">43</div><div>
+<div class="qhead"><p class="qtext">When the new astronauts arrived at the space station, the ______ were floating in the air to greet them.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">seeds</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">discs</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">clips</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">crew</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">44</div><div>
+<div class="qhead"><p class="qtext">Mona took many different plant ______ with her so that she could grow vegetables in space.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">seeds</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">discs</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">clips</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">inches</span></li>
+</ul></div></article>
+</section>
+<section class="part pa" id="part-d">
+<div class="part-head"><span class="part-letter">D</span><h2>Grammar: The Second Conditional</h2><span class="part-count">Questions 45&ndash;62</span></div>
+<article class="q"><div class="qn">45</div><div>
+<div class="qhead"><p class="qtext">We use the second conditional to talk about:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">something that always happens, like a scientific fact</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">something we imagine, which is not real now</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">something that happened and finished in the past</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">an instruction or an order</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">46</div><div>
+<div class="qhead"><p class="qtext">Which is the correct structure of the second conditional?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If + present simple, will + infinitive</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">If + will, would + -ing</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">If + past simple, would + bare infinitive</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">If + would, past simple</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">47</div><div>
+<div class="qhead"><p class="qtext">If I ______ to space, I would take my camera.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">go</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">will go</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">would go</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">went</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">48</div><div>
+<div class="qhead"><p class="qtext">If Omar had a plane, he ______ to many countries.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">will travel</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">would travel</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">travels</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">travelled</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">49</div><div>
+<div class="qhead"><p class="qtext">If I ______ an astronaut, I would go to Mars.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">am</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">were</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">will be</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">would be</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">50</div><div>
+<div class="qhead"><p class="qtext">She would grow vegetables if she ______ on the space station.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">lives</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">will live</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">lived</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">would live</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">51</div><div>
+<div class="qhead"><p class="qtext">Which sentence is grammatically CORRECT?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If I would have a rocket, I would fly to the Moon.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">If I had a rocket, I will fly to the Moon.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">If I had a rocket, I would fly to the Moon.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">If I have a rocket, I would flew to the Moon.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">52</div><div>
+<div class="qhead"><p class="qtext">Complete the negative sentence: &quot;I ______ go to the sun — it is far too hot.&quot;</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">wouldn&#x27;t</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">didn&#x27;t would</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">not would</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">won&#x27;t would</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">53</div><div>
+<div class="qhead"><p class="qtext">If we ______ enough water, the corn wouldn&#x27;t grow well.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">don&#x27;t have</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">didn&#x27;t have</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">wouldn&#x27;t have</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">haven&#x27;t</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">54</div><div>
+<div class="qhead"><p class="qtext">______ you go to Mars if you had the chance?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Will</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Do</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Did</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Would</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">55</div><div>
+<div class="qhead"><p class="qtext">Where ______ you go if you had a rocket?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">will</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">would</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">do</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">did</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">56</div><div>
+<div class="qhead"><p class="qtext">In the sentence &quot;If I made a space time capsule, I&#x27;d include photos of Burj Khalifa&quot;, the short form &quot;I&#x27;d&quot; means:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">I had</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">I did</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">I would</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">I could</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">57</div><div>
+<div class="qhead"><p class="qtext">If NASA sent out more Voyagers, they ______ many years to travel to the edge of the solar system.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">will take</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">take</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">would take</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">took</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">58</div><div>
+<div class="qhead"><p class="qtext">If I ______ one million dirhams, I would take all my friends and family on a nice vacation.</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">have</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">will have</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">would have</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">had</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">59</div><div>
+<div class="qhead"><p class="qtext">Look at these two sentences:<br>(1) &quot;If I go to space, I will be happy.&quot;  (2) &quot;If I went to space, I would be happy.&quot;<br>Which answer describes them correctly?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">(1) is the first conditional and (2) is the second conditional.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">(1) is the second conditional and (2) is the first conditional.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Both are second conditional sentences.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Both are first conditional sentences.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">60</div><div>
+<div class="qhead"><p class="qtext">Which sentence talks about something the speaker only IMAGINES (it is not real)?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If I have time, I will write another book next year.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">If I had a spaceship, I would visit Mars every weekend.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">When I go to space, I will take a camera with me.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">I visited the space museum last week.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">61</div><div>
+<div class="qhead"><p class="qtext">Put the words in the correct order:<br>&quot;would / I / if / grow / went / vegetables / to space / I&quot;</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If I would go to space, I grew vegetables.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">I went to space if I would grow vegetables.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">If I went to space, I would grow vegetables.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Would I go to space if I grew vegetables.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">62</div><div>
+<div class="qhead"><p class="qtext">Complete the sentence from an interview about space: &quot;Sports ______ be difficult in space, because the gravity is different.&quot;</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">will</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">would</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">are</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">did</span></li>
+</ul></div></article>
+</section>
+<section class="part pe" id="part-e">
+<div class="part-head"><span class="part-letter">E</span><h2>Grammar: Noun Phrases and Functional Language</h2><span class="part-count">Questions 63&ndash;70</span></div>
+<article class="q"><div class="qn">63</div><div>
+<div class="qhead"><p class="qtext">Which phrase would you use to AGREE with someone?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">I&#x27;m not so sure.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">You&#x27;re right.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">I don&#x27;t really agree.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">I&#x27;m afraid that&#x27;s wrong.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">64</div><div>
+<div class="qhead"><p class="qtext">Which phrase would you use to DISAGREE politely with someone?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Me too.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">I agree.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">You&#x27;re right.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">I&#x27;m not so sure.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">65</div><div>
+<div class="qhead"><p class="qtext">In a compound noun, the first word usually:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">describes the second word</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">means the opposite of the second word</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">replaces the second word</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">changes the tense of the second word</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">66</div><div>
+<div class="qhead"><p class="qtext">We use an expanded noun phrase in our writing in order to:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">give the reader more information about the noun</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">ask the reader a question</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">show when the action happened</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">make the sentence shorter</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">67</div><div>
+<div class="qhead"><p class="qtext">Which of these is an expanded noun phrase?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the planet</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">she travelled</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">the red planet in space</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">very quickly</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">68</div><div>
+<div class="qhead"><p class="qtext">In the noun phrase &quot;the old spaceship&quot;, which word gives the additional detail?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">old</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">spaceship</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">the spaceship</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">69</div><div>
+<div class="qhead"><p class="qtext">In the noun phrase &quot;a tiny, rocky planet&quot;, the MAIN NOUN is:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">tiny</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">rocky</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">planet</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">a</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">70</div><div>
+<div class="qhead"><p class="qtext">Which sentence correctly expands the noun phrase &quot;a beautiful sunset&quot;?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">a beautiful sunset over the red mountains</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">sunset beautiful a</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">beautifully sunset</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">the sunset beautiful</span></li>
+</ul></div></article>
+</section>
+<section class="part pe" id="part-f">
+<div class="part-head"><span class="part-letter">F</span><h2>Reading Comprehension: Facts from the Unit Texts</h2><span class="part-count">Questions 71&ndash;80</span></div>
+<article class="q"><div class="qn">71</div><div>
+<div class="qhead"><p class="qtext">In which year did scientists send the Golden Record into space?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">1957</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">1969</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">1977</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">2021</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">72</div><div>
+<div class="qhead"><p class="qtext">The Golden Record was carried into space on the spacecraft called:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Voyager 1</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Explorer One Dubai</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Apollo 11</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Sputnik</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">73</div><div>
+<div class="qhead"><p class="qtext">The Golden Record contains greetings in how many languages?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">12</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">40</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">50</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">55</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">74</div><div>
+<div class="qhead"><p class="qtext">Which of these sounds from Earth can be found on the Golden Record?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">wind, rain and thunderstorms</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">cars and aeroplanes</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">telephones ringing</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">football matches</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">75</div><div>
+<div class="qhead"><p class="qtext">Abdulla Al Shamsi, who wrote a science-fiction book about living on Mars, is a famous:</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">scientist</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">athlete</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">doctor</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">journalist</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">76</div><div>
+<div class="qhead"><p class="qtext">According to the interview, why must astronauts who travel to Mars be strong?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Because they might live on Mars for a very long time and cannot just come back.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Because they have to carry very heavy equipment on Earth.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Because they are not allowed to sleep during the journey.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Because they must build the rocket themselves.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">77</div><div>
+<div class="qhead"><p class="qtext">What is the astronaut Mona&#x27;s mission at the International Space Station?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">To repair a broken satellite.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">To take photographs of the surface of Mars.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">To help conduct science experiments to grow vegetables in space.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">To build a new launch pad.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">78</div><div>
+<div class="qhead"><p class="qtext">How long did the journey to the International Space Station take?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Two hours</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Two days</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Two weeks</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Two months</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">79</div><div>
+<div class="qhead"><p class="qtext">In Mona&#x27;s experiment, which plant grew the best?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">The corn</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">The zucchini</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">The potatoes</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">All three grew at exactly the same speed</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">80</div><div>
+<div class="qhead"><p class="qtext">Why was the corn plant growing slowly?</p><span class="src">Book</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">It was getting enough sunlight, but not enough water.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">It was getting enough water, but not enough sunlight.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">It was getting no light at all.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">It was planted too late in the mission.</span></li>
+</ul></div></article>
+</section>
+<section class="part pv" id="part-g">
+<div class="part-head"><span class="part-letter">G</span><h2>Extra Practice: Vocabulary and Spelling</h2><span class="part-count">Questions 81&ndash;90</span></div>
+<article class="q"><div class="qn">81</div><div>
+<div class="qhead"><p class="qtext">The rocket will ______ from the launch pad at exactly six o’clock in the morning.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">land</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">launch</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">explore</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">float</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">82</div><div>
+<div class="qhead"><p class="qtext">Complete the pair: an <strong>astronaut</strong> travels in <strong>space</strong>, and a <strong>sailor</strong> travels on the ______.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">sea</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">sky</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">desert</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">mountain</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">83</div><div>
+<div class="qhead"><p class="qtext">Which word does <strong>NOT</strong> describe the weather?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">thunderstorm</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">dust storm</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">strong wind</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">telescope</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">84</div><div>
+<div class="qhead"><p class="qtext">Which word is the noun that names the <strong>activity</strong> of exploring?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">explorer</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">exploration</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">explorable</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">explored</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">85</div><div>
+<div class="qhead"><p class="qtext">A person who explores new places is called an ______.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">exploration</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">explorer</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">exploring</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">explored</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">86</div><div>
+<div class="qhead"><p class="qtext">Which word means “moving gently in the air without falling”?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">floating</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">landing</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">launching</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">growing</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">87</div><div>
+<div class="qhead"><p class="qtext">Choose the correct sentence.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">The astronauts collected many informations about Mars.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">The astronauts collected a lot of information about Mars.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">The astronauts collected an informations about Mars.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">The astronauts collected many information about Mars.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">88</div><div>
+<div class="qhead"><p class="qtext">Which is the correct spelling?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">satelite</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">satellite</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">sattelite</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">satellight</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">89</div><div>
+<div class="qhead"><p class="qtext">Which is the correct spelling?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">astronaut</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">astronaute</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">astronout</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">asstronaut</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">90</div><div>
+<div class="qhead"><p class="qtext">Which of these words is an <strong>adjective</strong>?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">gravity</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">extreme</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">launch</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">crew</span></li>
+</ul></div></article>
+</section>
+<section class="part pa" id="part-h">
+<div class="part-head"><span class="part-letter">H</span><h2>Extra Practice: Compound Nouns and Word Building</h2><span class="part-count">Questions 91&ndash;95</span></div>
+<article class="q"><div class="qn">91</div><div>
+<div class="qhead"><p class="qtext">Which definition matches the compound noun <strong>spaceship</strong>?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">a vehicle that travels in space</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">a ship that sails on the sea</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">a room inside a space station</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">a very bright type of star</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">92</div><div>
+<div class="qhead"><p class="qtext">Which pair of words makes a real English compound noun?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">moon + light</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">space + light</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">star + pad</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">rocket + lunar</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">93</div><div>
+<div class="qhead"><p class="qtext">In the compound noun <strong>space station</strong>, which word tells you the <strong>type</strong> of station?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">space</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">station</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">both words equally</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">neither word</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">94</div><div>
+<div class="qhead"><p class="qtext">Which compound noun is made of a <strong>verb + a noun</strong>?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">launch pad</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">outer space</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">zero gravity</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">science fiction</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">95</div><div>
+<div class="qhead"><p class="qtext">“A suit that is worn in space” can be written as one compound noun:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">spacesuit</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">suitspace</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">space’s suit</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">suit space</span></li>
+</ul></div></article>
+</section>
+<section class="part pa" id="part-i">
+<div class="part-head"><span class="part-letter">I</span><h2>Extra Practice: The Second Conditional</h2><span class="part-count">Questions 96&ndash;105</span></div>
+<article class="q"><div class="qn">96</div><div>
+<div class="qhead"><p class="qtext">If she ______ more about Mars, she would write a book about it.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">knows</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">knew</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">will know</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">would know</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">97</div><div>
+<div class="qhead"><p class="qtext">We ______ take a spaceship if we wanted to visit the Moon.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">will</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">would</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">did</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">are</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">98</div><div>
+<div class="qhead"><p class="qtext">Which question is written correctly?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">What will you do if you saw an alien?</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">What would you do if you saw an alien?</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">What would you did if you see an alien?</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">What you would do if you saw an alien?</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">99</div><div>
+<div class="qhead"><p class="qtext">“If I didn’t have a telescope, I wouldn’t see the stars so clearly.” What is true about the speaker?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">The speaker has a telescope.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">The speaker does not have a telescope.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">The speaker is going to buy a telescope.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">The speaker sold a telescope last year.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">100</div><div>
+<div class="qhead"><p class="qtext">If there ______ water on Mars, humans would find it much easier to live there.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">is</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">were</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">will be</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">would be</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">101</div><div>
+<div class="qhead"><p class="qtext">If the plants ______ enough light, they wouldn’t grow at a normal rate.</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">don’t get</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">didn’t get</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">wouldn’t get</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">not get</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">102</div><div>
+<div class="qhead"><p class="qtext">“I don’t have a rocket, so I don’t travel to the Moon.” Which second conditional says the same thing?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If I had a rocket, I would travel to the Moon.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">If I have a rocket, I will travel to the Moon.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">If I had a rocket, I will travel to the Moon.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">If I would have a rocket, I travelled to the Moon.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">103</div><div>
+<div class="qhead"><p class="qtext">Which sentence is <strong>NOT</strong> a second conditional?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">If I went to Mars, I would take seeds with me.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">If I had a spacesuit, I would float outside the station.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">If I go to the museum, I will see a real rocket.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">If we lived on the space station, we would float every day.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">104</div><div>
+<div class="qhead"><p class="qtext">______ you take your family with you if you moved to Mars?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">Would</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">Will</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">Do</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">Are</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">105</div><div>
+<div class="qhead"><p class="qtext">In the second conditional, the verb that comes after <strong>would</strong> is:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">the bare infinitive, e.g. take</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">the past simple, e.g. took</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">the -ing form, e.g. taking</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">the past participle, e.g. taken</span></li>
+</ul></div></article>
+</section>
+<section class="part pe" id="part-j">
+<div class="part-head"><span class="part-letter">J</span><h2>Extra Practice: Noun Phrases and Functional Language</h2><span class="part-count">Questions 106&ndash;110</span></div>
+<article class="q"><div class="qn">106</div><div>
+<div class="qhead"><p class="qtext">Which noun phrase gives the reader the <strong>most</strong> information?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">a planet</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">a red planet</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">a small red planet</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">a small red planet with two moons</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">107</div><div>
+<div class="qhead"><p class="qtext">In the noun phrase “huge dust storms that blow over the whole planet”, the main noun is:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">huge</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">dust</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">storms</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">planet</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">108</div><div>
+<div class="qhead"><p class="qtext">Which sentence puts the adjectives in the correct order?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">We watched a beautiful red sunset.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">We watched a red beautiful sunset.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">We watched a sunset red beautiful.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">We watched beautiful a red sunset.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">109</div><div>
+<div class="qhead"><p class="qtext">Which sentence contains an expanded noun phrase?</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">The rocket launched.</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">It was very cold.</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">The old silver rocket on the launch pad was ready.</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">They waited quietly.</span></li>
+</ul></div></article>
+<article class="q"><div class="qn">110</div><div>
+<div class="qhead"><p class="qtext">The phrases “You’re right” and “Me too” are both used to:</p><span class="src x">&#9733; Extra</span></div>
+<ul class="opts">
+<li class="opt"><span class="ltr">A</span><span class="txt">agree with someone</span></li>
+<li class="opt"><span class="ltr">B</span><span class="txt">disagree with someone</span></li>
+<li class="opt"><span class="ltr">C</span><span class="txt">ask someone a question</span></li>
+<li class="opt"><span class="ltr">D</span><span class="txt">say goodbye politely</span></li>
+</ul></div></article>
+</section>
+<h2 class="partline" id="answers">Part 2 &mdash; Answers</h2>
+<section class="key"><h2>Answer key</h2><p>All 110 answers at a glance.</p><div class="keygrid">
+<div class="keycell"><i>1</i><b>B</b></div>
+<div class="keycell"><i>2</i><b>C</b></div>
+<div class="keycell"><i>3</i><b>B</b></div>
+<div class="keycell"><i>4</i><b>D</b></div>
+<div class="keycell"><i>5</i><b>A</b></div>
+<div class="keycell"><i>6</i><b>B</b></div>
+<div class="keycell"><i>7</i><b>A</b></div>
+<div class="keycell"><i>8</i><b>A</b></div>
+<div class="keycell"><i>9</i><b>B</b></div>
+<div class="keycell"><i>10</i><b>C</b></div>
+<div class="keycell"><i>11</i><b>A</b></div>
+<div class="keycell"><i>12</i><b>B</b></div>
+<div class="keycell"><i>13</i><b>D</b></div>
+<div class="keycell"><i>14</i><b>B</b></div>
+<div class="keycell"><i>15</i><b>C</b></div>
+<div class="keycell"><i>16</i><b>B</b></div>
+<div class="keycell"><i>17</i><b>A</b></div>
+<div class="keycell"><i>18</i><b>C</b></div>
+<div class="keycell"><i>19</i><b>B</b></div>
+<div class="keycell"><i>20</i><b>D</b></div>
+<div class="keycell"><i>21</i><b>A</b></div>
+<div class="keycell"><i>22</i><b>B</b></div>
+<div class="keycell"><i>23</i><b>A</b></div>
+<div class="keycell"><i>24</i><b>C</b></div>
+<div class="keycell"><i>25</i><b>B</b></div>
+<div class="keycell"><i>26</i><b>A</b></div>
+<div class="keycell"><i>27</i><b>C</b></div>
+<div class="keycell"><i>28</i><b>C</b></div>
+<div class="keycell"><i>29</i><b>A</b></div>
+<div class="keycell"><i>30</i><b>D</b></div>
+<div class="keycell"><i>31</i><b>C</b></div>
+<div class="keycell"><i>32</i><b>B</b></div>
+<div class="keycell"><i>33</i><b>B</b></div>
+<div class="keycell"><i>34</i><b>C</b></div>
+<div class="keycell"><i>35</i><b>A</b></div>
+<div class="keycell"><i>36</i><b>B</b></div>
+<div class="keycell"><i>37</i><b>D</b></div>
+<div class="keycell"><i>38</i><b>A</b></div>
+<div class="keycell"><i>39</i><b>C</b></div>
+<div class="keycell"><i>40</i><b>D</b></div>
+<div class="keycell"><i>41</i><b>A</b></div>
+<div class="keycell"><i>42</i><b>B</b></div>
+<div class="keycell"><i>43</i><b>D</b></div>
+<div class="keycell"><i>44</i><b>A</b></div>
+<div class="keycell"><i>45</i><b>B</b></div>
+<div class="keycell"><i>46</i><b>C</b></div>
+<div class="keycell"><i>47</i><b>D</b></div>
+<div class="keycell"><i>48</i><b>B</b></div>
+<div class="keycell"><i>49</i><b>B</b></div>
+<div class="keycell"><i>50</i><b>C</b></div>
+<div class="keycell"><i>51</i><b>C</b></div>
+<div class="keycell"><i>52</i><b>A</b></div>
+<div class="keycell"><i>53</i><b>B</b></div>
+<div class="keycell"><i>54</i><b>D</b></div>
+<div class="keycell"><i>55</i><b>B</b></div>
+<div class="keycell"><i>56</i><b>C</b></div>
+<div class="keycell"><i>57</i><b>C</b></div>
+<div class="keycell"><i>58</i><b>D</b></div>
+<div class="keycell"><i>59</i><b>A</b></div>
+<div class="keycell"><i>60</i><b>B</b></div>
+<div class="keycell"><i>61</i><b>C</b></div>
+<div class="keycell"><i>62</i><b>B</b></div>
+<div class="keycell"><i>63</i><b>B</b></div>
+<div class="keycell"><i>64</i><b>D</b></div>
+<div class="keycell"><i>65</i><b>A</b></div>
+<div class="keycell"><i>66</i><b>A</b></div>
+<div class="keycell"><i>67</i><b>C</b></div>
+<div class="keycell"><i>68</i><b>B</b></div>
+<div class="keycell"><i>69</i><b>C</b></div>
+<div class="keycell"><i>70</i><b>A</b></div>
+<div class="keycell"><i>71</i><b>C</b></div>
+<div class="keycell"><i>72</i><b>A</b></div>
+<div class="keycell"><i>73</i><b>D</b></div>
+<div class="keycell"><i>74</i><b>A</b></div>
+<div class="keycell"><i>75</i><b>B</b></div>
+<div class="keycell"><i>76</i><b>A</b></div>
+<div class="keycell"><i>77</i><b>C</b></div>
+<div class="keycell"><i>78</i><b>B</b></div>
+<div class="keycell"><i>79</i><b>C</b></div>
+<div class="keycell"><i>80</i><b>A</b></div>
+<div class="keycell"><i>81</i><b>B</b></div>
+<div class="keycell"><i>82</i><b>A</b></div>
+<div class="keycell"><i>83</i><b>D</b></div>
+<div class="keycell"><i>84</i><b>B</b></div>
+<div class="keycell"><i>85</i><b>B</b></div>
+<div class="keycell"><i>86</i><b>A</b></div>
+<div class="keycell"><i>87</i><b>B</b></div>
+<div class="keycell"><i>88</i><b>B</b></div>
+<div class="keycell"><i>89</i><b>A</b></div>
+<div class="keycell"><i>90</i><b>B</b></div>
+<div class="keycell"><i>91</i><b>A</b></div>
+<div class="keycell"><i>92</i><b>A</b></div>
+<div class="keycell"><i>93</i><b>A</b></div>
+<div class="keycell"><i>94</i><b>A</b></div>
+<div class="keycell"><i>95</i><b>A</b></div>
+<div class="keycell"><i>96</i><b>B</b></div>
+<div class="keycell"><i>97</i><b>B</b></div>
+<div class="keycell"><i>98</i><b>B</b></div>
+<div class="keycell"><i>99</i><b>A</b></div>
+<div class="keycell"><i>100</i><b>B</b></div>
+<div class="keycell"><i>101</i><b>B</b></div>
+<div class="keycell"><i>102</i><b>A</b></div>
+<div class="keycell"><i>103</i><b>C</b></div>
+<div class="keycell"><i>104</i><b>A</b></div>
+<div class="keycell"><i>105</i><b>A</b></div>
+<div class="keycell"><i>106</i><b>D</b></div>
+<div class="keycell"><i>107</i><b>C</b></div>
+<div class="keycell"><i>108</i><b>A</b></div>
+<div class="keycell"><i>109</i><b>C</b></div>
+<div class="keycell"><i>110</i><b>A</b></div>
+</div></section>
+<section class="expl"><h2>Answers with explanations</h2>
+<h3 class="ehead pv">Section A &mdash; Vocabulary: Word Meanings <span>(1&ndash;20)</span></h3>
+<ol class="elist">
+<li class="e" value="1"><span class="en">1</span><span class="ea">B</span><div class="eb"><p class="et">space</p><p class="ew"><em>Space</em> is defined as everything above (beyond) the Earth.</p></div></li>
+<li class="e" value="2"><span class="en">2</span><span class="ea">C</span><div class="eb"><p class="et">satellite</p><p class="ew">A <em>satellite</em> is an object sent into space to collect information.</p></div></li>
+<li class="e" value="3"><span class="en">3</span><span class="ea">B</span><div class="eb"><p class="et">the Moon</p><p class="ew"><em>Lunar</em> means &quot;of the Moon&quot;, so a <em>lunar capsule</em> is a Moon capsule.</p></div></li>
+<li class="e" value="4"><span class="en">4</span><span class="ea">D</span><div class="eb"><p class="et">astronaut</p><p class="ew">An <em>astronaut</em> is a person who travels to and explores space.</p></div></li>
+<li class="e" value="5"><span class="en">5</span><span class="ea">A</span><div class="eb"><p class="et">to send something up into the air</p><p class="ew"><em>Launch</em> = to send something into the air, as with a space rocket.</p></div></li>
+<li class="e" value="6"><span class="en">6</span><span class="ea">B</span><div class="eb"><p class="et">to bring something down to the ground</p><p class="ew"><em>Land</em> = to bring something down onto a surface, e.g. &quot;The lunar capsule lands on the Moon.&quot;</p></div></li>
+<li class="e" value="7"><span class="en">7</span><span class="ea">A</span><div class="eb"><p class="et">capsule</p><p class="ew">A <em>capsule</em> is a small container where astronauts live and travel.</p></div></li>
+<li class="e" value="8"><span class="en">8</span><span class="ea">A</span><div class="eb"><p class="et">the activity of going somewhere never visited by humans before</p><p class="ew"><em>Exploration</em> is the activity of travelling to a place that has never been visited.</p></div></li>
+<li class="e" value="9"><span class="en">9</span><span class="ea">B</span><div class="eb"><p class="et">2.54 centimetres</p><p class="ew">An <em>inch</em> is 2.54 centimetres.</p></div></li>
+<li class="e" value="10"><span class="en">10</span><span class="ea">C</span><div class="eb"><p class="et">clip</p><p class="ew">A <em>clip</em> is a short audio or video file.</p></div></li>
+<li class="e" value="11"><span class="en">11</span><span class="ea">A</span><div class="eb"><p class="et">to look for information</p><p class="ew"><em>Research</em> is looking carefully for information.</p></div></li>
+<li class="e" value="12"><span class="en">12</span><span class="ea">B</span><div class="eb"><p class="et">thunderstorm</p><p class="ew">A <em>thunderstorm</em> is bad weather with rain, thunder and lightning.</p></div></li>
+<li class="e" value="13"><span class="en">13</span><span class="ea">D</span><div class="eb"><p class="et">disc</p><p class="ew">A <em>disc</em> is a round, flat item like a CD, DVD or record.</p></div></li>
+<li class="e" value="14"><span class="en">14</span><span class="ea">B</span><div class="eb"><p class="et">made of gold, or gold-coloured</p><p class="ew"><em>Golden</em> = made of gold or gold in colour, as in the <em>Golden Record</em>.</p></div></li>
+<li class="e" value="15"><span class="en">15</span><span class="ea">C</span><div class="eb"><p class="et">scientist</p><p class="ew">A <em>scientist</em> is a person who works in science.</p></div></li>
+<li class="e" value="16"><span class="en">16</span><span class="ea">B</span><div class="eb"><p class="et">to think or dream about something</p><p class="ew"><em>To imagine</em> is to think or dream about something that is not real.</p></div></li>
+<li class="e" value="17"><span class="en">17</span><span class="ea">A</span><div class="eb"><p class="et">science fiction</p><p class="ew"><em>Science fiction</em> is a type of book or movie about science, space and the future.</p></div></li>
+<li class="e" value="18"><span class="en">18</span><span class="ea">C</span><div class="eb"><p class="et">happy because you, or someone you know, did something good</p><p class="ew"><em>To be proud</em> = to feel happy because you or someone you know did something good.</p></div></li>
+<li class="e" value="19"><span class="en">19</span><span class="ea">B</span><div class="eb"><p class="et">land</p><p class="ew"><em>Launch</em> sends something up into the air; <em>land</em> brings it back down. They are opposite actions.</p></div></li>
+<li class="e" value="20"><span class="en">20</span><span class="ea">D</span><div class="eb"><p class="et">launch</p><p class="ew"><em>Launch</em> is a verb (an action). <em>Exploration</em> is a noun; <em>lunar</em> and <em>golden</em> are adjectives.</p></div></li>
+</ol>
+<h3 class="ehead pv">Section B &mdash; Vocabulary: Compound Nouns and Word Building <span>(21&ndash;32)</span></h3>
+<ol class="elist">
+<li class="e" value="21"><span class="en">21</span><span class="ea">A</span><div class="eb"><p class="et">two words put together to make a new word</p><p class="ew">A compound noun is made of two words joined together to make one new word, e.g. <em>launch + pad = launch pad</em>.</p></div></li>
+<li class="e" value="22"><span class="en">22</span><span class="ea">B</span><div class="eb"><p class="et">launch pad</p><p class="ew"><em>Launch</em> (to send into the air) + <em>pad</em> (a flat surface) = <em>launch pad</em>.</p></div></li>
+<li class="e" value="23"><span class="en">23</span><span class="ea">A</span><div class="eb"><p class="et">to land a capsule on the Moon</p><p class="ew"><em>Lunar</em> (of the Moon) + <em>landing</em> = landing a capsule on the Moon.</p></div></li>
+<li class="e" value="24"><span class="en">24</span><span class="ea">C</span><div class="eb"><p class="et">air supply</p><p class="ew"><em>Air supply</em> is the air that astronauts breathe inside the capsule.</p></div></li>
+<li class="e" value="25"><span class="en">25</span><span class="ea">B</span><div class="eb"><p class="et">sunlight</p><p class="ew"><em>Sun</em> + <em>light</em> = <em>sunlight</em>, the light from the sun.</p></div></li>
+<li class="e" value="26"><span class="en">26</span><span class="ea">A</span><div class="eb"><p class="et">to fly through space</p><p class="ew"><em>Space</em> + <em>flight</em> = flying through space.</p></div></li>
+<li class="e" value="27"><span class="en">27</span><span class="ea">C</span><div class="eb"><p class="et">to move up</p><p class="ew"><em>Up</em> + <em>ward</em> = moving in an upward direction.</p></div></li>
+<li class="e" value="28"><span class="en">28</span><span class="ea">C</span><div class="eb"><p class="et">space station</p><p class="ew">A <em>space station</em>, such as the International Space Station, is where astronauts live and do research.</p></div></li>
+<li class="e" value="29"><span class="en">29</span><span class="ea">A</span><div class="eb"><p class="et">zero gravity</p><p class="ew"><em>Zero gravity</em> means there is no force pulling you towards the Earth, so astronauts float.</p></div></li>
+<li class="e" value="30"><span class="en">30</span><span class="ea">D</span><div class="eb"><p class="et">artificial light</p><p class="ew"><em>Artificial light</em> is light made by people, for example from a lamp or a battery.</p></div></li>
+<li class="e" value="31"><span class="en">31</span><span class="ea">C</span><div class="eb"><p class="et">astronaut</p><p class="ew"><em>Astronaut</em> is a single word, not two words joined together. The others are all made of two words.</p></div></li>
+<li class="e" value="32"><span class="en">32</span><span class="ea">B</span><div class="eb"><p class="et">engine</p><p class="ew"><em>Rocket</em> + <em>engine</em> = <em>rocket engine</em>, the part that gives the rocket its power.</p></div></li>
+</ol>
+<h3 class="ehead pa">Section C &mdash; Vocabulary in Context <span>(33&ndash;44)</span></h3>
+<ol class="elist">
+<li class="e" value="33"><span class="en">33</span><span class="ea">B</span><div class="eb"><p class="et">spacesuit</p><p class="ew">A <em>spacesuit</em> is the suit astronauts wear to protect them in space.</p></div></li>
+<li class="e" value="34"><span class="en">34</span><span class="ea">C</span><div class="eb"><p class="et">condition</p><p class="ew"><em>Condition</em> is used for the state of someone&#x27;s health.</p></div></li>
+<li class="e" value="35"><span class="en">35</span><span class="ea">A</span><div class="eb"><p class="et">planets</p><p class="ew">Earth, Venus and Mars are <em>planets</em>.</p></div></li>
+<li class="e" value="36"><span class="en">36</span><span class="ea">B</span><div class="eb"><p class="et">Temperature</p><p class="ew"><em>Temperature</em> measures how warm or cold something is.</p></div></li>
+<li class="e" value="37"><span class="en">37</span><span class="ea">D</span><div class="eb"><p class="et">climate</p><p class="ew">The fixed expression is <em>climate change</em>.</p></div></li>
+<li class="e" value="38"><span class="en">38</span><span class="ea">A</span><div class="eb"><p class="et">weather</p><p class="ew"><em>Weather</em> describes the conditions on one particular day (rainy, sunny, windy).</p></div></li>
+<li class="e" value="39"><span class="en">39</span><span class="ea">C</span><div class="eb"><p class="et">gravity</p><p class="ew"><em>Gravity</em> is the force that pulls things down, and it is much weaker on Mars than on Earth.</p></div></li>
+<li class="e" value="40"><span class="en">40</span><span class="ea">D</span><div class="eb"><p class="et">extreme</p><p class="ew">The text describes Mars as having <em>extreme</em> weather conditions.</p></div></li>
+<li class="e" value="41"><span class="en">41</span><span class="ea">A</span><div class="eb"><p class="et">growing conditions</p><p class="ew"><em>Growing conditions</em> are the water, light and other things a plant needs in order to grow.</p></div></li>
+<li class="e" value="42"><span class="en">42</span><span class="ea">B</span><div class="eb"><p class="et">outer space</p><p class="ew"><em>Outer space</em> is the area beyond the Earth&#x27;s atmosphere.</p></div></li>
+<li class="e" value="43"><span class="en">43</span><span class="ea">D</span><div class="eb"><p class="et">crew</p><p class="ew">The <em>crew</em> is the group of people who work together on a spacecraft or space station.</p></div></li>
+<li class="e" value="44"><span class="en">44</span><span class="ea">A</span><div class="eb"><p class="et">seeds</p><p class="ew">Plants grow from <em>seeds</em>, so she took plant seeds with her.</p></div></li>
+</ol>
+<h3 class="ehead pa">Section D &mdash; Grammar: The Second Conditional <span>(45&ndash;62)</span></h3>
+<ol class="elist">
+<li class="e" value="45"><span class="en">45</span><span class="ea">B</span><div class="eb"><p class="et">something we imagine, which is not real now</p><p class="ew">The second conditional talks about something we imagine in the present or the future, but which is not real.</p></div></li>
+<li class="e" value="46"><span class="en">46</span><span class="ea">C</span><div class="eb"><p class="et">If + past simple, would + bare infinitive</p><p class="ew">The pattern is: <strong>If + past simple, would + bare infinitive</strong>, e.g. <em>If I went to space, I would take a camera.</em></p></div></li>
+<li class="e" value="47"><span class="en">47</span><span class="ea">D</span><div class="eb"><p class="et">went</p><p class="ew">After <em>if</em> in the second conditional we use the past simple: <em>went</em>.</p></div></li>
+<li class="e" value="48"><span class="en">48</span><span class="ea">B</span><div class="eb"><p class="et">would travel</p><p class="ew">The result clause uses <em>would</em> + bare infinitive: <em>would travel</em>.</p></div></li>
+<li class="e" value="49"><span class="en">49</span><span class="ea">B</span><div class="eb"><p class="et">were</p><p class="ew">In the second conditional we use the past form of <em>be</em>, and <em>were</em> is used for all persons: <em>If I were an astronaut …</em></p></div></li>
+<li class="e" value="50"><span class="en">50</span><span class="ea">C</span><div class="eb"><p class="et">lived</p><p class="ew">The <em>if</em> clause takes the past simple, even when it comes second in the sentence: <em>if she lived</em>.</p></div></li>
+<li class="e" value="51"><span class="en">51</span><span class="ea">C</span><div class="eb"><p class="et">If I had a rocket, I would fly to the Moon.</p><p class="ew">Only C follows the rule <em>If + past simple, would + bare infinitive</em>. We never use <em>would</em> directly after <em>if</em> in this structure.</p></div></li>
+<li class="e" value="52"><span class="en">52</span><span class="ea">A</span><div class="eb"><p class="et">wouldn&#x27;t</p><p class="ew">A negative second conditional result uses <em>wouldn&#x27;t</em> + bare infinitive.</p></div></li>
+<li class="e" value="53"><span class="en">53</span><span class="ea">B</span><div class="eb"><p class="et">didn&#x27;t have</p><p class="ew">The <em>if</em> clause needs a negative past simple: <em>didn&#x27;t have</em>.</p></div></li>
+<li class="e" value="54"><span class="en">54</span><span class="ea">D</span><div class="eb"><p class="et">Would</p><p class="ew">To make a second conditional question we start with <em>Would</em> + subject + bare infinitive.</p></div></li>
+<li class="e" value="55"><span class="en">55</span><span class="ea">B</span><div class="eb"><p class="et">would</p><p class="ew">After the question word we use <em>would</em>: <em>Where would you go …?</em></p></div></li>
+<li class="e" value="56"><span class="en">56</span><span class="ea">C</span><div class="eb"><p class="et">I would</p><p class="ew">In the second conditional, <em>&#x27;d</em> is the short form of <em>would</em>.</p></div></li>
+<li class="e" value="57"><span class="en">57</span><span class="ea">C</span><div class="eb"><p class="et">would take</p><p class="ew">The result clause of a second conditional uses <em>would</em> + bare infinitive: <em>would take</em>.</p></div></li>
+<li class="e" value="58"><span class="en">58</span><span class="ea">D</span><div class="eb"><p class="et">had</p><p class="ew">The <em>if</em> clause uses the past simple: <em>had</em>.</p></div></li>
+<li class="e" value="59"><span class="en">59</span><span class="ea">A</span><div class="eb"><p class="et">(1) is the first conditional and (2) is the second conditional.</p><p class="ew">Sentence (1) uses <em>present simple + will</em> (first conditional, a real possibility). Sentence (2) uses <em>past simple + would</em> (second conditional, imagined).</p></div></li>
+<li class="e" value="60"><span class="en">60</span><span class="ea">B</span><div class="eb"><p class="et">If I had a spaceship, I would visit Mars every weekend.</p><p class="ew">Only B uses the second conditional (<em>had … would visit</em>), which shows an imaginary situation.</p></div></li>
+<li class="e" value="61"><span class="en">61</span><span class="ea">C</span><div class="eb"><p class="et">If I went to space, I would grow vegetables.</p><p class="ew">The correct order follows <em>If + past simple, would + bare infinitive</em>.</p></div></li>
+<li class="e" value="62"><span class="en">62</span><span class="ea">B</span><div class="eb"><p class="et">would</p><p class="ew">The speaker is imagining life in space, so the second conditional form <em>would be</em> is used.</p></div></li>
+</ol>
+<h3 class="ehead pe">Section E &mdash; Grammar: Noun Phrases and Functional Language <span>(63&ndash;70)</span></h3>
+<ol class="elist">
+<li class="e" value="63"><span class="en">63</span><span class="ea">B</span><div class="eb"><p class="et">You&#x27;re right.</p><p class="ew"><em>You&#x27;re right</em>, <em>Me too</em> and <em>I agree</em> are used for agreeing.</p></div></li>
+<li class="e" value="64"><span class="en">64</span><span class="ea">D</span><div class="eb"><p class="et">I&#x27;m not so sure.</p><p class="ew"><em>I&#x27;m not so sure</em> and <em>I don&#x27;t really agree</em> are used to disagree politely.</p></div></li>
+<li class="e" value="65"><span class="en">65</span><span class="ea">A</span><div class="eb"><p class="et">describes the second word</p><p class="ew">In a compound noun the first word describes the second, e.g. <em>space mission</em> tells you the exact type of mission.</p></div></li>
+<li class="e" value="66"><span class="en">66</span><span class="ea">A</span><div class="eb"><p class="et">give the reader more information about the noun</p><p class="ew">Expanded noun phrases add extra detail so the reader knows more about what is being described.</p></div></li>
+<li class="e" value="67"><span class="en">67</span><span class="ea">C</span><div class="eb"><p class="et">the red planet in space</p><p class="ew"><em>The red planet in space</em> is a noun phrase with extra information added (<em>red</em>, <em>in space</em>).</p></div></li>
+<li class="e" value="68"><span class="en">68</span><span class="ea">B</span><div class="eb"><p class="et">old</p><p class="ew"><em>Spaceship</em> is the main noun; <em>old</em> is the additional information that describes it.</p></div></li>
+<li class="e" value="69"><span class="en">69</span><span class="ea">C</span><div class="eb"><p class="et">planet</p><p class="ew"><em>Planet</em> is the main noun; <em>tiny</em> and <em>rocky</em> are adjectives that describe it.</p></div></li>
+<li class="e" value="70"><span class="en">70</span><span class="ea">A</span><div class="eb"><p class="et">a beautiful sunset over the red mountains</p><p class="ew">A is a correct, natural expansion: the extra phrase <em>over the red mountains</em> adds more detail about the sunset.</p></div></li>
+</ol>
+<h3 class="ehead pe">Section F &mdash; Reading Comprehension: Facts from the Unit Texts <span>(71&ndash;80)</span></h3>
+<ol class="elist">
+<li class="e" value="71"><span class="en">71</span><span class="ea">C</span><div class="eb"><p class="et">1977</p><p class="ew">The Golden Record was sent into space in <strong>1977</strong>.</p></div></li>
+<li class="e" value="72"><span class="en">72</span><span class="ea">A</span><div class="eb"><p class="et">Voyager 1</p><p class="ew">NASA sent the Golden Record to space on <strong>Voyager 1</strong>.</p></div></li>
+<li class="e" value="73"><span class="en">73</span><span class="ea">D</span><div class="eb"><p class="et">55</p><p class="ew">There are greetings in <strong>55 languages</strong> on the Golden Record.</p></div></li>
+<li class="e" value="74"><span class="en">74</span><span class="ea">A</span><div class="eb"><p class="et">wind, rain and thunderstorms</p><p class="ew">The record holds sounds from Earth such as <strong>wind, rain and thunderstorms</strong>, and even animal noises.</p></div></li>
+<li class="e" value="75"><span class="en">75</span><span class="ea">B</span><div class="eb"><p class="et">athlete</p><p class="ew">He is described as a famous <strong>athlete</strong> who has written a science-fiction book about living on Mars.</p></div></li>
+<li class="e" value="76"><span class="en">76</span><span class="ea">A</span><div class="eb"><p class="et">Because they might live on Mars for a very long time and cannot just come back.</p><p class="ew">The astronauts have to be strong because they might be living on Mars for a very long time; they can&#x27;t just come back.</p></div></li>
+<li class="e" value="77"><span class="en">77</span><span class="ea">C</span><div class="eb"><p class="et">To help conduct science experiments to grow vegetables in space.</p><p class="ew">Her mission is to help conduct science experiments to grow vegetables, such as zucchini, in space.</p></div></li>
+<li class="e" value="78"><span class="en">78</span><span class="ea">B</span><div class="eb"><p class="et">Two days</p><p class="ew">It is described as a <strong>two-day trip</strong> to the ISS, flying at over 28,000 kilometres per hour.</p></div></li>
+<li class="e" value="79"><span class="en">79</span><span class="ea">C</span><div class="eb"><p class="et">The potatoes</p><p class="ew">The <strong>potatoes</strong> grew the best — in fact, at the same rate as they would grow in nature.</p></div></li>
+<li class="e" value="80"><span class="en">80</span><span class="ea">A</span><div class="eb"><p class="et">It was getting enough sunlight, but not enough water.</p><p class="ew">The corn was getting just enough sunlight to grow, but not enough water to grow at a normal rate.</p></div></li>
+</ol>
+<h3 class="ehead pv">Section G &mdash; Extra Practice: Vocabulary and Spelling <span>(81&ndash;90)</span></h3>
+<ol class="elist">
+<li class="e" value="81"><span class="en">81</span><span class="ea">B</span><div class="eb"><p class="et">launch</p><p class="ew">We <em>launch</em> a rocket when we send it up into the air from a launch pad.</p></div></li>
+<li class="e" value="82"><span class="en">82</span><span class="ea">A</span><div class="eb"><p class="et">sea</p><p class="ew">An astronaut belongs to space in the same way that a sailor belongs to the sea.</p></div></li>
+<li class="e" value="83"><span class="en">83</span><span class="ea">D</span><div class="eb"><p class="et">telescope</p><p class="ew">A <em>telescope</em> is an instrument for looking at the stars. The other three are all types of weather.</p></div></li>
+<li class="e" value="84"><span class="en">84</span><span class="ea">B</span><div class="eb"><p class="et">exploration</p><p class="ew"><em>Exploration</em> is the activity itself; an <em>explorer</em> is the person who does it.</p></div></li>
+<li class="e" value="85"><span class="en">85</span><span class="ea">B</span><div class="eb"><p class="et">explorer</p><p class="ew">The suffix <em>-er</em> makes the person: explore → <em>explorer</em>.</p></div></li>
+<li class="e" value="86"><span class="en">86</span><span class="ea">A</span><div class="eb"><p class="et">floating</p><p class="ew">In zero gravity astronauts are <em>floating</em> — they stay in the air instead of falling.</p></div></li>
+<li class="e" value="87"><span class="en">87</span><span class="ea">B</span><div class="eb"><p class="et">The astronauts collected a lot of information about Mars.</p><p class="ew"><em>Information</em> is uncountable: it has no plural and takes <em>a lot of</em>, not <em>many</em>.</p></div></li>
+<li class="e" value="88"><span class="en">88</span><span class="ea">B</span><div class="eb"><p class="et">satellite</p><p class="ew">The correct spelling is <em>satellite</em> — one <em>t</em>, then double <em>l</em>.</p></div></li>
+<li class="e" value="89"><span class="en">89</span><span class="ea">A</span><div class="eb"><p class="et">astronaut</p><p class="ew">The correct spelling is <em>astronaut</em>.</p></div></li>
+<li class="e" value="90"><span class="en">90</span><span class="ea">B</span><div class="eb"><p class="et">extreme</p><p class="ew"><em>Extreme</em> describes a noun (extreme weather), so it is an adjective. <em>Gravity</em> and <em>crew</em> are nouns and <em>launch</em> is a verb.</p></div></li>
+</ol>
+<h3 class="ehead pa">Section H &mdash; Extra Practice: Compound Nouns and Word Building <span>(91&ndash;95)</span></h3>
+<ol class="elist">
+<li class="e" value="91"><span class="en">91</span><span class="ea">A</span><div class="eb"><p class="et">a vehicle that travels in space</p><p class="ew"><em>Space</em> + <em>ship</em> = a ship that travels through space, i.e. a spacecraft.</p></div></li>
+<li class="e" value="92"><span class="en">92</span><span class="ea">A</span><div class="eb"><p class="et">moon + light</p><p class="ew"><em>Moonlight</em> is the light that comes from the moon. The other three combinations are not English words.</p></div></li>
+<li class="e" value="93"><span class="en">93</span><span class="ea">A</span><div class="eb"><p class="et">space</p><p class="ew">In a compound noun the first word describes the second, so <em>space</em> tells you exactly which kind of station it is.</p></div></li>
+<li class="e" value="94"><span class="en">94</span><span class="ea">A</span><div class="eb"><p class="et">launch pad</p><p class="ew"><em>Launch</em> is a verb and <em>pad</em> is a noun. In the others the first word is an adjective or a noun.</p></div></li>
+<li class="e" value="95"><span class="en">95</span><span class="ea">A</span><div class="eb"><p class="et">spacesuit</p><p class="ew">The describing word comes first, giving <em>spacesuit</em>.</p></div></li>
+</ol>
+<h3 class="ehead pa">Section I &mdash; Extra Practice: The Second Conditional <span>(96&ndash;105)</span></h3>
+<ol class="elist">
+<li class="e" value="96"><span class="en">96</span><span class="ea">B</span><div class="eb"><p class="et">knew</p><p class="ew">The <em>if</em> clause of a second conditional takes the past simple: <em>knew</em>.</p></div></li>
+<li class="e" value="97"><span class="en">97</span><span class="ea">B</span><div class="eb"><p class="et">would</p><p class="ew">The result clause takes <em>would</em> + bare infinitive: <em>would take</em>.</p></div></li>
+<li class="e" value="98"><span class="en">98</span><span class="ea">B</span><div class="eb"><p class="et">What would you do if you saw an alien?</p><p class="ew">A second conditional question is <em>question word + would + subject + bare infinitive</em>, with the past simple after <em>if</em>.</p></div></li>
+<li class="e" value="99"><span class="en">99</span><span class="ea">A</span><div class="eb"><p class="et">The speaker has a telescope.</p><p class="ew">The second conditional imagines the opposite of what is real. The imagined situation is <em>not</em> having a telescope, so in reality the speaker <strong>does</strong> have one.</p></div></li>
+<li class="e" value="100"><span class="en">100</span><span class="ea">B</span><div class="eb"><p class="et">were</p><p class="ew">This is an imagined situation, so we use the past form <em>were</em> after <em>if</em>.</p></div></li>
+<li class="e" value="101"><span class="en">101</span><span class="ea">B</span><div class="eb"><p class="et">didn’t get</p><p class="ew">A negative <em>if</em> clause in the second conditional uses <em>didn’t</em> + bare infinitive.</p></div></li>
+<li class="e" value="102"><span class="en">102</span><span class="ea">A</span><div class="eb"><p class="et">If I had a rocket, I would travel to the Moon.</p><p class="ew">The real situation is negative, so the imagined version turns it positive: <em>had</em> … <em>would travel</em>.</p></div></li>
+<li class="e" value="103"><span class="en">103</span><span class="ea">C</span><div class="eb"><p class="et">If I go to the museum, I will see a real rocket.</p><p class="ew">Option C uses <em>present simple + will</em>, which is the first conditional — a real possibility, not an imagined one.</p></div></li>
+<li class="e" value="104"><span class="en">104</span><span class="ea">A</span><div class="eb"><p class="et">Would</p><p class="ew">Second conditional questions begin with <em>Would</em> + subject + bare infinitive.</p></div></li>
+<li class="e" value="105"><span class="en">105</span><span class="ea">A</span><div class="eb"><p class="et">the bare infinitive, e.g. take</p><p class="ew"><em>Would</em> is always followed by the bare infinitive — the verb with no <em>to</em> and no ending.</p></div></li>
+</ol>
+<h3 class="ehead pe">Section J &mdash; Extra Practice: Noun Phrases and Functional Language <span>(106&ndash;110)</span></h3>
+<ol class="elist">
+<li class="e" value="106"><span class="en">106</span><span class="ea">D</span><div class="eb"><p class="et">a small red planet with two moons</p><p class="ew">Each option adds more detail, and option D adds the most: size, colour and an extra fact about its moons.</p></div></li>
+<li class="e" value="107"><span class="en">107</span><span class="ea">C</span><div class="eb"><p class="et">storms</p><p class="ew">The phrase is about <em>storms</em>; <em>huge</em>, <em>dust</em> and the words after <em>that</em> are all extra detail describing them.</p></div></li>
+<li class="e" value="108"><span class="en">108</span><span class="ea">A</span><div class="eb"><p class="et">We watched a beautiful red sunset.</p><p class="ew">In English an opinion adjective (<em>beautiful</em>) comes before a colour adjective (<em>red</em>).</p></div></li>
+<li class="e" value="109"><span class="en">109</span><span class="ea">C</span><div class="eb"><p class="et">The old silver rocket on the launch pad was ready.</p><p class="ew"><em>The old silver rocket on the launch pad</em> is a noun phrase expanded with several details about the rocket.</p></div></li>
+<li class="e" value="110"><span class="en">110</span><span class="ea">A</span><div class="eb"><p class="et">agree with someone</p><p class="ew">Both are agreeing phrases; <em>I’m not so sure</em> and <em>I don’t really agree</em> are used to disagree.</p></div></li>
+</ol>
+</section>
+<footer>
+  <p><strong>Source:</strong> Unit 2 &ldquo;Space&rdquo;, Coursebook and Workbook pages 29&ndash;50 &mdash;
+  Ministry of Education, United Arab Emirates. Questions marked <span class="mono">Book</span> test words, rules and
+  facts taken directly from the unit; questions marked <span class="mono">&#9733; Extra</span> extend the same
+  material with new sentences, spelling, word-building and odd-one-out items.</p>
+  <p>Listening activities are excluded, and no question asks the student to look back at the book.</p>
+</footer>
+</div>
