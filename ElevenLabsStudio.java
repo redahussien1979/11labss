@@ -118,6 +118,7 @@ public class ElevenLabsStudio extends JFrame {
         final String transcript;
         final List<WordStamp> words;
         List<PhraseHit> phrases = new ArrayList<>();
+        List<RepeatHit> repeats = new ArrayList<>();
         MediaResult(String baseName, String transcript, List<WordStamp> words) {
             this.baseName = baseName; this.transcript = transcript; this.words = words;
         }
@@ -608,7 +609,8 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 81-88 Arabic meaning (text41-48, blank), cols 89-96 same start time — yellow<br>"
                 + "• cols 97-104 new group (text49-56, blank), cols 105-112 same start time — purple<br>"
                 + "• col 113 logo cell (text57) — peach<br>"
-                + "Selected words come from \"Select Words…\" (up to 8 per file).<br>"
+                + "• cols 114-121 repeats (repeat1-8) as start,end,times,slowness — teal<br>"
+                + "Selected words and repeats come from \"Select Words…\" (up to 8 of each per file).<br>"
                 + "With several files, each one gets its own row block, stacked in the order "
                 + "they were transcribed.</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
@@ -1785,7 +1787,8 @@ public class ElevenLabsStudio extends JFrame {
         if (media == null || media.isEmpty()) return;
 
         boolean hadPhrases = false;
-        for (MediaResult r : lastVideoResults) if (!r.phrases.isEmpty()) hadPhrases = true;
+        for (MediaResult r : lastVideoResults)
+            if (!r.phrases.isEmpty() || !r.repeats.isEmpty()) hadPhrases = true;
 
         if (media.size() > 1) {
             log("VIDEO → WORD-BY-WORD TIMESTAMPS (Scribe) — " + media.size() + " files");
@@ -1814,7 +1817,7 @@ public class ElevenLabsStudio extends JFrame {
 
         lastVideoResults = results;
         if (hadPhrases)
-            log("Note: previously picked words were cleared — click \"Select Words…\" again "
+            log("Note: previously picked words and repeats were cleared — click \"Select Words…\" again "
                     + "to pick from the new transcript(s).");
 
         if (results.size() > 1) {
@@ -1989,7 +1992,8 @@ public class ElevenLabsStudio extends JFrame {
     // [ 32 paragraph words ][ 32 paragraph timings ]
     // [ 8 selected words   ][ 8 selected timings (start only) ]
     // [ 8 Arabic meanings  ][ 8 Arabic timings (start only, same as selected) ]
-    // [ 1 logo cell ]
+    // [ 8 new-group cells  ][ 8 new-group timings (start only, same as selected) ]
+    // [ 1 logo cell ][ 8 repeat cells: "start,end,times,slowness" ]
     private static final int PARA_WORDS       = 32;                            // paragraph word slots
     private static final int SEL_WORDS        = 8;                             // slots per 8-word group
     private static final int PARA_WORDS_START = 0;                             // cols 1..32
@@ -2001,12 +2005,14 @@ public class ElevenLabsStudio extends JFrame {
     private static final int NEW_WORDS_START  = AR_TIME_START + SEL_WORDS;      // cols 97..104
     private static final int NEW_TIME_START   = NEW_WORDS_START + SEL_WORDS;    // cols 105..112
     private static final int LOGO_COL         = NEW_TIME_START + SEL_WORDS;     // col  113
-    private static final int TOTAL_COLS       = LOGO_COL + 1;                   // 113 columns
+    private static final int REPEAT_SLOTS     = 8;                             // repeat1..repeat8
+    private static final int REPEAT_START     = LOGO_COL + 1;                   // cols 114..121
+    private static final int TOTAL_COLS       = REPEAT_START + REPEAT_SLOTS;    // 121 columns
     private static final String LOGO_TEXT     = "Logolept  AR · EN   [f]"; // logo placeholder
 
     // Per-group cell fill styles (indices into the xlsx cellXfs table; 0 = no fill).
     private static final int STYLE_PARA = 1, STYLE_SEL = 2, STYLE_AR = 3,
-                             STYLE_NEW = 4, STYLE_LOGO = 5;
+                             STYLE_NEW = 4, STYLE_LOGO = 5, STYLE_REPEAT = 6;
 
     /** Map every template column to its group fill style, for coloured export. */
     private static int[] buildColStyles() {
@@ -2021,6 +2027,7 @@ public class ElevenLabsStudio extends JFrame {
             s[NEW_WORDS_START + i] = STYLE_NEW;  s[NEW_TIME_START + i] = STYLE_NEW;
         }
         s[LOGO_COL] = STYLE_LOGO;
+        for (int i = 0; i < REPEAT_SLOTS; i++) s[REPEAT_START + i] = STYLE_REPEAT;
         return s;
     }
 
@@ -2035,7 +2042,7 @@ public class ElevenLabsStudio extends JFrame {
         for (MediaResult r : results) totalWords += r.words.size();
         log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel using the "
                 + "fixed template (32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · "
-                + "1 logo, each group colour-coded)…");
+                + "1 logo · 8 repeat, each group colour-coded)…");
 
         List<List<String>> rows = new ArrayList<>();
         rows.add(buildExcelHeader());
@@ -2084,6 +2091,19 @@ public class ElevenLabsStudio extends JFrame {
                         + SEL_WORDS + " selected-word slots.");
             }
 
+            // Clips marked for replay: "start,end,times,slowness" in repeat1..repeat8.
+            List<RepeatHit> repeats = r.repeats;
+            if (!repeats.isEmpty()) {
+                int n = Math.min(repeats.size(), REPEAT_SLOTS);
+                if (repeats.size() > REPEAT_SLOTS)
+                    log(tag + "Note: " + repeats.size() + " repeats set but only " + REPEAT_SLOTS
+                            + " slots are reserved — writing the first " + REPEAT_SLOTS + ".");
+                for (int i = 0; i < n; i++) dataRow.set(REPEAT_START + i, repeats.get(i).cell());
+                log(tag + n + " repeat(s) written to row " + (rows.size() + 1) + ": "
+                        + XlsxWriter.colLetter(REPEAT_START + 1) + "-"
+                        + XlsxWriter.colLetter(REPEAT_START + n) + " (start,end,times,slowness).");
+            }
+
             rows.addAll(block);
         }
 
@@ -2111,6 +2131,15 @@ public class ElevenLabsStudio extends JFrame {
     private void logPicks(List<MediaResult> results) {
         int total = 0, files = 0;
         for (MediaResult r : results) {
+            if (!r.repeats.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
+                for (RepeatHit rh : r.repeats) {
+                    if (sb.length() > 0) sb.append(" · ");
+                    sb.append("\"").append(rh.text).append("\" ").append(rh.cell());
+                }
+                log((results.size() == 1 ? "" : "[" + r.baseName + "] ") + r.repeats.size()
+                        + " repeat(s): " + sb);
+            }
             if (r.phrases.isEmpty()) continue;
             files++; total += r.phrases.size();
             StringBuilder sb = new StringBuilder();
@@ -2129,13 +2158,20 @@ public class ElevenLabsStudio extends JFrame {
     /**
      * Every transcribed word of every file, laid out as a grid you can click. Picked words and
      * phrases land in the table below, where the text41 and text49 cells are typed beside them,
-     * so the three Excel columns stay aligned by construction.
+     * so the three Excel columns stay aligned by construction. Words and phrases can also be marked
+     * for replay; those land in the repeats table and are written to repeat1..repeat8.
      */
     private final class WordPickerDialog extends JDialog {
         private final List<MediaResult> results;
         private final List<List<PhraseHit>> picks = new ArrayList<>();   // per file, in export order
+        private final List<List<RepeatHit>> repeats = new ArrayList<>(); // per file, in export order
         private final DefaultTableModel model;
         private final JTable table;
+        private final DefaultTableModel repModel;
+        private final JTable repTable;
+        private final JSpinner repTimes = new JSpinner(new SpinnerNumberModel(2, 1, 99, 1));
+        private final JSpinner repSlow  = new JSpinner(new SpinnerNumberModel(1.25, 0.05, 10.0, 0.05));
+        private boolean syncing;                                          // guards model writes from listeners
         private final JTabbedPane tabs = new JTabbedPane();
         private final List<JList<String>> wordLists = new ArrayList<>();
         private final JLabel status = new JLabel(" ");
@@ -2144,6 +2180,12 @@ public class ElevenLabsStudio extends JFrame {
             super(owner, "Select words for the Excel export", true);
             this.results = results;
             for (MediaResult r : results) picks.add(new ArrayList<>(r.phrases));  // keep earlier picks
+            for (MediaResult r : results) {                                      // copies: Cancel discards edits
+                List<RepeatHit> mine = new ArrayList<>();
+                for (RepeatHit rh : r.repeats)
+                    mine.add(new RepeatHit(rh.text, rh.start, rh.end, rh.times, rh.slowness));
+                repeats.add(mine);
+            }
 
             // ---- top: one word grid per file ----
             for (MediaResult r : results) {
@@ -2180,10 +2222,30 @@ public class ElevenLabsStudio extends JFrame {
                     + "timed from the first word.");
             addPhrase.addActionListener(e -> addSelection(true));
 
-            JPanel addBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
-            addBar.add(addWords);
-            addBar.add(addPhrase);
-            addBar.add(status);
+            JButton addRepeat = new JButton("Add as repeat");
+            addRepeat.setToolTipText("<html>Mark the selected word — or run of consecutive words — for replay.<br>"
+                    + "Its start and end time go into the next free repeat column (repeat1, repeat2, …)<br>"
+                    + "as start,end,times,slowness — e.g. 0.54,2.56,2,1.25.</html>");
+            addRepeat.addActionListener(e -> addRepeat());
+            repTimes.setToolTipText("How many times the clip is replayed.");
+            repSlow.setToolTipText("Playback slow-down factor (1 = normal speed, 1.25 = 25% slower).");
+            repSlow.setEditor(new JSpinner.NumberEditor(repSlow, "0.00"));
+            ((JSpinner.DefaultEditor) repTimes.getEditor()).getTextField().setColumns(3);
+            ((JSpinner.DefaultEditor) repSlow.getEditor()).getTextField().setColumns(4);
+
+            JPanel pickRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+            pickRow.add(addWords);
+            pickRow.add(addPhrase);
+            pickRow.add(status);
+            JPanel repeatRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            repeatRow.add(addRepeat);
+            repeatRow.add(new JLabel("times"));
+            repeatRow.add(repTimes);
+            repeatRow.add(new JLabel("slowness"));
+            repeatRow.add(repSlow);
+            JPanel addBar = new JPanel(new GridLayout(2, 1));
+            addBar.add(pickRow);
+            addBar.add(repeatRow);
 
             JPanel top = new JPanel(new BorderLayout());
             top.setBorder(new TitledBorder("All transcribed words — click to select"));
@@ -2205,7 +2267,7 @@ public class ElevenLabsStudio extends JFrame {
             table.getColumnModel().getColumn(4).setPreferredWidth(160);
             table.getColumnModel().getColumn(5).setPreferredWidth(160);
             model.addTableModelListener(e -> {
-                if (e.getColumn() < 4 || e.getFirstRow() < 0) return;
+                if (syncing || e.getColumn() < 4 || e.getFirstRow() < 0) return;
                 PhraseHit ph = rowToPick(e.getFirstRow());
                 if (ph == null) return;
                 Object v = model.getValueAt(e.getFirstRow(), e.getColumn());
@@ -2235,11 +2297,46 @@ public class ElevenLabsStudio extends JFrame {
             rowBar.add(toXlsx);
             rowBar.add(fromXlsx);
 
-            JPanel bottom = new JPanel(new BorderLayout());
-            bottom.setBorder(new TitledBorder("Picked for export  (up to " + SEL_WORDS
+            JPanel picked = new JPanel(new BorderLayout());
+            picked.setBorder(new TitledBorder("Picked for export  (up to " + SEL_WORDS
                     + " per file → text33-40, one row per file)"));
-            bottom.add(new JScrollPane(table), BorderLayout.CENTER);
-            bottom.add(rowBar, BorderLayout.SOUTH);
+            picked.add(new JScrollPane(table), BorderLayout.CENTER);
+            picked.add(rowBar, BorderLayout.SOUTH);
+
+            // ---- repeats: start / end / times / slowness, one repeat column each ----
+            repModel = new DefaultTableModel(new Object[]{"#", "File", "Word / phrase",
+                    "start", "end", "times", "slowness", "Excel cell"}, 0) {
+                @Override public boolean isCellEditable(int row, int col) { return col >= 3 && col <= 6; }
+            };
+            repTable = new JTable(repModel);
+            repTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+            repTable.putClientProperty("terminateEditOnFocusLost", Boolean.TRUE);
+            int[] repWidths = {60, 120, 200, 60, 60, 50, 60, 150};
+            for (int c = 0; c < repWidths.length; c++)
+                repTable.getColumnModel().getColumn(c).setPreferredWidth(repWidths[c]);
+            repModel.addTableModelListener(e -> {
+                int row = e.getFirstRow(), col = e.getColumn();
+                if (syncing || row < 0 || col < 3 || col > 6) return;
+                RepeatHit rh = rowToRepeat(row);
+                if (rh != null) editRepeat(rh, row, col);
+            });
+
+            JButton repRemove = new JButton("Remove selected");
+            repRemove.addActionListener(e -> removeSelectedRepeats());
+            JButton repClear  = new JButton("Clear all");
+            repClear.addActionListener(e -> { for (List<RepeatHit> p : repeats) p.clear(); rebuildRepeats(); });
+            JPanel repBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+            repBar.add(repRemove);
+            repBar.add(repClear);
+
+            JPanel repeated = new JPanel(new BorderLayout());
+            repeated.setBorder(new TitledBorder("Repeats  (up to " + REPEAT_SLOTS
+                    + " per file → repeat1-" + REPEAT_SLOTS + " as start,end,times,slowness)"));
+            repeated.add(new JScrollPane(repTable), BorderLayout.CENTER);
+            repeated.add(repBar, BorderLayout.SOUTH);
+
+            JSplitPane bottom = new JSplitPane(JSplitPane.VERTICAL_SPLIT, picked, repeated);
+            bottom.setResizeWeight(0.5);
 
             JButton ok = new JButton("Apply");
             ok.addActionListener(e -> apply());
@@ -2251,13 +2348,14 @@ public class ElevenLabsStudio extends JFrame {
             getRootPane().setDefaultButton(ok);
 
             JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, top, bottom);
-            split.setResizeWeight(0.6);
+            split.setResizeWeight(0.45);
             setLayout(new BorderLayout());
             add(split, BorderLayout.CENTER);
             add(okBar, BorderLayout.SOUTH);
-            setSize(900, 620);
+            setSize(980, 820);
             setLocationRelativeTo(owner);
             rebuildTable();
+            rebuildRepeats();
         }
 
         private int fileIdx() { return Math.max(0, tabs.getSelectedIndex()); }
@@ -2312,6 +2410,129 @@ public class ElevenLabsStudio extends JFrame {
             status("Removed " + rows.length + " pick(s).");
         }
 
+        /** Mark the current selection (one word or a consecutive run) for replay. */
+        private void addRepeat() {
+            int f = fileIdx();
+            JList<String> list = wordLists.get(f);
+            int[] sel = list.getSelectedIndices();
+            if (sel.length == 0) { status("Select a word or a run of words to repeat."); return; }
+            if (sel[sel.length - 1] - sel[0] + 1 != sel.length) {
+                status("A repeat needs consecutive words — shift-click a run.");
+                return;
+            }
+            List<RepeatHit> mine = repeats.get(f);
+            if (mine.size() >= REPEAT_SLOTS) {
+                status("That file already has " + REPEAT_SLOTS + " repeats.");
+                return;
+            }
+            try { repTimes.commitEdit(); repSlow.commitEdit(); } catch (java.text.ParseException ignored) { }
+
+            List<WordStamp> words = results.get(f).words;
+            StringBuilder sb = new StringBuilder();
+            for (int i : sel) {
+                if (sb.length() > 0) sb.append(' ');
+                sb.append(words.get(i).text);
+            }
+            RepeatHit rh = new RepeatHit(sb.toString(), words.get(sel[0]).start,
+                    words.get(sel[sel.length - 1]).end,
+                    ((Number) repTimes.getValue()).intValue(),
+                    ((Number) repSlow.getValue()).doubleValue());
+            mine.add(rh);
+            list.clearSelection();
+            rebuildRepeats();
+            status("repeat" + mine.size() + " = " + rh.cell() + "  (\"" + rh.text + "\").");
+        }
+
+        /** Apply one edited repeat cell, or put the old value back when it does not parse. */
+        private void editRepeat(RepeatHit rh, int row, int col) {
+            Object v = repModel.getValueAt(row, col);
+            String raw = v == null ? "" : String.valueOf(v).trim();
+            String err = null;
+            try {
+                switch (col) {
+                    case 3: case 4: {
+                        if (!raw.matches("[0-9]+([.,][0-9]*)?|[0-9:]+([.,][0-9]*)?")) {
+                            err = "\"" + raw + "\" is not a time — use seconds (2.56) or m:ss."; break;
+                        }
+                        double t = parseSeconds(raw);
+                        double start = col == 3 ? t : rh.start, end = col == 4 ? t : rh.end;
+                        if (end <= start) { err = "The end must come after the start."; break; }
+                        rh.start = start; rh.end = end;
+                        break;
+                    }
+                    case 5: {
+                        int n = Integer.parseInt(raw);
+                        if (n < 1) { err = "Repeat at least once."; break; }
+                        rh.times = n;
+                        break;
+                    }
+                    default: {
+                        double x = Double.parseDouble(raw.replace(',', '.'));
+                        if (!(x > 0)) { err = "Slowness must be above 0."; break; }
+                        rh.slowness = x;
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                err = "\"" + raw + "\" is not a number.";
+            }
+            if (err != null) status(err);
+            SwingUtilities.invokeLater(() -> syncRepeatRow(rh, row));   // tidy or restore the row
+        }
+
+        private void syncRepeatRow(RepeatHit rh, int row) {
+            if (row >= repModel.getRowCount() || rowToRepeat(row) != rh) return;
+            syncing = true;
+            try {
+                repModel.setValueAt(RepeatHit.num(rh.start), row, 3);
+                repModel.setValueAt(RepeatHit.num(rh.end), row, 4);
+                repModel.setValueAt(String.valueOf(rh.times), row, 5);
+                repModel.setValueAt(RepeatHit.num(rh.slowness), row, 6);
+                repModel.setValueAt(rh.cell(), row, 7);
+            } finally {
+                syncing = false;
+            }
+        }
+
+        private void removeSelectedRepeats() {
+            if (repTable.isEditing()) repTable.getCellEditor().stopCellEditing();
+            int[] rows = repTable.getSelectedRows();
+            if (rows.length == 0) { status("Select a repeat row to remove."); return; }
+            List<RepeatHit> doomed = new ArrayList<>();
+            for (int r : rows) doomed.add(rowToRepeat(r));
+            for (List<RepeatHit> p : repeats) p.removeAll(doomed);
+            rebuildRepeats();
+            status("Removed " + rows.length + " repeat(s).");
+        }
+
+        /** Repeat rows run file by file, in the same order the export writes them. */
+        private RepeatHit rowToRepeat(int row) {
+            int n = 0;
+            for (List<RepeatHit> p : repeats) {
+                if (row < n + p.size()) return p.get(row - n);
+                n += p.size();
+            }
+            return null;
+        }
+
+        private void rebuildRepeats() {
+            syncing = true;
+            try {
+                repModel.setRowCount(0);
+                for (int f = 0; f < repeats.size(); f++) {
+                    List<RepeatHit> mine = repeats.get(f);
+                    for (int i = 0; i < mine.size(); i++) {
+                        RepeatHit rh = mine.get(i);
+                        repModel.addRow(new Object[]{"repeat" + (i + 1), results.get(f).baseName, rh.text,
+                                RepeatHit.num(rh.start), RepeatHit.num(rh.end), String.valueOf(rh.times),
+                                RepeatHit.num(rh.slowness), rh.cell()});
+                    }
+                }
+            } finally {
+                syncing = false;
+            }
+            refreshStatus();
+        }
+
         /** Table rows run file by file, in the same order the export writes them. */
         private PhraseHit rowToPick(int row) {
             int n = 0;
@@ -2337,20 +2558,26 @@ public class ElevenLabsStudio extends JFrame {
 
         private void refreshStatus() {
             int f = fileIdx();
-            status.setText("  " + picks.get(f).size() + " of " + SEL_WORDS
-                    + " picked for " + results.get(f).baseName);
+            status.setText("  " + picks.get(f).size() + " of " + SEL_WORDS + " picked · "
+                    + repeats.get(f).size() + " of " + REPEAT_SLOTS + " repeats for " + results.get(f).baseName);
         }
 
         private void status(String msg) { status.setText("  " + msg); }
 
-        /** Column layout of the picks sheet (1-based, as the reader reports them). */
+        /** Column layout of the picks sheet (1-based, as the reader reports them). Repeat rows are
+         *  told apart by a "repeatN" in the # column and use end / times / slowness in G-I. */
         private static final int PK_SLOT = 1, PK_FILE = 2, PK_TEXT = 3,
-                                 PK_START = 4, PK_AR = 5, PK_NEW = 6;
+                                 PK_START = 4, PK_AR = 5, PK_NEW = 6,
+                                 PK_END = 7, PK_TIMES = 8, PK_SLOW = 9;
 
         /** Write the picks table to its own small .xlsx for editing in Excel. */
         private void exportPicks() {
             if (table.isEditing()) table.getCellEditor().stopCellEditing();
-            if (model.getRowCount() == 0) { status("Nothing to export — pick some words first."); return; }
+            if (repTable.isEditing()) repTable.getCellEditor().stopCellEditing();
+            if (model.getRowCount() == 0 && repModel.getRowCount() == 0) {
+                status("Nothing to export — pick some words or repeats first.");
+                return;
+            }
 
             JFileChooser fc = new JFileChooser(workDir());
             fc.setDialogTitle("Save the picks table");
@@ -2365,7 +2592,8 @@ public class ElevenLabsStudio extends JFrame {
 
         void exportPicksTo(File out) {
             List<List<String>> rows = new ArrayList<>();
-            rows.add(Arrays.asList("#", "File", "Word / phrase", "start", "text41", "text49"));
+            rows.add(Arrays.asList("#", "File", "Word / phrase", "start", "text41", "text49",
+                    "end", "times", "slowness"));
             for (int r = 0; r < model.getRowCount(); r++) {
                 List<String> row = new ArrayList<>();
                 for (int c = 0; c < 6; c++) {
@@ -2374,8 +2602,18 @@ public class ElevenLabsStudio extends JFrame {
                 }
                 rows.add(row);
             }
+            for (int f = 0; f < repeats.size(); f++) {
+                List<RepeatHit> mine = repeats.get(f);
+                for (int i = 0; i < mine.size(); i++) {
+                    RepeatHit rh = mine.get(i);
+                    rows.add(Arrays.asList("repeat" + (i + 1), results.get(f).baseName, rh.text,
+                            RepeatHit.num(rh.start), "", "", RepeatHit.num(rh.end),
+                            String.valueOf(rh.times), RepeatHit.num(rh.slowness)));
+                }
+            }
             // Colour the columns like the groups they feed on the main export.
-            int[] styles = { 0, 0, STYLE_SEL, STYLE_SEL, STYLE_AR, STYLE_NEW };
+            int[] styles = { 0, 0, STYLE_SEL, STYLE_SEL, STYLE_AR, STYLE_NEW,
+                             STYLE_REPEAT, STYLE_REPEAT, STYLE_REPEAT };
             try {
                 XlsxWriter.write(out, rows, styles);
                 status("Saved " + out.getName() + " — edit it, then \"Import edits…\".");
@@ -2401,7 +2639,8 @@ public class ElevenLabsStudio extends JFrame {
             List<SheetCell> cells;
             try {
                 cells = readSheetCells(in, "", Arrays.asList(
-                        PK_SLOT, PK_FILE, PK_TEXT, PK_START, PK_AR, PK_NEW), 2);   // row 1 is the header
+                        PK_SLOT, PK_FILE, PK_TEXT, PK_START, PK_AR, PK_NEW,
+                        PK_END, PK_TIMES, PK_SLOW), 2);                              // row 1 is the header
             } catch (Exception ex) {
                 status("Could not read that file: " + ex.getMessage());
                 log("Error reading the picks sheet: " + ex.getMessage());
@@ -2419,9 +2658,10 @@ public class ElevenLabsStudio extends JFrame {
                 byName.put(results.get(i).baseName.toLowerCase(Locale.ROOT), i);
 
             List<List<PhraseHit>> fresh = new ArrayList<>();
-            for (int i = 0; i < results.size(); i++) fresh.add(new ArrayList<>());
+            List<List<RepeatHit>> freshRep = new ArrayList<>();
+            for (int i = 0; i < results.size(); i++) { fresh.add(new ArrayList<>()); freshRep.add(new ArrayList<>()); }
 
-            int taken = 0, noFile = 0, overflow = 0;
+            int taken = 0, takenRep = 0, noFile = 0, overflow = 0, badRep = 0;
             List<String> unknown = new ArrayList<>();
             for (Map.Entry<Integer, Map<Integer, String>> e : bySheetRow.entrySet()) {
                 Map<Integer, String> row = e.getValue();
@@ -2437,6 +2677,15 @@ public class ElevenLabsStudio extends JFrame {
                         unknown.add(fileName);
                     continue;
                 }
+
+                if (row.getOrDefault(PK_SLOT, "").trim().toLowerCase(Locale.ROOT).startsWith("repeat")) {
+                    RepeatHit rh = parseRepeatRow(text, row);
+                    if (rh == null) { badRep++; continue; }
+                    if (freshRep.get(f).size() >= REPEAT_SLOTS) { overflow++; continue; }
+                    freshRep.get(f).add(rh);
+                    takenRep++;
+                    continue;
+                }
                 if (fresh.get(f).size() >= SEL_WORDS) { overflow++; continue; }
 
                 double start = parseSeconds(row.get(PK_START));
@@ -2450,23 +2699,53 @@ public class ElevenLabsStudio extends JFrame {
                 taken++;
             }
 
-            if (taken == 0) {
+            if (taken + takenRep == 0) {
                 status("No usable rows in " + in.getName() + " — the table is unchanged.");
                 log("Import: no usable rows in " + in.getName() + " (expected the header in row 1 and "
-                        + "File / Word / start / text41 / text49 in columns B-F). Table unchanged.");
+                        + "File / Word / start / text41 / text49 in columns B-F, plus end / times / slowness "
+                        + "in G-I for repeat rows). Table unchanged.");
                 return;
             }
 
             for (int i = 0; i < picks.size(); i++) { picks.get(i).clear(); picks.get(i).addAll(fresh.get(i)); }
+            for (int i = 0; i < repeats.size(); i++) {
+                repeats.get(i).clear();
+                repeats.get(i).addAll(freshRep.get(i));
+            }
             rebuildTable();
+            rebuildRepeats();
 
-            StringBuilder note = new StringBuilder("Imported " + taken + " row(s) from " + in.getName());
+            StringBuilder note = new StringBuilder("Imported " + taken + " pick(s) and " + takenRep
+                    + " repeat(s) from " + in.getName());
+            if (badRep > 0)   note.append("; ").append(badRep).append(" repeat row(s) skipped (bad start/end)");
             if (noFile > 0)   note.append("; ").append(noFile).append(" skipped (unknown File")
                     .append(unknown.isEmpty() ? "" : ": " + String.join(", ", unknown)).append(")");
             if (overflow > 0) note.append("; ").append(overflow).append(" past the ")
                     .append(SEL_WORDS).append("-per-file limit");
             status(note + ".");
             log("Import: " + note + ". Click Apply to keep them.");
+        }
+
+        /** A repeat row from the picks sheet; blank times / slowness fall back to the spinners. */
+        private RepeatHit parseRepeatRow(String text, Map<Integer, String> row) {
+            String rawStart = row.getOrDefault(PK_START, "").trim(), rawEnd = row.getOrDefault(PK_END, "").trim();
+            if (rawStart.isEmpty() || rawEnd.isEmpty()) return null;
+            double start = parseSeconds(rawStart), end = parseSeconds(rawEnd);
+            if (start < 0 || end <= start) return null;
+            int times = ((Number) repTimes.getValue()).intValue();
+            double slowness = ((Number) repSlow.getValue()).doubleValue();
+            try {
+                String t = row.getOrDefault(PK_TIMES, "").trim();
+                if (!t.isEmpty()) times = Math.max(1, (int) Math.round(Double.parseDouble(t.replace(',', '.'))));
+                String sl = row.getOrDefault(PK_SLOW, "").trim();
+                if (!sl.isEmpty()) {
+                    double x = Double.parseDouble(sl.replace(',', '.'));
+                    if (x > 0) slowness = x;
+                }
+            } catch (NumberFormatException ignored) {
+                // keep the defaults for a cell that is not a number
+            }
+            return new RepeatHit(text, start, end, times, slowness);
         }
 
         /** The pick this row came from, so an untouched row keeps its link to the transcript. */
@@ -2478,7 +2757,11 @@ public class ElevenLabsStudio extends JFrame {
 
         private void apply() {
             if (table.isEditing()) table.getCellEditor().stopCellEditing();
-            for (int f = 0; f < results.size(); f++) results.get(f).phrases = picks.get(f);
+            if (repTable.isEditing()) repTable.getCellEditor().stopCellEditing();
+            for (int f = 0; f < results.size(); f++) {
+                results.get(f).phrases = picks.get(f);
+                results.get(f).repeats = repeats.get(f);
+            }
             dispose();
             logPicks(results);
         }
@@ -2518,6 +2801,7 @@ public class ElevenLabsStudio extends JFrame {
             header.set(NEW_TIME_START + i,  "text" + newN + "time");
         }
         header.set(LOGO_COL, "text" + (PARA_WORDS + 3 * SEL_WORDS + 1)); // logo header continues: text57
+        for (int i = 0; i < REPEAT_SLOTS; i++) header.set(REPEAT_START + i, "repeat" + (i + 1));
         return header;
     }
 
@@ -2557,12 +2841,12 @@ public class ElevenLabsStudio extends JFrame {
                         "<Override PartName=\"/xl/styles.xml\" ContentType=\"application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml\"/>" +
                         "</Types>";
 
-        // One solid fill per group (fill indices 2..6, referenced by cellXfs 1..5).
+        // One solid fill per group (fill indices 2..7, referenced by cellXfs 1..6).
         private static final String STYLES =
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                         "<styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
                         "<fonts count=\"1\"><font><sz val=\"11\"/><name val=\"Calibri\"/></font></fonts>" +
-                        "<fills count=\"7\">" +
+                        "<fills count=\"8\">" +
                         "<fill><patternFill patternType=\"none\"/></fill>" +
                         "<fill><patternFill patternType=\"gray125\"/></fill>" +
                         "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFBDD7EE\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // paragraph  – blue
@@ -2570,16 +2854,18 @@ public class ElevenLabsStudio extends JFrame {
                         "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFFFF2CC\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // arabic     – yellow
                         "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFCCC0DA\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // new group  – purple
                         "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFF8CBAD\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // logo       – peach
+                        "<fill><patternFill patternType=\"solid\"><fgColor rgb=\"FFB7DEE8\"/><bgColor indexed=\"64\"/></patternFill></fill>" + // repeat     – teal
                         "</fills>" +
                         "<borders count=\"1\"><border><left/><right/><top/><bottom/><diagonal/></border></borders>" +
                         "<cellStyleXfs count=\"1\"><xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\"/></cellStyleXfs>" +
-                        "<cellXfs count=\"6\">" +
+                        "<cellXfs count=\"7\">" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"0\" borderId=\"0\" xfId=\"0\"/>" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"2\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"3\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"4\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"5\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
                         "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"6\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
+                        "<xf numFmtId=\"0\" fontId=\"0\" fillId=\"7\" borderId=\"0\" xfId=\"0\" applyFill=\"1\"/>" +
                         "</cellXfs>" +
                         "<cellStyles count=\"1\"><cellStyle name=\"Normal\" xfId=\"0\" builtinId=\"0\"/></cellStyles>" +
                         "</styleSheet>";
@@ -2776,6 +3062,29 @@ public class ElevenLabsStudio extends JFrame {
         String newGroup = "";               // -> text49+ on this file's row
         PhraseHit(String t, double s, double e, int firstIdx, int lastIdx) {
             text = t; start = s; end = e; this.firstIdx = firstIdx; this.lastIdx = lastIdx;
+        }
+    }
+
+    /** One word or phrase marked for replay: written as "start,end,times,slowness" into repeat1+. */
+    private static class RepeatHit {
+        String text;
+        double start, end;
+        int times;                          // how many times the clip is replayed
+        double slowness;                    // playback slow-down factor (1 = normal speed)
+        RepeatHit(String t, double s, double e, int times, double slowness) {
+            text = t; start = s; end = e; this.times = times; this.slowness = slowness;
+        }
+
+        /** The Excel cell value, e.g. "0.54,2.56,2,1.25". */
+        String cell() {
+            return num(start) + "," + num(end) + "," + times + "," + num(slowness);
+        }
+
+        /** A number with no trailing zeros: 0.540 → "0.54", 2.000 → "2". */
+        static String num(double v) {
+            String t = String.format(Locale.US, "%.3f", v);
+            t = t.replaceAll("0+$", "");
+            return t.endsWith(".") ? t.substring(0, t.length() - 1) : t;
         }
     }
 
