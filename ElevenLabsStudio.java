@@ -127,6 +127,10 @@ public class ElevenLabsStudio extends JFrame {
     /** Every file of the last batch, in the order it was transcribed. One entry = one Excel row block. */
     private volatile List<MediaResult> lastVideoResults = new ArrayList<>();
 
+    /** The picks sheet last written by "Export & open", which "Import edits" reads back. */
+    private File lastPicksFile;
+    private long lastPicksSaved;                 // its timestamp right after export, to spot unsaved edits
+
     private final java.util.List<JButton> actionButtons = new ArrayList<>();
 
     private final AudioPlayer player = new AudioPlayer();
@@ -2280,16 +2284,16 @@ public class ElevenLabsStudio extends JFrame {
             JButton clear  = new JButton("Clear all");
             clear.addActionListener(e -> { for (List<PhraseHit> p : picks) p.clear(); rebuildTable(); });
 
-            JButton toXlsx = new JButton("Export table…");
-            toXlsx.setToolTipText("<html>Save this table as a small .xlsx so it can be edited in Excel.<br>"
-                    + "Edit the words, the meanings, the start times — add or delete rows — then bring it "
-                    + "back with \"Import edits…\".</html>");
+            JButton toXlsx = new JButton("Export & open in Excel");
+            toXlsx.setToolTipText("<html>Save the picks and repeats as a small .xlsx and open it in Excel.<br>"
+                    + "Edit the words, the meanings, the times — add or delete rows — save, close it, "
+                    + "then click \"Import edits\".</html>");
             toXlsx.addActionListener(e -> exportPicks());
-            JButton fromXlsx = new JButton("Import edits…");
-            fromXlsx.setToolTipText("<html>Read an edited picks sheet back into this table, replacing what "
-                    + "is here.<br>Rows are matched to files by the File column and ordered as they appear "
-                    + "in the sheet.</html>");
-            fromXlsx.addActionListener(e -> importPicks());
+            JButton fromXlsx = new JButton("Import edits");
+            fromXlsx.setToolTipText("<html>Read the sheet you just edited back into these tables, replacing "
+                    + "what is here.<br>Rows are matched to files by the File column and ordered as they appear "
+                    + "in the sheet.<br>Shift-click to pick a different sheet.</html>");
+            fromXlsx.addActionListener(e -> importPicks((e.getModifiers() & java.awt.event.ActionEvent.SHIFT_MASK) != 0));
 
             JPanel rowBar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
             rowBar.add(remove);
@@ -2570,7 +2574,7 @@ public class ElevenLabsStudio extends JFrame {
                                  PK_START = 4, PK_AR = 5, PK_NEW = 6,
                                  PK_END = 7, PK_TIMES = 8, PK_SLOW = 9;
 
-        /** Write the picks table to its own small .xlsx for editing in Excel. */
+        /** Write the picks and repeats to their own small .xlsx and open it in Excel for editing. */
         private void exportPicks() {
             if (table.isEditing()) table.getCellEditor().stopCellEditing();
             if (repTable.isEditing()) repTable.getCellEditor().stopCellEditing();
@@ -2579,18 +2583,22 @@ public class ElevenLabsStudio extends JFrame {
                 return;
             }
 
-            JFileChooser fc = new JFileChooser(workDir());
-            fc.setDialogTitle("Save the picks table");
-            fc.setSelectedFile(new File(workDir(), combinedBaseName(results) + "_picks.xlsx"));
-            fc.setFileFilter(new FileNameExtensionFilter("Excel (.xlsx)", "xlsx"));
-            if (fc.showSaveDialog(this) != JFileChooser.APPROVE_OPTION) return;
-            File out = fc.getSelectedFile();
-            if (!out.getName().toLowerCase(Locale.ROOT).endsWith(".xlsx"))
-                out = new File(out.getParentFile(), out.getName() + ".xlsx");
-            exportPicksTo(out);
+            File out = new File(workDir(), combinedBaseName(results) + "_picks.xlsx");
+            if (!exportPicksTo(out)) return;
+            lastPicksFile  = out;
+            lastPicksSaved = out.lastModified();
+            try {
+                if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
+                    throw new UnsupportedOperationException("no desktop \"open\" action on this system");
+                Desktop.getDesktop().open(out);
+                status("Opened " + out.getName() + " — edit, save and close it, then click \"Import edits\".");
+            } catch (Exception ex) {
+                status("Saved " + out.getName() + " but could not open it: " + ex.getMessage());
+                log("Could not open " + out.getAbsolutePath() + ": " + ex.getMessage());
+            }
         }
 
-        void exportPicksTo(File out) {
+        boolean exportPicksTo(File out) {
             List<List<String>> rows = new ArrayList<>();
             rows.add(Arrays.asList("#", "File", "Word / phrase", "start", "text41", "text49",
                     "end", "times", "slowness"));
@@ -2616,21 +2624,40 @@ public class ElevenLabsStudio extends JFrame {
                              STYLE_REPEAT, STYLE_REPEAT, STYLE_REPEAT };
             try {
                 XlsxWriter.write(out, rows, styles);
-                status("Saved " + out.getName() + " — edit it, then \"Import edits…\".");
+                status("Saved " + out.getName() + ".");
                 log("Picks table saved: " + out.getAbsolutePath() + "  ("
-                        + (rows.size() - 1) + " row(s)). Edit it and load it back with \"Import edits…\".");
+                        + (rows.size() - 1) + " row(s)). Edit it and load it back with \"Import edits\".");
+                return true;
             } catch (Exception ex) {
-                status("Could not save: " + ex.getMessage());
+                status("Could not save " + out.getName() + " — if it is still open in Excel, close it and try again.");
                 log("Error writing the picks table: " + ex.getMessage());
+                return false;
             }
         }
 
-        /** Read an edited picks sheet back in, replacing the current table. */
-        private void importPicks() {
+        /**
+         * Read the edited picks sheet back in, replacing the current tables. Uses the sheet the last
+         * "Export & open" wrote; asks for a file when there is none, or when {@code choose} is set.
+         */
+        private void importPicks(boolean choose) {
+            File last = lastPicksFile;
+            if (!choose && last != null && last.isFile()) {
+                if (last.lastModified() == lastPicksSaved) {
+                    int answer = JOptionPane.showConfirmDialog(this,
+                            last.getName() + " has not been saved since it was exported.\n"
+                                    + "Save it in Excel first to keep your edits.\n\nImport it anyway?",
+                            "Import edits", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    if (answer != JOptionPane.YES_OPTION) return;
+                }
+                importPicksFrom(last);
+                lastPicksSaved = last.lastModified();      // the next import of the same edits is not "unsaved"
+                return;
+            }
             JFileChooser fc = new JFileChooser(workDir());
             fc.setDialogTitle("Open an edited picks sheet");
             fc.setFileFilter(new FileNameExtensionFilter(
                     "Picks sheet (.xlsx, .xlsm, .csv, .tsv)", "xlsx", "xlsm", "csv", "tsv"));
+            if (last != null) fc.setSelectedFile(last);
             if (fc.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
             importPicksFrom(fc.getSelectedFile());
         }
@@ -2642,7 +2669,7 @@ public class ElevenLabsStudio extends JFrame {
                         PK_SLOT, PK_FILE, PK_TEXT, PK_START, PK_AR, PK_NEW,
                         PK_END, PK_TIMES, PK_SLOW), 2);                              // row 1 is the header
             } catch (Exception ex) {
-                status("Could not read that file: " + ex.getMessage());
+                status("Could not read " + in.getName() + " — if Excel still has it open, close it and try again.");
                 log("Error reading the picks sheet: " + ex.getMessage());
                 return;
             }
