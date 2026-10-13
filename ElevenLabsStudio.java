@@ -111,6 +111,7 @@ public class ElevenLabsStudio extends JFrame {
     private final JCheckBox vidExtract = new JCheckBox("FFmpeg audio extract", true);
     private final JCheckBox vidDiarize = new JCheckBox("Speaker diarization", false);
     private final JCheckBox vidEvents  = new JCheckBox("Tag audio events", false);
+    private final JSpinner wordsPerCell = new JSpinner(new SpinnerNumberModel(1, 1, 999, 1)); // Excel paragraph cells
 
     /** One transcribed video/audio file: its words, its transcript and its resolved phrases. */
     private static final class MediaResult {
@@ -603,6 +604,12 @@ public class ElevenLabsStudio extends JFrame {
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnPick);
 
+        wordsPerCell.setToolTipText("<html>How many consecutive words share one paragraph cell in both Excel exports "
+                + "(1 = one word per cell).<br>A cell's timing runs from its first word's start to its last word's end; "
+                + "the last cell<br>takes whatever words are left. The paragraph columns count cells, not words.</html>");
+        vidBox.add(Box.createVerticalStrut(4));
+        addRow(vidBox, "Words/cell", wordsPerCell);
+
         JButton btnExport = new JButton("Export to Excel (.xlsx)");
         btnExport.setAlignmentX(Component.LEFT_ALIGNMENT);
         btnExport.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
@@ -616,8 +623,12 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 114-121 repeats (repeat1-8) as start,end,times,slowness — teal<br>"
                 + "Selected words and repeats come from \"Select Words…\" (up to 8 of each per file).<br>"
                 + "With several files, each one gets its own row block, stacked in the order "
-                + "they were transcribed.</html>");
-        btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
+                + "they were transcribed.<br>\"Words/cell\" above sets how many words share each paragraph cell.<br>"
+                + "The file opens in Excel once it is saved.</html>");
+        btnExport.addActionListener(e -> {
+            int perCell = wordsPerCell();   // read on the EDT, before the export runs in the background
+            runInBackground(() -> exportWordsToExcel(perCell));
+        });
         actionButtons.add(btnExport);
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnExport);
@@ -627,12 +638,15 @@ public class ElevenLabsStudio extends JFrame {
         btnExportFlex.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
         btnExportFlex.setToolTipText("<html>Same colour-coded template as \"Export to Excel\", but the "
                 + "paragraph takes any length:<br>"
-                + "• N = the longest paragraph's word count (across all files)<br>"
-                + "• cols 1-N paragraph words (text1-N), cols N+1 to 2N their timing (start,end) — blue<br>"
+                + "• N = the longest paragraph's cell count (across all files; words ÷ \"Words/cell\", rounded up)<br>"
+                + "• cols 1-N paragraph cells (text1-N), cols N+1 to 2N their timing (start,end) — blue<br>"
                 + "• then 8 selected + 8 times, 8 Arabic + 8 times, 8 new group + 8 times, "
                 + "1 logo cell and 8 repeats,<br>&nbsp;&nbsp;numbered on from textN+1, exactly as on the fixed template<br>"
-                + "Every file stays on a single row — nothing wraps. Saved as *_words_flexible.xlsx.</html>");
-        btnExportFlex.addActionListener(e -> runInBackground(this::exportWordsToExcelFlexible));
+                + "Every file stays on a single row — nothing wraps. Saved as *_words_flexible.xlsx and opened in Excel.</html>");
+        btnExportFlex.addActionListener(e -> {
+            int perCell = wordsPerCell();   // read on the EDT, before the export runs in the background
+            runInBackground(() -> exportWordsToExcelFlexible(perCell));
+        });
         actionButtons.add(btnExportFlex);
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnExportFlex);
@@ -2072,17 +2086,52 @@ public class ElevenLabsStudio extends JFrame {
         return s;
     }
 
+    /** The "Words per cell" value, committing a number still being typed into the spinner. Call on the EDT. */
+    private int wordsPerCell() {
+        try { wordsPerCell.commitEdit(); }
+        catch (java.text.ParseException ignored) { /* invalid text — the spinner keeps its last valid value */ }
+        return Math.max(1, ((Number) wordsPerCell.getValue()).intValue());
+    }
+
+    /**
+     * Join consecutive words into cells of {@code perCell} words each (the last cell takes whatever is
+     * left). A cell's text is its words separated by single spaces; its timing runs from the earliest
+     * start to the latest end among them, i.e. from the moment its first word begins until its last
+     * word is finished. With {@code perCell == 1} the words are returned unchanged.
+     */
+    private static List<WordStamp> groupWords(List<WordStamp> stamps, int perCell) {
+        if (perCell <= 1) return stamps;
+        List<WordStamp> cells = new ArrayList<>((stamps.size() + perCell - 1) / perCell);
+        for (int from = 0; from < stamps.size(); from += perCell) {
+            List<WordStamp> group = stamps.subList(from, Math.min(from + perCell, stamps.size()));
+            StringBuilder text = new StringBuilder();
+            double start = Double.MAX_VALUE, end = -Double.MAX_VALUE;
+            for (WordStamp w : group) {
+                if (text.length() > 0) text.append(' ');
+                text.append(w.text);
+                start = Math.min(start, w.start);
+                end   = Math.max(end, w.end);
+            }
+            cells.add(new WordStamp(text.toString(), start, end, group.get(0).speaker));
+        }
+        return cells;
+    }
+
     /** "Export to Excel": the fixed 121-column template; long paragraphs wrap onto extra rows. */
-    private void exportWordsToExcel() {
-        exportWordsToExcel(false);
+    private void exportWordsToExcel(int perCell) {
+        exportWordsToExcel(false, perCell);
     }
 
     /** "Export to Excel (flexible)": paragraph columns sized to the longest paragraph, one row per file. */
-    private void exportWordsToExcelFlexible() {
-        exportWordsToExcel(true);
+    private void exportWordsToExcelFlexible(int perCell) {
+        exportWordsToExcel(true, perCell);
     }
 
-    private void exportWordsToExcel(boolean flexible) {
+    /**
+     * Shared by both export buttons. {@code perCell} words share one paragraph cell (see
+     * {@link #groupWords}); the paragraph columns, wrapping and flexible sizing all count cells.
+     */
+    private void exportWordsToExcel(boolean flexible, int perCell) {
         List<MediaResult> results = lastVideoResults;
         if (results.isEmpty()) {
             log("Export to Excel: no word timestamps yet — run \"Choose video(s) / audio…\" first.");
@@ -2090,24 +2139,29 @@ public class ElevenLabsStudio extends JFrame {
         }
 
         int totalWords = 0, longest = 0;
+        List<List<WordStamp>> cellsPerFile = new ArrayList<>(results.size());
         for (MediaResult r : results) {
+            List<WordStamp> cells = groupWords(r.words, perCell);
+            cellsPerFile.add(cells);
             totalWords += r.words.size();
-            longest = Math.max(longest, r.words.size());
+            longest = Math.max(longest, cells.size());
         }
 
         ExcelLayout L = ExcelLayout.FIXED;
         if (flexible) {
             if (longest > ExcelLayout.maxParaWords()) {
-                log("Export to Excel (flexible): the longest paragraph has " + longest + " words, but Excel "
+                log("Export to Excel (flexible): the longest paragraph needs " + longest + " cells, but Excel "
                         + "allows only " + EXCEL_MAX_COLS + " columns (room for " + ExcelLayout.maxParaWords()
-                        + " words + timings). Use the fixed \"Export to Excel\" instead — it wraps long paragraphs.");
+                        + " cells + timings). Raise \"Words per cell\", or use the fixed \"Export to Excel\" "
+                        + "— it wraps long paragraphs.");
                 return;
             }
             L = new ExcelLayout(Math.max(1, longest));
         }
 
         int p = L.paraWords, n8 = SEL_WORDS;
-        log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel using the "
+        log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel, "
+                + perCell + " word(s) per cell, using the "
                 + (flexible ? "flexible" : "fixed") + " template (" + p + " paragraph + " + p + " timing · "
                 + n8 + " selected + " + n8 + " · " + n8 + " Arabic + " + n8 + " · " + n8 + " new + " + n8
                 + " · 1 logo · " + REPEAT_SLOTS + " repeat, each group colour-coded)…");
@@ -2119,11 +2173,13 @@ public class ElevenLabsStudio extends JFrame {
             MediaResult r = results.get(f);
             String tag = results.size() == 1 ? "" : "[" + r.baseName + "] ";
 
-            if (r.words.size() > L.paraWords)   // only the fixed template can get here
-                log(tag + "Note: paragraph has " + r.words.size() + " words — more than the " + L.paraWords
+            List<WordStamp> cells = cellsPerFile.get(f);
+            if (cells.size() > L.paraWords)   // only the fixed template can get here
+                log(tag + "Note: paragraph has " + r.words.size() + " words in " + cells.size()
+                        + " cells — more than the " + L.paraWords
                         + " reserved cells, so it wraps onto additional rows.");
 
-            List<List<String>> block = buildParagraphRows(r.words, L);
+            List<List<String>> block = buildParagraphRows(cells, L);
             List<String> dataRow = block.get(0);   // this file's first row — its whole panel lives here
 
             // Logo cell (just before the repeat columns on the file's first row).
@@ -2176,14 +2232,26 @@ public class ElevenLabsStudio extends JFrame {
         }
 
         // A separate file name, so the two exports never overwrite each other.
-        String suffix = flexible ? "_words_flexible.xlsx" : "_words.xlsx";
+        String suffix = (flexible ? "_words_flexible" : "_words")
+                + (perCell > 1 ? "_" + perCell + "perCell" : "") + ".xlsx";
         File out = new File(workDir(), combinedBaseName(results) + suffix);
         try {
             XlsxWriter.write(out, rows, buildColStyles(L));
             log("Saved: " + out.getName() + "  (" + results.size() + " file(s), "
                     + (rows.size() - 1) + " paragraph row(s), " + L.totalCols + " columns)");
         } catch (Exception e) {
-            log("Error writing xlsx: " + e.getMessage());
+            log("Error writing xlsx: " + e.getMessage()
+                    + " — if " + out.getName() + " is still open in Excel, close it and export again.");
+            return;
+        }
+
+        try {
+            if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
+                throw new UnsupportedOperationException("no desktop \"open\" action on this system");
+            Desktop.getDesktop().open(out);
+            log("Opened " + out.getName() + ".");
+        } catch (Exception e) {
+            log("Saved but could not open " + out.getAbsolutePath() + ": " + e.getMessage());
         }
     }
 
