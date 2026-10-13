@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Personal Finance Credit Policy – Training Guide</title>
+<style>
+  @page { size: A4; margin: 16mm 14mm 18mm 14mm; }
+  :root{
+    --green:#0b7a4b; --green-l:#e6f5ee; --teal:#0e7c86; --teal-l:#e3f5f6;
+    --blue:#1f5fbf; --blue-l:#eaf1fc; --amber:#b86e00; --amber-l:#fff4e0;
+    --red:#c0392b; --red-l:#fdecea; --purple:#6b3fa0; --purple-l:#f3ecfb;
+    --ink:#1d2430; --muted:#5b6575; --line:#d5dbe3;
+  }
+  *{box-sizing:border-box}
+  html,body{background:#fff;color:var(--ink);font-family:"DejaVu Sans","Liberation Sans",Arial,sans-serif;font-size:10.2pt;line-height:1.45;margin:0}
+  h1,h2,h3,h4{margin:0 0 6px 0;line-height:1.2}
+  p{margin:4px 0 6px}
+  ul,ol{margin:4px 0 6px 0;padding-left:20px}
+  li{margin:2px 0}
+  .page-break{break-before:page}
+  .avoid{break-inside:avoid}
+
+  /* Cover */
+  .cover{height:255mm;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(150deg,#0b7a4b 0%,#0e7c86 45%,#1f5fbf 100%);color:#fff;border-radius:14px;padding:22mm 16mm;}
+  .cover .tag{display:inline-block;background:rgba(255,255,255,.18);padding:5px 12px;border-radius:20px;font-size:9.5pt;letter-spacing:1px}
+  .cover h1{font-size:30pt;margin-top:18mm;line-height:1.15}
+  .cover h2{font-size:15pt;font-weight:normal;opacity:.95;margin-top:6mm}
+  .cover .meta{background:rgba(255,255,255,.14);border-radius:10px;padding:10px 14px;font-size:9.5pt}
+  .cover .chips span{display:inline-block;margin:3px 4px 3px 0;padding:4px 10px;border-radius:14px;font-size:9pt;font-weight:bold}
+
+  /* Section banners */
+  .section{margin-top:4px}
+  .banner{border-radius:10px;padding:10px 14px;color:#fff;margin:0 0 10px 0;break-after:avoid}
+  h3.sub,h4{break-after:avoid}
+  .banner .num{font-size:9pt;opacity:.9;letter-spacing:1px}
+  .banner h2{font-size:17pt;margin:2px 0 0}
+  .b-green{background:linear-gradient(90deg,#0b7a4b,#14a06a)}
+  .b-teal{background:linear-gradient(90deg,#0e7c86,#18a3ae)}
+  .b-blue{background:linear-gradient(90deg,#1f5fbf,#3d82e6)}
+  .b-purple{background:linear-gradient(90deg,#6b3fa0,#9361cf)}
+  .b-amber{background:linear-gradient(90deg,#b86e00,#e09422)}
+  .b-red{background:linear-gradient(90deg,#a93226,#d9534f)}
+  h3.sub{color:var(--green);font-size:12.5pt;border-bottom:2px solid var(--green-l);padding-bottom:3px;margin:12px 0 6px}
+  h4{color:var(--teal);font-size:10.8pt;margin:9px 0 4px}
+
+  /* Learning boxes */
+  .box{border-radius:8px;padding:8px 11px 7px;margin:7px 0 9px;border-left:5px solid;break-inside:auto}
+  .box > .lbl{display:inline-block;font-size:7.8pt;font-weight:bold;letter-spacing:.8px;color:#fff;padding:2px 8px;border-radius:10px;margin-bottom:4px}
+  .policy{background:var(--blue-l);border-color:var(--blue)} .policy>.lbl{background:var(--blue)}
+  .simple{background:var(--green-l);border-color:var(--green)} .simple>.lbl{background:var(--green)}
+  .example{background:var(--amber-l);border-color:var(--amber)} .example>.lbl{background:var(--amber)}
+  .warn{background:var(--red-l);border-color:var(--red)} .warn>.lbl{background:var(--red)}
+  .tip{background:var(--purple-l);border-color:var(--purple)} .tip>.lbl{background:var(--purple)}
+  .note{background:#f4f6f8;border-color:#8a96a6} .note>.lbl{background:#8a96a6}
+  .src{font-size:7.8pt;color:var(--muted);float:right;margin-top:2px}
+  .calc{font-family:"DejaVu Sans Mono","Liberation Mono",monospace;font-size:9pt;background:#fff;border:1px dashed #e0b56a;border-radius:6px;padding:5px 8px;margin:5px 0;white-space:pre-wrap}
+  .ok{color:var(--green);font-weight:bold} .no{color:var(--red);font-weight:bold} .ref{color:var(--amber);font-weight:bold}
+
+  /* Tables */
+  table{border-collapse:collapse;width:100%;margin:6px 0 9px;font-size:9pt;break-inside:auto}
+  tr{break-inside:avoid}
+  th{background:var(--green);color:#fff;text-align:left;padding:5px 6px;font-weight:bold;vertical-align:top}
+  td{border:1px solid var(--line);padding:4px 6px;vertical-align:top}
+  tbody tr:nth-child(even) td{background:#f7faf9}
+  table.t-blue th{background:var(--blue)} table.t-teal th{background:var(--teal)}
+  table.t-purple th{background:var(--purple)} table.t-amber th{background:var(--amber)} table.t-red th{background:var(--red)}
+  td.c, th.c{text-align:center}
+  .pill{display:inline-block;padding:1px 7px;border-radius:9px;font-size:8pt;font-weight:bold;color:#fff}
+  .p-g{background:var(--green)} .p-r{background:var(--red)} .p-a{background:var(--amber)} .p-b{background:var(--blue)} .p-p{background:var(--purple)} .p-t{background:var(--teal)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:8px 10px;break-inside:avoid}
+  .card h4{margin-top:0}
+  .toc a{color:var(--ink);text-decoration:none}
+  .toc{padding-left:26px}
+  .toc li{margin:3px 0}
+  .small{font-size:8.6pt;color:var(--muted)}
+  .q{border:1px solid var(--line);border-radius:8px;padding:7px 10px;margin:6px 0;break-inside:avoid}
+  .q b.qn{color:var(--purple)}
+  .ans{background:var(--green-l);border-radius:6px;padding:4px 8px;margin-top:4px;font-size:9.2pt}
+</style>
+</head>
+<body>
