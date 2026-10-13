@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>PF Segments Tree</title>
+<style>
+@page{size:A4 landscape;margin:8mm}
+*{box-sizing:border-box}
+body{margin:0;font-family:"DejaVu Sans",Arial,sans-serif;color:#1d2430;background:#fff;font-size:7.6pt;line-height:1.3}
+h1{font-size:15pt;margin:0 0 2px;color:#0b3d6b}
+.sub{color:#5b6575;font-size:8pt;margin-bottom:6px}
+.page{break-after:page;height:193mm;position:relative;overflow:hidden}
+.page:last-child{break-after:auto}
+/* tree */
+.root{display:flex;justify-content:center}
+.node{border-radius:8px;padding:5px 8px;color:#fff;font-weight:bold;text-align:center}
+.rootnode{background:linear-gradient(90deg,#0b7a4b,#1f5fbf);font-size:11pt;padding:7px 18px}
+.tree{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-top:14px;position:relative}
+.tree:before{content:"";position:absolute;top:-8px;left:8.3%;right:8.3%;border-top:2px solid #8a96a6}
+.branch{position:relative;display:flex;flex-direction:column;gap:5px}
+.branch:before{content:"";position:absolute;top:-8px;left:50%;height:8px;border-left:2px solid #8a96a6}
+.root{position:relative}
+.root:after{content:"";position:absolute;bottom:-7px;left:50%;height:7px;border-left:2px solid #8a96a6}
+.bhead{font-size:8.6pt}
+.leaf{border:2px solid;border-radius:7px;padding:4px 6px;background:#fff;position:relative}
+.leaf h3{margin:0 0 2px;font-size:8.4pt}
+.leaf ul{margin:0;padding-left:11px}
+.leaf li{margin:1px 0}
+.leaf .k{font-weight:bold}
+.chips span{display:inline-block;font-size:6.6pt;font-weight:bold;color:#fff;border-radius:7px;padding:0 5px;margin:1px 1px 0 0}
+.g{--c:#0b7a4b;--l:#e6f5ee} .t{--c:#0e7c86;--l:#e3f5f6} .b{--c:#1f5fbf;--l:#eaf1fc}
+.a{--c:#b86e00;--l:#fff4e0} .p{--c:#6b3fa0;--l:#f3ecfb} .r{--c:#c0392b;--l:#fdecea}
+.branch .bhead{background:var(--c)} .branch .leaf{border-color:var(--c);background:var(--l)} .branch .leaf h3{color:var(--c)}
+.chips .s1{background:#0b7a4b}.chips .s2{background:#1f5fbf}.chips .s3{background:#6b3fa0}.chips .s4{background:#b86e00}.chips .no{background:#c0392b}
+.bottom{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;margin-top:8px}
+.card{border:1px solid #d5dbe3;border-radius:8px;padding:5px 8px}
+.card h4{margin:0 0 3px;font-size:8.4pt;color:#0b3d6b}
+.card table{border-collapse:collapse;width:100%;font-size:7.2pt}
+.card td,.card th{border:1px solid #d5dbe3;padding:2px 4px;text-align:left}
+.card th{background:#0b3d6b;color:#fff}
+.hook{background:#fff6c2;border-left:4px solid #e0a800;border-radius:6px;padding:4px 8px;margin-top:6px;font-size:7.8pt}
+.foot{position:absolute;bottom:0;left:0;right:0;font-size:6.6pt;color:#5b6575;display:flex;justify-content:space-between}
+/* decision tree */
+.flow{display:flex;flex-direction:column;gap:5px;margin-top:6px}
+.step{display:grid;grid-template-columns:30px 1fr 22px 260px;align-items:center;gap:6px}
+.num{background:#0b3d6b;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:9pt}
+.qbox{border:2px solid #0b3d6b;border-radius:8px;padding:5px 9px;background:#f4f7fb;font-size:8.6pt}
+.qbox small{display:block;color:#5b6575;font-size:7pt;font-weight:normal}
+.arrow{font-weight:bold;color:#0b7a4b;font-size:8pt;text-align:center}
+.res{border-radius:8px;padding:5px 9px;color:#fff;font-weight:bold;font-size:8.4pt}
+.res small{display:block;font-weight:normal;font-size:7pt;opacity:.95}
+.down{margin-left:44px;color:#c0392b;font-weight:bold;font-size:7.4pt}
+.final{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;margin-left:36px}
+.final .col{border:2px solid;border-radius:8px;padding:6px 8px}
+.final h4{margin:0 0 4px;font-size:9pt}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mini div{border-radius:6px;padding:4px 6px;color:#fff;font-size:7.6pt}
+.mini b{display:block;font-size:8.4pt}
+</style></head><body>
+
+<!-- PAGE 1 -->
+<div class="page"><div style="zoom:.84">
+<h1>Personal Finance – Segments Tree</h1>
+<div class="sub">DIB Personal Finance Operating Credit Policy (ref. 2026-07-0005 | 002306) + Credit Circular effective 15 Feb 2026 · Max finance figures in AED · "STL" = DIB salary, "PDC" = salary in another bank</div>
+
+<div class="root"><div class="node rootnode">PERSONAL FINANCE (DIB)</div></div>
+
+<div class="tree">
+ <!-- 1 -->
+ <div class="branch g">
+  <div class="node bhead">① SALARY WITH DIB</div>
+  <div class="leaf"><h3>STL segment</h3><ul>
+   <li><span class="k">Who:</span> TML <b>A, B, C</b> + STL in DIB format; <b>DIB Staff</b> (as Cat A); <b>Wajaha</b> salaried; <b>Ayaan</b> ≥ 12M</li>
+   <li><span class="k">Salaries:</span> 3, latest in DIB (A/B/C waivers a–e)</li>
+   <li><span class="k">Min income:</span> 3,000</li>
+   <li><span class="k">Max:</span> Local 5M · Expat 3M</li></ul>
+   <div class="chips"><span class="s1">Fresh</span><span class="s2">LC</span><span class="s3">LS</span><span class="s4">Sukuk Pack</span></div></div>
+  <div class="leaf"><h3>Salaried / Privileged</h3><ul>
+   <li><span class="k">Who:</span> TML <b>Cat D</b> or <b>Non-TML</b></li>
+   <li><span class="k">Salaries:</span> 3 (any bank), latest in DIB</li>
+   <li><span class="k">Min income:</span> 5,000</li>
+   <li><span class="k">Max Local:</span> D 2M · NTM 800K</li>
+   <li><span class="k">Max Expat:</span> D 1M · NTM 500K (low/very low) / 200K (med/high)</li></ul>
+   <div class="chips"><span class="s1">Fresh</span><span class="s2">LC</span><span class="s3">LS*</span><span class="s4">Sukuk Pack</span></div>
+   <div style="font-size:6.6pt;margin-top:2px">*LS: Cat D enabled (circular); Non-TML only after system readiness</div></div>
+ </div>
+ <!-- 2 -->
+ <div class="branch b">
+  <div class="node bhead">② SALARY IN OTHER BANK (PDC)</div>
+  <div class="leaf"><h3>PDC – TML (A/B/C/D)</h3><ul>
+   <li><span class="k">Salaries:</span> 3 (1 or more banks)</li>
+   <li><span class="k">Min income:</span> 5,000</li>
+   <li><span class="k">Max:</span> Local 800K · Expat 300K</li>
+   <li>DDA mandatory</li></ul>
+   <div class="chips"><span class="s1">Fresh</span><span class="s2">LC</span><span class="s4">Sukuk Pack</span></div></div>
+  <div class="leaf"><h3>PDC – Non-TML</h3><ul>
+   <li><span class="k">Min income:</span> 5,000</li>
+   <li><span class="k">Max:</span> Local 200K · Expat 150K</li>
+   <li>Fraud score applies</li></ul>
+   <div class="chips"><span class="s1">Fresh</span><span class="no">LC not allowed</span><span class="s4">Sukuk Pack</span></div></div>
+  <div class="leaf"><h3>Watch</h3><ul><li>AECB score &lt; 541 in PDC → reject</li><li>UAE Nat 18–21 → PDC not allowed</li></ul></div>
+ </div>
+ <!-- 3 -->
+ <div class="branch a">
+  <div class="node bhead">③ SECURED / RELATIONSHIP</div>
+  <div class="leaf"><h3>Against TD / Investment</h3><ul>
+   <li>DIB individuals · FD/TD/SIP/cash · <b>AED or USD</b></li>
+   <li>Third-party deposit → personal guarantee</li>
+   <li><span class="k">Max:</span> 100M Wajaha/Ayaan · 10M others</li>
+   <li><span class="k">% of block (principal + profit):</span> income ≤60K p.a. 50% · &gt;60K 100% · SE 100% · non-resident 95% · SIP-3D 90%</li>
+   <li>No DBR · no security cheque · min age 18</li></ul></div>
+  <div class="leaf"><h3>Private Banking (7.6)</h3><ul>
+   <li><b>Wajaha</b> (relationship nil) · <b>Ayaan/Affluent</b> (12M) · Mumayyaz</li>
+   <li>20x assessed income</li>
+   <li><span class="k">Max:</span> Wajaha 1M · Ayaan 500K</li>
+   <li>Max age 75 · lien non-mandatory</li></ul></div>
+ </div>
+ <!-- 4 -->
+ <div class="branch t">
+  <div class="node bhead">④ BUNDLED WITH ANOTHER PRODUCT</div>
+  <div class="leaf"><h3>Auto Sukuk Pack (7.3)</h3><ul>
+   <li>AF + PF together, same KYC/income docs, non-scorecard</li>
+   <li><span class="k">% of car:</span> STL 30% · PDC 20% · Non-TML 20%</li>
+   <li><span class="k">Exposure:</span> TML 200K · Non-TML 50K</li>
+   <li>Min salary 3K (PDC Non-TML 10K, 5 dealers only)</li></ul></div>
+  <div class="leaf"><h3>Home Finance Sukuk Pack (7.4)</h3><ul>
+   <li>Finances HF <b>ancillary costs</b> only (fees &amp; charges)</li>
+   <li>HFCA approves · primary customer only · no new AECB · 1st EMI ≤ 90 days</li></ul></div>
+  <div class="leaf"><h3>Asset Cross Sell (7.5)</h3><ul>
+   <li>System PF limit with AF / Covered Card</li>
+   <li>DIB salary, TML A/B/C · income ≥ 8K · PF ≥ 10K</li>
+   <li><span class="k">PF max:</span> Expat 350K · National 1M (&lt; asset value)</li>
+   <li><span class="k">Aggregate:</span> Expat 500K · National 1M · valid 30 days</li></ul></div>
+ </div>
+ <!-- 5 -->
+ <div class="branch p">
+  <div class="node bhead">⑤ REMEDIAL</div>
+  <div class="leaf"><h3>Finance Payment Relief (7.7)</h3><ul>
+   <li>Existing DIB facility · income dropped · DBR above CBUAE limit</li>
+   <li>Up to <b>89 DPD</b> (Bucket 4+ → <b>SAM</b>)</li>
+   <li>Salary within 40 days · liability ≥ 10K</li>
+   <li>All PF + AF + cards → <b>1 Relief facility</b></li>
+   <li>Tenure no cap · no cash · no fees</li>
+   <li>AECB "Arrangement" · ECL Stage 2</li>
+   <li>Max age Expat 65 · UAE Nat no cap</li>
+   <li>New finance after 12 payments</li></ul></div>
+ </div>
+ <!-- 6 -->
+ <div class="branch r">
+  <div class="node bhead">⑥ CLOSED / RESTRICTED</div>
+  <div class="leaf"><h3>Self-Employed</h3><ul>
+   <li><b>Stopped Oct 2022</b></li>
+   <li>8.3 grid only for RCD deviation: Local 4.5x / Expat 3.5x; max 350K / 250K</li></ul></div>
+  <div class="leaf"><h3>Restricted profiles</h3><ul>
+   <li>Bedouin / Stateless</li><li>With Marsoom</li><li>Domestic workers (individual visa)</li>
+   <li>FI outsource staff (all segments)</li><li>Non-TML outsource</li>
+   <li>Employer code 8 (everyone) · code 2 (Expats)</li>
+   <li>Bank's external auditors</li></ul></div>
+ </div>
+</div>
+
+<div class="bottom">
+ <div class="card"><h4>The 4 schemes (what kind of deal)</h4>
+  <table><tr><th>Scheme</th><th>Meaning</th><th>Key rule</th></tr>
+  <tr><td><span class="chips"><span class="s1">Fresh / New</span></span></td><td>New PF</td><td>Min AED 10K</td></tr>
+  <tr><td><span class="chips"><span class="s2">LC – Top-up</span></span></td><td>Existing DIB PF/AF closed into bigger PF</td><td>After 12M (earlier if &lt;20x used or income +AED 200; Non-TML 3 EMIs paid) · min 5K</td></tr>
+  <tr><td><span class="chips"><span class="s3">LS – Buy-out</span></span></td><td>DIB settles other banks' loans, salary moves to DIB</td><td>TML A–D + DIB staff · settled facility ≤ 29 DPD</td></tr>
+  <tr><td><span class="chips"><span class="s4">Sukuk Pack</span></span></td><td>PF with AF or HF</td><td>Same KYC/income docs · non-scorecard</td></tr></table></div>
+ <div class="card"><h4>Employer categories</h4>
+  <table><tr><th>Category</th><th>DIB salary →</th><th>Other bank →</th></tr>
+  <tr><td>TML A / B / C</td><td>STL</td><td>PDC TML</td></tr>
+  <tr><td>TML D</td><td>Salaried/Privileged</td><td>PDC TML</td></tr>
+  <tr><td>Non-TML</td><td>Salaried/Privileged</td><td>PDC Non-TML</td></tr>
+  <tr><td>DIB Staff</td><td>STL (as Cat A)</td><td>–</td></tr>
+  <tr><td>Eligible BFI</td><td colspan="2">Assigned TML Cat B</td></tr></table></div>
+ <div class="card"><h4>Hard CBUAE limits (all segments)</h4>
+  <table><tr><td>DBR</td><td>50% salary · 30% pension</td></tr>
+  <tr><td>Multiples</td><td>20x · 15x MOD</td></tr>
+  <tr><td>Tenure</td><td>48M · 60M MOD</td></tr>
+  <tr><td>Contactless cap</td><td>Local 750K · Expat 350K</td></tr>
+  <tr><td>Security cheque</td><td>≤ 120% of finance</td></tr></table></div>
+</div>
+<div class="hook"><b>Memory hook – "D-P-S-B-R-X":</b> <b>D</b>IB salary · <b>P</b>DC (other bank) · <b>S</b>ecured/relationship · <b>B</b>undled · <b>R</b>elief · <b>X</b> closed/restricted. Then ask: <i>which employer category?</i> → that gives the segment, the minimum income and the maximum finance.</div>
+</div><div class="foot"><span>PF Credit Policy – Segments Tree · Internal</span><span>Page 1 of 2</span></div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page">
+<h1>Which segment is my customer? – Decision Tree</h1>
+<div class="sub">Ask the questions in order. The first "YES" decides the segment.</div>
+<div class="flow">
+ <div class="step"><div class="num">1</div><div class="qbox">Is the customer an existing DIB borrower whose income dropped and who can no longer meet the CBUAE DBR limit?<small>Up to 89 DPD. Bucket 4 &amp; above → SAM</small></div><div class="arrow">YES →</div><div class="res" style="background:#6b3fa0">Finance Payment Relief<small>7.7 · Annexure 8.4</small></div></div>
+ <div class="down">NO ↓</div>
+ <div class="step"><div class="num">2</div><div class="qbox">Is the customer self-employed (income from own business)?<small>If salary is also evidenced → book under Non-TML</small></div><div class="arrow">YES →</div><div class="res" style="background:#c0392b">Self-Employed – CLOSED<small>Only by RCD deviation (Annexure 8.3)</small></div></div>
+ <div class="down">NO ↓</div>
+ <div class="step"><div class="num">3</div><div class="qbox">Will the PF be secured by a deposit / investment blocked at DIB (FD, TD, SIP, cash)?</div><div class="arrow">YES →</div><div class="res" style="background:#b86e00">Against TD / Investment<small>7.2 · 50–100% of block</small></div></div>
+ <div class="down">NO ↓</div>
+ <div class="step"><div class="num">4</div><div class="qbox">Is the customer Wajaha / Ayaan / Mumayyaz and the case submitted by the unit RM?<small>Submitted through retail → normal segment rules</small></div><div class="arrow">YES →</div><div class="res" style="background:#b86e00">Private Banking<small>7.6 · 20x · Wajaha 1M / Ayaan 500K</small></div></div>
+ <div class="down">NO ↓</div>
+ <div class="step"><div class="num">5</div><div class="qbox">Is the customer applying for Auto Finance or Home Finance at the same time?</div><div class="arrow">YES →</div><div class="res" style="background:#0e7c86">Sukuk Pack<small>Auto 7.3 (30% / 20% of car) · Home 7.4 (ancillary costs)</small></div></div>
+ <div class="down">NO ↓</div>
+ <div class="step"><div class="num">6</div><div class="qbox">Did Finnone generate a PF limit while evaluating AF / Covered Card (DIB salary, TML A/B/C)?</div><div class="arrow">YES →</div><div class="res" style="background:#0e7c86">Asset Cross Sell<small>7.5 · income ≥ 8K · valid 30 days</small></div></div>
+ <div class="down">NO ↓ &nbsp; (normal salaried customer)</div>
+ <div class="step"><div class="num">7</div><div class="qbox">Where is the salary credited?</div><div class="arrow"></div><div></div></div>
+ <div class="final">
+  <div class="col" style="border-color:#0b7a4b"><h4 style="color:#0b7a4b">Salary with DIB → what is the employer category?</h4>
+   <div class="mini">
+    <div style="background:#0b7a4b"><b>TML A / B / C + STL</b>STL segment<br>Min 3K · Local 5M / Expat 3M</div>
+    <div style="background:#14a06a"><b>TML D or Non-TML</b>Salaried / Privileged<br>Min 5K · D: 2M / 1M · NTM: 800K / 500K or 200K</div>
+   </div></div>
+  <div class="col" style="border-color:#1f5fbf"><h4 style="color:#1f5fbf">Salary in another bank → what is the employer category?</h4>
+   <div class="mini">
+    <div style="background:#1f5fbf"><b>TML A / B / C / D</b>PDC TML<br>Min 5K · Local 800K / Expat 300K</div>
+    <div style="background:#3d82e6"><b>Non-TML</b>PDC Non-TML<br>Min 5K · Local 200K / Expat 150K · no LC</div>
+   </div></div>
+ </div>
+</div>
+<div class="hook" style="margin-top:10px"><b>Then choose the scheme:</b> new loan → <b>Fresh</b> · increase existing DIB PF → <b>LC (Top-up)</b> · take over other banks' loans → <b>LS (Buy-out)</b>. Always check restricted profiles (Bedouin/Stateless, Marsoom, domestic workers, outsource staff, employer codes 2 &amp; 8) before starting.</div>
+<div class="foot"><span>PF Credit Policy – Segments Tree · Internal</span><span>Page 2 of 2</span></div>
+</div>
+</body></html>
