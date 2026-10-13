@@ -622,6 +622,21 @@ public class ElevenLabsStudio extends JFrame {
         vidBox.add(Box.createVerticalStrut(4));
         vidBox.add(btnExport);
 
+        JButton btnExportFlex = new JButton("Export to Excel flexible (.xlsx)");
+        btnExportFlex.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnExportFlex.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+        btnExportFlex.setToolTipText("<html>Same colour-coded template as \"Export to Excel\", but the "
+                + "paragraph takes any length:<br>"
+                + "• N = the longest paragraph's word count (across all files)<br>"
+                + "• cols 1-N paragraph words (text1-N), cols N+1 to 2N their timing (start,end) — blue<br>"
+                + "• then 8 selected + 8 times, 8 Arabic + 8 times, 8 new group + 8 times, "
+                + "1 logo cell and 8 repeats,<br>&nbsp;&nbsp;numbered on from textN+1, exactly as on the fixed template<br>"
+                + "Every file stays on a single row — nothing wraps. Saved as *_words_flexible.xlsx.</html>");
+        btnExportFlex.addActionListener(e -> runInBackground(this::exportWordsToExcelFlexible));
+        actionButtons.add(btnExportFlex);
+        vidBox.add(Box.createVerticalStrut(4));
+        vidBox.add(btnExportFlex);
+
 
 
         west.add(vidBox);
@@ -1992,78 +2007,127 @@ public class ElevenLabsStudio extends JFrame {
     }
 
 
-    // ---- Fixed Excel template layout (0-based column indices) ----
-    // [ 32 paragraph words ][ 32 paragraph timings ]
+    // ---- Excel template layout (0-based column indices) ----
+    // [ N paragraph words  ][ N paragraph timings ]
     // [ 8 selected words   ][ 8 selected timings (start only) ]
     // [ 8 Arabic meanings  ][ 8 Arabic timings (start only, same as selected) ]
     // [ 8 new-group cells  ][ 8 new-group timings (start only, same as selected) ]
     // [ 1 logo cell ][ 8 repeat cells: "start,end,times,slowness" ]
-    private static final int PARA_WORDS       = 32;                            // paragraph word slots
+    // The fixed template has N = 32 (121 columns, long paragraphs wrap onto extra rows);
+    // the flexible export sizes N to the longest paragraph so every file stays on one row.
+    private static final int PARA_WORDS       = 32;                            // fixed paragraph word slots
     private static final int SEL_WORDS        = 8;                             // slots per 8-word group
-    private static final int PARA_WORDS_START = 0;                             // cols 1..32
-    private static final int PARA_TIME_START  = PARA_WORDS_START + PARA_WORDS;  // cols 33..64
-    private static final int SEL_WORDS_START  = PARA_TIME_START + PARA_WORDS;   // cols 65..72
-    private static final int SEL_TIME_START   = SEL_WORDS_START + SEL_WORDS;    // cols 73..80
-    private static final int AR_WORDS_START   = SEL_TIME_START + SEL_WORDS;     // cols 81..88
-    private static final int AR_TIME_START    = AR_WORDS_START + SEL_WORDS;     // cols 89..96
-    private static final int NEW_WORDS_START  = AR_TIME_START + SEL_WORDS;      // cols 97..104
-    private static final int NEW_TIME_START   = NEW_WORDS_START + SEL_WORDS;    // cols 105..112
-    private static final int LOGO_COL         = NEW_TIME_START + SEL_WORDS;     // col  113
     private static final int REPEAT_SLOTS     = 8;                             // repeat1..repeat8
-    private static final int REPEAT_START     = LOGO_COL + 1;                   // cols 114..121
-    private static final int TOTAL_COLS       = REPEAT_START + REPEAT_SLOTS;    // 121 columns
+    private static final int EXCEL_MAX_COLS   = 16384;                         // Excel's column limit (XFD)
     private static final String LOGO_TEXT     = "Logolept  AR · EN   [f]"; // logo placeholder
+
+    /** Column positions of every template group, for a paragraph of {@code paraWords} slots. */
+    static final class ExcelLayout {
+        /** The fixed template: 32 paragraph slots, 121 columns. */
+        static final ExcelLayout FIXED = new ExcelLayout(PARA_WORDS);
+
+        final int paraWords;
+        final int paraWordsStart = 0;
+        final int paraTimeStart, selWordsStart, selTimeStart, arWordsStart, arTimeStart,
+                  newWordsStart, newTimeStart, logoCol, repeatStart, totalCols;
+
+        ExcelLayout(int paraWords) {
+            this.paraWords = paraWords;
+            paraTimeStart = paraWordsStart + paraWords;  // fixed: cols 33..64
+            selWordsStart = paraTimeStart + paraWords;   // fixed: cols 65..72
+            selTimeStart  = selWordsStart + SEL_WORDS;   // fixed: cols 73..80
+            arWordsStart  = selTimeStart + SEL_WORDS;    // fixed: cols 81..88
+            arTimeStart   = arWordsStart + SEL_WORDS;    // fixed: cols 89..96
+            newWordsStart = arTimeStart + SEL_WORDS;     // fixed: cols 97..104
+            newTimeStart  = newWordsStart + SEL_WORDS;   // fixed: cols 105..112
+            logoCol       = newTimeStart + SEL_WORDS;    // fixed: col  113
+            repeatStart   = logoCol + 1;                 // fixed: cols 114..121
+            totalCols     = repeatStart + REPEAT_SLOTS;  // fixed: 121 columns
+        }
+
+        /** The largest paragraph that still fits within Excel's column limit. */
+        static int maxParaWords() {   // 2N + 48 group cells + 1 logo + 8 repeats <= 16384
+            return (EXCEL_MAX_COLS - 3 * 2 * SEL_WORDS - 1 - REPEAT_SLOTS) / 2;
+        }
+    }
 
     // Per-group cell fill styles (indices into the xlsx cellXfs table; 0 = no fill).
     private static final int STYLE_PARA = 1, STYLE_SEL = 2, STYLE_AR = 3,
                              STYLE_NEW = 4, STYLE_LOGO = 5, STYLE_REPEAT = 6;
 
     /** Map every template column to its group fill style, for coloured export. */
-    private static int[] buildColStyles() {
-        int[] s = new int[TOTAL_COLS];
-        for (int i = 0; i < PARA_WORDS; i++) {
-            s[PARA_WORDS_START + i] = STYLE_PARA;
-            s[PARA_TIME_START + i]  = STYLE_PARA;
+    private static int[] buildColStyles(ExcelLayout L) {
+        int[] s = new int[L.totalCols];
+        for (int i = 0; i < L.paraWords; i++) {
+            s[L.paraWordsStart + i] = STYLE_PARA;
+            s[L.paraTimeStart + i]  = STYLE_PARA;
         }
         for (int i = 0; i < SEL_WORDS; i++) {
-            s[SEL_WORDS_START + i] = STYLE_SEL;  s[SEL_TIME_START + i] = STYLE_SEL;
-            s[AR_WORDS_START + i]  = STYLE_AR;   s[AR_TIME_START + i]  = STYLE_AR;
-            s[NEW_WORDS_START + i] = STYLE_NEW;  s[NEW_TIME_START + i] = STYLE_NEW;
+            s[L.selWordsStart + i] = STYLE_SEL;  s[L.selTimeStart + i] = STYLE_SEL;
+            s[L.arWordsStart + i]  = STYLE_AR;   s[L.arTimeStart + i]  = STYLE_AR;
+            s[L.newWordsStart + i] = STYLE_NEW;  s[L.newTimeStart + i] = STYLE_NEW;
         }
-        s[LOGO_COL] = STYLE_LOGO;
-        for (int i = 0; i < REPEAT_SLOTS; i++) s[REPEAT_START + i] = STYLE_REPEAT;
+        s[L.logoCol] = STYLE_LOGO;
+        for (int i = 0; i < REPEAT_SLOTS; i++) s[L.repeatStart + i] = STYLE_REPEAT;
         return s;
     }
 
+    /** "Export to Excel": the fixed 121-column template; long paragraphs wrap onto extra rows. */
     private void exportWordsToExcel() {
+        exportWordsToExcel(false);
+    }
+
+    /** "Export to Excel (flexible)": paragraph columns sized to the longest paragraph, one row per file. */
+    private void exportWordsToExcelFlexible() {
+        exportWordsToExcel(true);
+    }
+
+    private void exportWordsToExcel(boolean flexible) {
         List<MediaResult> results = lastVideoResults;
         if (results.isEmpty()) {
             log("Export to Excel: no word timestamps yet — run \"Choose video(s) / audio…\" first.");
             return;
         }
 
-        int totalWords = 0;
-        for (MediaResult r : results) totalWords += r.words.size();
+        int totalWords = 0, longest = 0;
+        for (MediaResult r : results) {
+            totalWords += r.words.size();
+            longest = Math.max(longest, r.words.size());
+        }
+
+        ExcelLayout L = ExcelLayout.FIXED;
+        if (flexible) {
+            if (longest > ExcelLayout.maxParaWords()) {
+                log("Export to Excel (flexible): the longest paragraph has " + longest + " words, but Excel "
+                        + "allows only " + EXCEL_MAX_COLS + " columns (room for " + ExcelLayout.maxParaWords()
+                        + " words + timings). Use the fixed \"Export to Excel\" instead — it wraps long paragraphs.");
+                return;
+            }
+            L = new ExcelLayout(Math.max(1, longest));
+        }
+
+        int p = L.paraWords, n8 = SEL_WORDS;
         log("Exporting " + totalWords + " word(s) from " + results.size() + " file(s) to Excel using the "
-                + "fixed template (32 paragraph + 32 timing · 8 selected + 8 · 8 Arabic + 8 · 8 new + 8 · "
-                + "1 logo · 8 repeat, each group colour-coded)…");
+                + (flexible ? "flexible" : "fixed") + " template (" + p + " paragraph + " + p + " timing · "
+                + n8 + " selected + " + n8 + " · " + n8 + " Arabic + " + n8 + " · " + n8 + " new + " + n8
+                + " · 1 logo · " + REPEAT_SLOTS + " repeat, each group colour-coded)…");
 
         List<List<String>> rows = new ArrayList<>();
-        rows.add(buildExcelHeader());
+        rows.add(buildExcelHeader(L));
 
         for (int f = 0; f < results.size(); f++) {
             MediaResult r = results.get(f);
             String tag = results.size() == 1 ? "" : "[" + r.baseName + "] ";
 
-            if (r.words.size() > PARA_WORDS)
-                log(tag + "Note: paragraph has " + r.words.size() + " words — more than the " + PARA_WORDS
+            if (r.words.size() > L.paraWords)   // only the fixed template can get here
+                log(tag + "Note: paragraph has " + r.words.size() + " words — more than the " + L.paraWords
                         + " reserved cells, so it wraps onto additional rows.");
 
-            List<List<String>> block = buildParagraphRows(r.words);
+            List<List<String>> block = buildParagraphRows(r.words, L);
             List<String> dataRow = block.get(0);   // this file's first row — its whole panel lives here
 
-            // Logo cell (last column of the file's first row).
-            dataRow.set(LOGO_COL, LOGO_TEXT);
+            // Logo cell (just before the repeat columns on the file's first row).
+            dataRow.set(L.logoCol, LOGO_TEXT);
 
             // Words/phrases picked in the word chooser, each with the meaning cells typed beside it.
             List<PhraseHit> phrases = r.phrases;
@@ -2076,20 +2140,20 @@ public class ElevenLabsStudio extends JFrame {
                 for (int i = 0; i < n; i++) {
                     PhraseHit ph = phrases.get(i);
                     String startOnly = String.format(Locale.US, "%.3f", ph.start); // start time only
-                    dataRow.set(SEL_WORDS_START + i, ph.text);     // picked word / phrase
-                    dataRow.set(SEL_TIME_START + i,  startOnly);   // picked timing (start only)
-                    // text41 / text49 carry the meanings typed beside the pick; their timing mirrors it.
-                    if (!ph.arabic.isEmpty())   { dataRow.set(AR_WORDS_START + i,  ph.arabic);   meanings++; }
-                    if (!ph.newGroup.isEmpty()) { dataRow.set(NEW_WORDS_START + i, ph.newGroup); meanings++; }
-                    dataRow.set(AR_TIME_START + i,   startOnly);   // text41+ timing = same start time
-                    dataRow.set(NEW_TIME_START + i,  startOnly);   // text49+ timing = same start time
+                    dataRow.set(L.selWordsStart + i, ph.text);     // picked word / phrase
+                    dataRow.set(L.selTimeStart + i,  startOnly);   // picked timing (start only)
+                    // The Arabic / new-group cells carry the meanings typed beside the pick; their timing mirrors it.
+                    if (!ph.arabic.isEmpty())   { dataRow.set(L.arWordsStart + i,  ph.arabic);   meanings++; }
+                    if (!ph.newGroup.isEmpty()) { dataRow.set(L.newWordsStart + i, ph.newGroup); meanings++; }
+                    dataRow.set(L.arTimeStart + i,   startOnly);   // Arabic timing = same start time
+                    dataRow.set(L.newTimeStart + i,  startOnly);   // new-group timing = same start time
                 }
                 log(tag + n + " picked word(s)/phrase(s) written to row " + (rows.size() + 1) + ": "
-                        + XlsxWriter.colLetter(SEL_WORDS_START + 1) + " (words), "
-                        + XlsxWriter.colLetter(SEL_TIME_START + 1) + " (start times), "
+                        + XlsxWriter.colLetter(L.selWordsStart + 1) + " (words), "
+                        + XlsxWriter.colLetter(L.selTimeStart + 1) + " (start times), "
                         + meanings + " meaning cell(s) in "
-                        + XlsxWriter.colLetter(AR_WORDS_START + 1) + " / "
-                        + XlsxWriter.colLetter(NEW_WORDS_START + 1) + ".");
+                        + XlsxWriter.colLetter(L.arWordsStart + 1) + " / "
+                        + XlsxWriter.colLetter(L.newWordsStart + 1) + ".");
             } else {
                 log(tag + "No words picked — use \"Select Words…\" to fill the "
                         + SEL_WORDS + " selected-word slots.");
@@ -2102,20 +2166,22 @@ public class ElevenLabsStudio extends JFrame {
                 if (repeats.size() > REPEAT_SLOTS)
                     log(tag + "Note: " + repeats.size() + " repeats set but only " + REPEAT_SLOTS
                             + " slots are reserved — writing the first " + REPEAT_SLOTS + ".");
-                for (int i = 0; i < n; i++) dataRow.set(REPEAT_START + i, repeats.get(i).cell());
+                for (int i = 0; i < n; i++) dataRow.set(L.repeatStart + i, repeats.get(i).cell());
                 log(tag + n + " repeat(s) written to row " + (rows.size() + 1) + ": "
-                        + XlsxWriter.colLetter(REPEAT_START + 1) + "-"
-                        + XlsxWriter.colLetter(REPEAT_START + n) + " (start,end,times,slowness).");
+                        + XlsxWriter.colLetter(L.repeatStart + 1) + "-"
+                        + XlsxWriter.colLetter(L.repeatStart + n) + " (start,end,times,slowness).");
             }
 
             rows.addAll(block);
         }
 
-        File out = new File(workDir(), combinedBaseName(results) + "_words.xlsx");
+        // A separate file name, so the two exports never overwrite each other.
+        String suffix = flexible ? "_words_flexible.xlsx" : "_words.xlsx";
+        File out = new File(workDir(), combinedBaseName(results) + suffix);
         try {
-            XlsxWriter.write(out, rows, buildColStyles());
+            XlsxWriter.write(out, rows, buildColStyles(L));
             log("Saved: " + out.getName() + "  (" + results.size() + " file(s), "
-                    + (rows.size() - 1) + " paragraph row(s), " + TOTAL_COLS + " columns)");
+                    + (rows.size() - 1) + " paragraph row(s), " + L.totalCols + " columns)");
         } catch (Exception e) {
             log("Error writing xlsx: " + e.getMessage());
         }
@@ -2809,48 +2875,51 @@ public class ElevenLabsStudio extends JFrame {
         }
     }
 
-    /** The template header row: text1..text57 plus the matching *time columns. */
-    private static List<String> buildExcelHeader() {
-        List<String> header = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
-        for (int i = 0; i < PARA_WORDS; i++) {
-            header.set(PARA_WORDS_START + i, "text" + (i + 1));
-            header.set(PARA_TIME_START + i,  "text" + (i + 1) + "time");
+    /** The template header row: text1..textN for the paragraph (N = 32 on the fixed template), then the
+     *  selected / Arabic / new-group / logo cells numbered on from there (text33..text57 when fixed),
+     *  each with its matching *time column, then repeat1..repeat8. */
+    private static List<String> buildExcelHeader(ExcelLayout L) {
+        List<String> header = new ArrayList<>(Collections.nCopies(L.totalCols, ""));
+        for (int i = 0; i < L.paraWords; i++) {
+            header.set(L.paraWordsStart + i, "text" + (i + 1));
+            header.set(L.paraTimeStart + i,  "text" + (i + 1) + "time");
         }
         for (int i = 0; i < SEL_WORDS; i++) {
-            int selN = PARA_WORDS + i + 1;                 // selected:  text33..text40
-            int arN  = PARA_WORDS + SEL_WORDS + i + 1;     // Arabic:    text41..text48
-            int newN = PARA_WORDS + 2 * SEL_WORDS + i + 1; // new group: text49..text56
-            header.set(SEL_WORDS_START + i, "text" + selN);
-            header.set(SEL_TIME_START + i,  "text" + selN + "time");
-            header.set(AR_WORDS_START + i,  "text" + arN);
-            header.set(AR_TIME_START + i,   "text" + arN + "time");
-            header.set(NEW_WORDS_START + i, "text" + newN);
-            header.set(NEW_TIME_START + i,  "text" + newN + "time");
+            int selN = L.paraWords + i + 1;                 // selected:  text33..text40 when fixed
+            int arN  = L.paraWords + SEL_WORDS + i + 1;     // Arabic:    text41..text48 when fixed
+            int newN = L.paraWords + 2 * SEL_WORDS + i + 1; // new group: text49..text56 when fixed
+            header.set(L.selWordsStart + i, "text" + selN);
+            header.set(L.selTimeStart + i,  "text" + selN + "time");
+            header.set(L.arWordsStart + i,  "text" + arN);
+            header.set(L.arTimeStart + i,   "text" + arN + "time");
+            header.set(L.newWordsStart + i, "text" + newN);
+            header.set(L.newTimeStart + i,  "text" + newN + "time");
         }
-        header.set(LOGO_COL, "text" + (PARA_WORDS + 3 * SEL_WORDS + 1)); // logo header continues: text57
-        for (int i = 0; i < REPEAT_SLOTS; i++) header.set(REPEAT_START + i, "repeat" + (i + 1));
+        header.set(L.logoCol, "text" + (L.paraWords + 3 * SEL_WORDS + 1)); // logo continues: text57 when fixed
+        for (int i = 0; i < REPEAT_SLOTS; i++) header.set(L.repeatStart + i, "repeat" + (i + 1));
         return header;
     }
 
-    /** One file's row block (no header): its paragraph words wrapped across the 32 reserved word
-     *  columns with their start,end timings. Always at least one row, so the caller can fill the
+    /** One file's row block (no header): its paragraph words wrapped across the layout's reserved word
+     *  columns with their start,end timings (a single row whenever the paragraph fits, as it always
+     *  does on the flexible layout). Always at least one row, so the caller can fill the
      *  selected-word, Arabic, new-group and logo cells on row 0 of the block. */
-    private static List<List<String>> buildParagraphRows(List<WordStamp> stamps) {
+    private static List<List<String>> buildParagraphRows(List<WordStamp> stamps, ExcelLayout L) {
         List<List<String>> rows = new ArrayList<>();
 
         if (stamps.isEmpty()) {
-            rows.add(new ArrayList<>(Collections.nCopies(TOTAL_COLS, "")));
+            rows.add(new ArrayList<>(Collections.nCopies(L.totalCols, "")));
             return rows;
         }
 
-        for (int start = 0; start < stamps.size(); start += PARA_WORDS) {
-            List<String> row = new ArrayList<>(Collections.nCopies(TOTAL_COLS, ""));
-            int end = Math.min(start + PARA_WORDS, stamps.size());
+        for (int start = 0; start < stamps.size(); start += L.paraWords) {
+            List<String> row = new ArrayList<>(Collections.nCopies(L.totalCols, ""));
+            int end = Math.min(start + L.paraWords, stamps.size());
             for (int i = start; i < end; i++) {
                 WordStamp w = stamps.get(i);
                 int col = i - start;
-                row.set(PARA_WORDS_START + col, w.text);
-                row.set(PARA_TIME_START + col, String.format(Locale.US, "%.3f,%.3f", w.start, w.end));
+                row.set(L.paraWordsStart + col, w.text);
+                row.set(L.paraTimeStart + col, String.format(Locale.US, "%.3f,%.3f", w.start, w.end));
             }
             rows.add(row);
         }
