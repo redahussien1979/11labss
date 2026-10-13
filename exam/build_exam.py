@@ -220,6 +220,8 @@ q("F","mcq","7.1 – Note 6","Which Auto-pass case meeting all general-policy co
 q("F","case","7.1 – Contactless","What is the contactless per-customer cap for (a) Expat (b) UAE National?",
   "The policy states <b>AED 350</b> for Expat and <b>AED 750</b> for UAE Nationals; higher exposure is allowed under conventional contract types.",
   unsure="The figures are written as \"AED 350 / AED 750\". In the context of PF exposure they may mean AED 350K / 750K. Confirm with RCPPM.")
+q("F","calc","7.1 – Contactless + Circular 15-Feb-2026","Contactless journey per-customer cap. Which requests can stay on the contactless journey? (a) Expat AED 300,000 (b) Expat AED 420,000 (c) UAE National AED 700,000 (d) UAE National AED 900,000",
+  C("Caps (circular effective 15 Feb 2026): Expat 350K · UAE National 750K\n(a) 300,000 ≤ 350,000 ✔  (b) 420,000 &gt; 350,000 ✘\n(c) 700,000 ≤ 750,000 ✔  (d) 900,000 &gt; 750,000 ✘")+"<b class='al'>(a) and (c)</b>. (b) and (d) must be booked under conventional contract types. Since the circular, LS can also use the contactless journey (no signatures on any page) and TML Cat D is enabled in LS STL. Old caps were Local 500K / Expat 250K.")
 q("F","case","7.1 – Payment history","Non-scored segment (not against TD). Last 12 months buckets: 0 0 2 2 0 0 0 0 0 0 0 0. Acceptable?",
   "<b class='al'>Yes</b> – same bucket repeated in 2 consecutive months is counted as 1; Bucket 2 allowed 1 time for other segments. Current bucket is 0.")
 q("F","case","7.1 – Payment history","Non-scored segment. Buckets: 0 2 0 0 2 0 0 0 0 0 0 0. Acceptable (a) for a normal segment (b) for Against TD?",
@@ -355,7 +357,7 @@ q("J","calc","8.3","Mumayyaz self-employed customer: deposit relationship per PF
   C("15% × 2,000,000 = 300,000   vs   350,000 → lower = AED 300,000")+"<b class='al'>AED 300,000</b>")
 
 REMOVE = [
- "Sharia principles for this policy", "In this policy \"PDC\" refers",
+ "An application fails one policy-engine parameter", "Sharia principles for this policy", "In this policy \"PDC\" refers",
  "PF against an investment deposit: which deposit currency", "A customer wants PF against an FD that belongs",
  "Which statement about the Sukuk Pack segment", "An Ayaan Exclusive Banking customer with 14 months",
  "Which products can be consolidated", "Eligible BFIs are assigned", "Outsourced staff of a bank apply",
