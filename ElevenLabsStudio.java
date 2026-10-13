@@ -616,7 +616,7 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 114-121 repeats (repeat1-8) as start,end,times,slowness — teal<br>"
                 + "Selected words and repeats come from \"Select Words…\" (up to 8 of each per file).<br>"
                 + "With several files, each one gets its own row block, stacked in the order "
-                + "they were transcribed.</html>");
+                + "they were transcribed.<br>The file opens in Excel once it is saved.</html>");
         btnExport.addActionListener(e -> runInBackground(this::exportWordsToExcel));
         actionButtons.add(btnExport);
         vidBox.add(Box.createVerticalStrut(4));
@@ -631,7 +631,7 @@ public class ElevenLabsStudio extends JFrame {
                 + "• cols 1-N paragraph words (text1-N), cols N+1 to 2N their timing (start,end) — blue<br>"
                 + "• then 8 selected + 8 times, 8 Arabic + 8 times, 8 new group + 8 times, "
                 + "1 logo cell and 8 repeats,<br>&nbsp;&nbsp;numbered on from textN+1, exactly as on the fixed template<br>"
-                + "Every file stays on a single row — nothing wraps. Saved as *_words_flexible.xlsx.</html>");
+                + "Every file stays on a single row — nothing wraps. Saved as *_words_flexible.xlsx and opened in Excel.</html>");
         btnExportFlex.addActionListener(e -> runInBackground(this::exportWordsToExcelFlexible));
         actionButtons.add(btnExportFlex);
         vidBox.add(Box.createVerticalStrut(4));
@@ -2183,7 +2183,18 @@ public class ElevenLabsStudio extends JFrame {
             log("Saved: " + out.getName() + "  (" + results.size() + " file(s), "
                     + (rows.size() - 1) + " paragraph row(s), " + L.totalCols + " columns)");
         } catch (Exception e) {
-            log("Error writing xlsx: " + e.getMessage());
+            log("Error writing xlsx: " + e.getMessage()
+                    + " — if " + out.getName() + " is still open in Excel, close it and export again.");
+            return;
+        }
+
+        try {
+            if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.OPEN))
+                throw new UnsupportedOperationException("no desktop \"open\" action on this system");
+            Desktop.getDesktop().open(out);
+            log("Opened " + out.getName() + ".");
+        } catch (Exception e) {
+            log("Saved but could not open " + out.getAbsolutePath() + ": " + e.getMessage());
         }
     }
 
