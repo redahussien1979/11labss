@@ -155,7 +155,8 @@ section.sec{margin-top:26px}
 .fig{background-repeat:no-repeat;background-size:contain;background-position:center;margin:8px auto;border-radius:8px;border:1px solid var(--rule);background-color:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 ol.opts{list-style:none;margin:6px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 14px}
 ol.opts li{display:flex;gap:6px;align-items:baseline}
-ol.opts .let{flex:none;font-weight:800;color:var(--mcq);direction:ltr}
+.let{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.55em;height:1.55em;border-radius:50%;background:var(--mcq);color:#fff;font-weight:800;font-size:.85rem;line-height:1;margin-inline-end:4px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+ol.opts li{align-items:center}
 .tfline{margin-top:6px;font-weight:700;color:var(--ink2)}
 .lines{margin-top:6px;height:3.2em;background:repeating-linear-gradient(to bottom,transparent 0,transparent 1.55em,#C9D6E3 1.55em,#C9D6E3 calc(1.55em + 1px))}
 .ans{margin-top:8px;background:var(--ans-bg);border:1px solid var(--ans-rule);border-radius:10px;padding:6px 12px}
@@ -228,10 +229,10 @@ def render_q(n, q, small=False):
     if q["fig"]:
         h.append(f'<div class="fig f-{q["fig"]}{' small' if small else ''}" role="img" aria-label="شكل من الكتاب"></div>')
     if q["kind"] == "mcq":
-        h.append('<ol class="opts">' + "".join(f'<li><span class="let">{LET[i]})</span><span>{bidi(o)}</span></li>'
+        h.append('<ol class="opts">' + "".join(f'<li><span class="let">{LET[i]}</span><span>{bidi(o)}</span></li>'
                                               for i, o in enumerate(q["opts"])) + "</ol>")
         ans = q["ans"] if isinstance(q["ans"], list) else [q["ans"]]
-        key = " و ".join(f'{LET[a]}) {bidi(q["opts"][a])}' for a in ans)
+        key = " و ".join(f'<span class="let">{LET[a]}</span> {bidi(q["opts"][a])}' for a in ans)
         h.append(f'<div class="ans"><div><span class="k">✔ الإجابة: </span>{key}</div><div class="why"><span class="k">الشرح: </span>{bidi(q["exp"])}</div></div>')
     elif q["kind"] == "tf":
         h.append('<div class="tfline">ضع علامة:  ( صح )   أو   ( خطأ )</div>')
