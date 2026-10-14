@@ -120,6 +120,8 @@ public class ElevenLabsStudio extends JFrame {
         final List<WordStamp> words;
         List<PhraseHit> phrases = new ArrayList<>();
         List<RepeatHit> repeats = new ArrayList<>();
+        /** Word indices i whose word shares its Excel paragraph cell with word i+1 ("Join into one cell"). */
+        Set<Integer> joins = new TreeSet<>();
         MediaResult(String baseName, String transcript, List<WordStamp> words) {
             this.baseName = baseName; this.transcript = transcript; this.words = words;
         }
@@ -606,7 +608,9 @@ public class ElevenLabsStudio extends JFrame {
 
         wordsPerCell.setToolTipText("<html>How many consecutive words share one paragraph cell in both Excel exports "
                 + "(1 = one word per cell).<br>A cell's timing runs from its first word's start to its last word's end; "
-                + "the last cell<br>takes whatever words are left. The paragraph columns count cells, not words.</html>");
+                + "the last cell<br>takes whatever words are left. The paragraph columns count cells, not words.<br>"
+                + "To choose exactly which words share a cell, use \"Join into one cell\" in \"Select Words…\" "
+                + "(leave this at 1).</html>");
         vidBox.add(Box.createVerticalStrut(4));
         addRow(vidBox, "Words/cell", wordsPerCell);
 
@@ -2102,19 +2106,40 @@ public class ElevenLabsStudio extends JFrame {
     private static List<WordStamp> groupWords(List<WordStamp> stamps, int perCell) {
         if (perCell <= 1) return stamps;
         List<WordStamp> cells = new ArrayList<>((stamps.size() + perCell - 1) / perCell);
-        for (int from = 0; from < stamps.size(); from += perCell) {
-            List<WordStamp> group = stamps.subList(from, Math.min(from + perCell, stamps.size()));
-            StringBuilder text = new StringBuilder();
-            double start = Double.MAX_VALUE, end = -Double.MAX_VALUE;
-            for (WordStamp w : group) {
-                if (text.length() > 0) text.append(' ');
-                text.append(w.text);
-                start = Math.min(start, w.start);
-                end   = Math.max(end, w.end);
-            }
-            cells.add(new WordStamp(text.toString(), start, end, group.get(0).speaker));
+        for (int from = 0; from < stamps.size(); from += perCell)
+            cells.add(mergeStamps(stamps.subList(from, Math.min(from + perCell, stamps.size()))));
+        return cells;
+    }
+
+    /**
+     * Join the words the user tied together in "Select Words…" ({@code joins} holds every index i
+     * whose word shares a cell with word i+1). Each run of joined words becomes one entry, timed
+     * like {@link #groupWords}; untouched words stay on their own. No joins returns the words unchanged.
+     */
+    private static List<WordStamp> joinedCells(List<WordStamp> stamps, Set<Integer> joins) {
+        if (joins.isEmpty()) return stamps;
+        List<WordStamp> cells = new ArrayList<>();
+        int from = 0;
+        for (int i = 0; i < stamps.size(); i++) {
+            if (joins.contains(i) && i + 1 < stamps.size()) continue;   // still inside a joined run
+            cells.add(mergeStamps(stamps.subList(from, i + 1)));
+            from = i + 1;
         }
         return cells;
+    }
+
+    /** One cell from consecutive words: texts joined by spaces, earliest start to latest end. */
+    private static WordStamp mergeStamps(List<WordStamp> group) {
+        if (group.size() == 1) return group.get(0);
+        StringBuilder text = new StringBuilder();
+        double start = Double.MAX_VALUE, end = -Double.MAX_VALUE;
+        for (WordStamp w : group) {
+            if (text.length() > 0) text.append(' ');
+            text.append(w.text);
+            start = Math.min(start, w.start);
+            end   = Math.max(end, w.end);
+        }
+        return new WordStamp(text.toString(), start, end, group.get(0).speaker);
     }
 
     /** "Export to Excel": the fixed 121-column template; long paragraphs wrap onto extra rows. */
@@ -2128,7 +2153,8 @@ public class ElevenLabsStudio extends JFrame {
     }
 
     /**
-     * Shared by both export buttons. {@code perCell} words share one paragraph cell (see
+     * Shared by both export buttons. Words joined in "Select Words…" share a cell (see
+     * {@link #joinedCells}), then {@code perCell} of those units share one paragraph cell (see
      * {@link #groupWords}); the paragraph columns, wrapping and flexible sizing all count cells.
      */
     private void exportWordsToExcel(boolean flexible, int perCell) {
@@ -2141,7 +2167,8 @@ public class ElevenLabsStudio extends JFrame {
         int totalWords = 0, longest = 0;
         List<List<WordStamp>> cellsPerFile = new ArrayList<>(results.size());
         for (MediaResult r : results) {
-            List<WordStamp> cells = groupWords(r.words, perCell);
+            // Hand-joined runs first, then "Words/cell" counts those runs, so a join is never split.
+            List<WordStamp> cells = groupWords(joinedCells(r.words, r.joins), perCell);
             cellsPerFile.add(cells);
             totalWords += r.words.size();
             longest = Math.max(longest, cells.size());
@@ -2303,6 +2330,7 @@ public class ElevenLabsStudio extends JFrame {
         private final List<MediaResult> results;
         private final List<List<PhraseHit>> picks = new ArrayList<>();   // per file, in export order
         private final List<List<RepeatHit>> repeats = new ArrayList<>(); // per file, in export order
+        private final List<Set<Integer>> joins = new ArrayList<>();      // per file: i = word i + word i+1 share a cell
         private final DefaultTableModel model;
         private final JTable table;
         private final DefaultTableModel repModel;
@@ -2324,6 +2352,7 @@ public class ElevenLabsStudio extends JFrame {
                     mine.add(new RepeatHit(rh.text, rh.start, rh.end, rh.times, rh.slowness));
                 repeats.add(mine);
             }
+            for (MediaResult r : results) joins.add(new TreeSet<>(r.joins));
 
             // ---- top: one word grid per file ----
             for (MediaResult r : results) {
@@ -2337,6 +2366,7 @@ public class ElevenLabsStudio extends JFrame {
                 list.setVisibleRowCount(-1);                 // wrap to the viewport width
                 list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
                 list.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
+                list.setCellRenderer(new CellGroupRenderer(joins.get(wordLists.size())));
                 list.setToolTipText("<html>Click a word · ctrl-click to add more · shift-click for a run."
                         + "<br>Double-click adds the word on its own.</html>");
                 list.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -2381,9 +2411,31 @@ public class ElevenLabsStudio extends JFrame {
             repeatRow.add(repTimes);
             repeatRow.add(new JLabel("slowness"));
             repeatRow.add(repSlow);
-            JPanel addBar = new JPanel(new GridLayout(2, 1));
+            JButton join = new JButton("Join into one cell");
+            join.setToolTipText("<html>Put the selected run of consecutive words into a single paragraph cell "
+                    + "for both Excel exports,<br>timed from the first word's start to the last word's end. "
+                    + "Joined words are shaded and marked with +.</html>");
+            join.addActionListener(e -> joinSelection());
+            JButton splitCell = new JButton("Split cell");
+            splitCell.setToolTipText("Give every word of the selected joined cell(s) its own cell again.");
+            splitCell.addActionListener(e -> splitSelection());
+            JButton splitAll = new JButton("Split all");
+            splitAll.setToolTipText("Undo every join in this file.");
+            splitAll.addActionListener(e -> {
+                joins.get(fileIdx()).clear();
+                wordLists.get(fileIdx()).repaint();
+                refreshStatus();
+            });
+            JPanel cellRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+            cellRow.add(new JLabel("Paragraph cells:"));
+            cellRow.add(join);
+            cellRow.add(splitCell);
+            cellRow.add(splitAll);
+
+            JPanel addBar = new JPanel(new GridLayout(3, 1));
             addBar.add(pickRow);
             addBar.add(repeatRow);
+            addBar.add(cellRow);
 
             JPanel top = new JPanel(new BorderLayout());
             top.setBorder(new TitledBorder("All transcribed words — click to select"));
@@ -2536,6 +2588,54 @@ public class ElevenLabsStudio extends JFrame {
             }
             list.clearSelection();
             rebuildTable();
+        }
+
+        /** Tie the selected run of consecutive words into one paragraph cell. */
+        private void joinSelection() {
+            int f = fileIdx();
+            JList<String> list = wordLists.get(f);
+            int[] sel = list.getSelectedIndices();
+            if (sel.length < 2) { status("Select two or more consecutive words to join — shift-click a run."); return; }
+            if (sel[sel.length - 1] - sel[0] + 1 != sel.length) {
+                status("A cell needs consecutive words — shift-click a run.");
+                return;
+            }
+            Set<Integer> mine = joins.get(f);
+            for (int i = sel[0]; i < sel[sel.length - 1]; i++) mine.add(i);
+            WordStamp cell = joinedCellAt(f, sel[0]);
+            list.clearSelection();
+            list.repaint();
+            refreshStatus();
+            status(String.format(Locale.US, "Joined \"%s\" — %.3f,%.3f.", cell.text, cell.start, cell.end));
+        }
+
+        /** Break every joined cell that holds a selected word back into single-word cells. */
+        private void splitSelection() {
+            int f = fileIdx();
+            JList<String> list = wordLists.get(f);
+            int[] sel = list.getSelectedIndices();
+            if (sel.length == 0) { status("Select a word of the joined cell to split."); return; }
+            Set<Integer> mine = joins.get(f);
+            int before = mine.size();
+            for (int i : sel) {
+                int first = i, last = i;                       // widen to the whole joined cell
+                while (first > 0 && mine.contains(first - 1)) first--;
+                while (mine.contains(last)) last++;
+                for (int k = first; k < last; k++) mine.remove(k);
+            }
+            list.clearSelection();
+            list.repaint();
+            refreshStatus();
+            if (mine.size() == before) status("Those words are not joined to anything.");
+        }
+
+        /** The paragraph cell that word {@code i} of file {@code f} belongs to, as the export will write it. */
+        private WordStamp joinedCellAt(int f, int i) {
+            Set<Integer> mine = joins.get(f);
+            int first = i, last = i;
+            while (first > 0 && mine.contains(first - 1)) first--;
+            while (mine.contains(last)) last++;
+            return mergeStamps(results.get(f).words.subList(first, last + 1));
         }
 
         private void removeSelectedRows() {
@@ -2696,8 +2796,10 @@ public class ElevenLabsStudio extends JFrame {
 
         private void refreshStatus() {
             int f = fileIdx();
+            int words = results.get(f).words.size(), cells = words - joins.get(f).size();
             status.setText("  " + picks.get(f).size() + " of " + SEL_WORDS + " picked · "
-                    + repeats.get(f).size() + " of " + REPEAT_SLOTS + " repeats for " + results.get(f).baseName);
+                    + repeats.get(f).size() + " of " + REPEAT_SLOTS + " repeats · "
+                    + words + " words in " + cells + " cells for " + results.get(f).baseName);
         }
 
         private void status(String msg) { status.setText("  " + msg); }
@@ -2922,9 +3024,43 @@ public class ElevenLabsStudio extends JFrame {
             for (int f = 0; f < results.size(); f++) {
                 results.get(f).phrases = picks.get(f);
                 results.get(f).repeats = repeats.get(f);
+                results.get(f).joins = joins.get(f);
             }
             dispose();
             logPicks(results);
+        }
+    }
+
+    /**
+     * Word-grid renderer for "Select Words…": words joined into one paragraph cell are shaded
+     * (alternating two tints, so neighbouring cells stay apart) and every word that continues into
+     * the next one ends with " +".
+     */
+    private static final class CellGroupRenderer extends DefaultListCellRenderer {
+        private static final Color TINT_A = new Color(0xFF, 0xE6, 0x99);   // amber
+        private static final Color TINT_B = new Color(0xC6, 0xEB, 0xC0);   // mint (unlike the blue selection)
+        private final Set<Integer> joins;
+
+        CellGroupRenderer(Set<Integer> joins) { this.joins = joins; }
+
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean selected, boolean focused) {
+            boolean joinsNext = joins.contains(index), joinedPrev = index > 0 && joins.contains(index - 1);
+            String text = String.valueOf(value) + (joinsNext ? "  +" : "");
+            super.getListCellRendererComponent(list, text, index, selected, focused);
+            if (!selected && (joinsNext || joinedPrev)) {
+                int first = index;
+                while (first > 0 && joins.contains(first - 1)) first--;
+                int groupNo = 0;                                // how many joined cells start before this one
+                for (int k : joins) {
+                    if (k >= first) break;
+                    if (k == 0 || !joins.contains(k - 1)) groupNo++;
+                }
+                setBackground(groupNo % 2 == 0 ? TINT_A : TINT_B);
+                setForeground(Color.BLACK);
+            }
+            return this;
         }
     }
 
