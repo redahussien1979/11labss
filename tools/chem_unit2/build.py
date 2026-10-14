@@ -121,8 +121,8 @@ CSS = r"""
   --c-intro:#7B2CBF; --c-l21:#1E66D0; --c-l22:#0A8F7E; --c-l23:#E0661B; --c-rev:#C62839;
 }
 *{box-sizing:border-box}
-html{font-size:11pt}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:'Cairo',system-ui,sans-serif;line-height:1.75;font-size:11pt}
+html{font-size:10pt}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Cairo',system-ui,sans-serif;line-height:1.75;font-size:10pt}
 .wrap{max-width:900px;margin:0 auto;padding:18px 16px 60px}
 .ltr{direction:ltr;unicode-bidi:isolate;display:inline-block}
 header.cover{background:linear-gradient(135deg,#FFB627 0%,#FF7A3D 55%,#E2335A 100%);color:#fff;border-radius:18px;padding:22px 24px;box-shadow:0 8px 24px -12px rgba(0,0,0,.4)}
