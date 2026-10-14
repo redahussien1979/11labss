@@ -2366,7 +2366,10 @@ public class ElevenLabsStudio extends JFrame {
                 list.setVisibleRowCount(-1);                 // wrap to the viewport width
                 list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
                 list.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 13));
-                list.setCellRenderer(new CellGroupRenderer(joins.get(wordLists.size())));
+                boolean rtl = isMostlyRtl(r.words);           // Arabic: the grid reads right to left
+                list.setComponentOrientation(rtl ? ComponentOrientation.RIGHT_TO_LEFT
+                                                 : ComponentOrientation.LEFT_TO_RIGHT);
+                list.setCellRenderer(new CellGroupRenderer(joins.get(wordLists.size()), rtl));
                 list.setToolTipText("<html>Click a word · ctrl-click to add more · shift-click for a run."
                         + "<br>Double-click adds the word on its own.</html>");
                 list.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -2423,7 +2426,8 @@ public class ElevenLabsStudio extends JFrame {
             splitAll.setToolTipText("Undo every join in this file.");
             splitAll.addActionListener(e -> {
                 joins.get(fileIdx()).clear();
-                wordLists.get(fileIdx()).repaint();
+                JList<String> list = wordLists.get(fileIdx());
+                remeasure(list, 0, list.getModel().getSize() - 1);
                 refreshStatus();
             });
             JPanel cellRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
@@ -2604,7 +2608,7 @@ public class ElevenLabsStudio extends JFrame {
             for (int i = sel[0]; i < sel[sel.length - 1]; i++) mine.add(i);
             WordStamp cell = joinedCellAt(f, sel[0]);
             list.clearSelection();
-            list.repaint();
+            remeasure(list, sel[0], sel[sel.length - 1]);
             refreshStatus();
             status(String.format(Locale.US, "Joined \"%s\" — %.3f,%.3f.", cell.text, cell.start, cell.end));
         }
@@ -2622,11 +2626,20 @@ public class ElevenLabsStudio extends JFrame {
                 while (first > 0 && mine.contains(first - 1)) first--;
                 while (mine.contains(last)) last++;
                 for (int k = first; k < last; k++) mine.remove(k);
+                remeasure(list, first, last);
             }
             list.clearSelection();
-            list.repaint();
             refreshStatus();
             if (mine.size() == before) status("Those words are not joined to anything.");
+        }
+
+        /**
+         * Re-set words {@code from..to} in the grid so the list re-measures them: a join adds or drops
+         * the " +" marker, which changes a word's width, and a JList only re-measures on model events.
+         */
+        private void remeasure(JList<String> list, int from, int to) {
+            DefaultListModel<String> lm = (DefaultListModel<String>) list.getModel();
+            for (int i = Math.max(0, from); i <= to && i < lm.size(); i++) lm.set(i, lm.get(i));
         }
 
         /** The paragraph cell that word {@code i} of file {@code f} belongs to, as the export will write it. */
@@ -3031,23 +3044,42 @@ public class ElevenLabsStudio extends JFrame {
         }
     }
 
+    /** True when most words are written in a right-to-left script (Arabic, Hebrew, …). */
+    private static boolean isMostlyRtl(List<WordStamp> words) {
+        int rtl = 0;
+        for (WordStamp w : words) {
+            for (int i = 0; i < w.text.length(); i++) {
+                byte d = Character.getDirectionality(w.text.charAt(i));
+                if (d == Character.DIRECTIONALITY_RIGHT_TO_LEFT
+                        || d == Character.DIRECTIONALITY_RIGHT_TO_LEFT_ARABIC) { rtl++; break; }
+                if (d == Character.DIRECTIONALITY_LEFT_TO_RIGHT) break;   // first strong letter decides
+            }
+        }
+        return rtl * 2 > words.size();
+    }
+
     /**
      * Word-grid renderer for "Select Words…": words joined into one paragraph cell are shaded
      * (alternating two tints, so neighbouring cells stay apart) and every word that continues into
-     * the next one ends with " +".
+     * the next one ends with " +". Each label starts with a direction mark matching the grid, so
+     * "12. word +" keeps its number and marker in place around Arabic as well as English text.
      */
     private static final class CellGroupRenderer extends DefaultListCellRenderer {
         private static final Color TINT_A = new Color(0xFF, 0xE6, 0x99);   // amber
         private static final Color TINT_B = new Color(0xC6, 0xEB, 0xC0);   // mint (unlike the blue selection)
         private final Set<Integer> joins;
+        private final String dirMark;                                       // LRM or RLM
 
-        CellGroupRenderer(Set<Integer> joins) { this.joins = joins; }
+        CellGroupRenderer(Set<Integer> joins, boolean rtl) {
+            this.joins = joins;
+            this.dirMark = rtl ? "\u200F" : "\u200E";
+        }
 
         @Override
         public Component getListCellRendererComponent(JList<?> list, Object value, int index,
                                                       boolean selected, boolean focused) {
             boolean joinsNext = joins.contains(index), joinedPrev = index > 0 && joins.contains(index - 1);
-            String text = String.valueOf(value) + (joinsNext ? "  +" : "");
+            String text = dirMark + value + (joinsNext ? "  +" : "");
             super.getListCellRendererComponent(list, text, index, selected, focused);
             if (!selected && (joinsNext || joinedPrev)) {
                 int first = index;
