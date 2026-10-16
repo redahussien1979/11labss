@@ -209,7 +209,7 @@ def bidi(s):
             out.append(part)
         else:
             part = re.sub(r"(?<![\u0600-\u06FF])و(?=[A-Za-z])", "و ", part)   # «وNa» ← «و Na» لوضوح القراءة
-            out.append(_LAT.sub(lambda m: f"<bdi>{m.group(0)}</bdi>", part))
+            out.append(_LAT.sub(lambda m: f'<span class="ltr" dir="ltr">{m.group(0)}</span>', part))
     return "".join(out)
 
 
