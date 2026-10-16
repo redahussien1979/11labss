@@ -213,6 +213,21 @@ def bidi(s):
     return "".join(out)
 
 
+def pdf_page(p):
+    """رقم الصفحة في ملف «electorics unit.pdf» المقابل لرقم صفحة الكتاب المطبوع."""
+    if 40 <= p <= 51:
+        return p - 39
+    if 54 <= p <= 72:
+        return p - 41
+    if 74 <= p <= 79:
+        return p - 42
+    raise ValueError(f"صفحة كتاب غير موجودة في الملف: {p}")
+
+
+def page_label(p):
+    return f"ص {p} في الكتاب (صفحة {pdf_page(p)} في ملف PDF)"
+
+
 def kind_badge(k):
     return {"mcq": '<span class="badge b-mcq">اختيار من متعدد</span>',
             "tf": '<span class="badge b-tf">صح أم خطأ</span>',
@@ -222,9 +237,9 @@ def kind_badge(k):
 def render_q(n, q, small=False):
     h = [f'<article class="q {q["kind"]}" id="q{n}"><div class="qhead"><span class="num">{n}</span>{kind_badge(q["kind"])}']
     if q["book"]:
-        h.append(f'<span class="badge b-book">سؤال من الكتاب — ص {q["p"]}</span>')
+        h.append(f'<span class="badge b-book">سؤال من الكتاب — {page_label(q["p"])}</span>')
     else:
-        h.append(f'<span class="badge b-page">المرجع: ص {q["p"]}</span>')
+        h.append(f'<span class="badge b-page">المرجع: {page_label(q["p"])}</span>')
     h.append(f'</div><div class="qtext">{bidi(q["text"])}</div>')
     if q["fig"]:
         h.append(f'<div class="fig f-{q["fig"]}{' small' if small else ''}" role="img" aria-label="شكل من الكتاب"></div>')
@@ -270,7 +285,7 @@ def build_html():
 <div class="howto"><h2>كيف تستخدم هذا الاختبار؟</h2><ul>
 <li>اقرأ السؤال وحاول الإجابة أولًا، ثم انظر إلى <b>الإجابة والشرح</b> في المربع الأخضر تحته.</li>
 <li>للتدريب دون رؤية الإجابات اضغط زر «إخفاء الإجابات» (تظهر سطور للكتابة). ويمكن طباعة الاختبار بالحالتين.</li>
-<li>كل سؤال مكتوب بجانبه رقم صفحة الكتاب التي يعتمد عليها، والأشكال مأخوذة من الكتاب نفسه.</li></ul>
+<li>بجانب كل سؤال رقم صفحته: الرقم المطبوع أسفل صفحة الكتاب، ورقم الصفحة نفسها في ملف PDF (يبدأ الملف من صفحة الكتاب 40). والأشكال مأخوذة من الكتاب نفسه.</li></ul>
 <div class="legend">{kind_badge('mcq')}{kind_badge('tf')}{kind_badge('wr')}<span class="badge b-book">سؤال من الكتاب</span><span class="badge b-page">المرجع: صفحة الكتاب</span></div></div>
 <div class="toolbar"><button type="button" onclick="document.body.classList.toggle('hide-ans');this.textContent=document.body.classList.contains('hide-ans')?'إظهار الإجابات':'إخفاء الإجابات'">إخفاء الإجابات</button>
 <button type="button" onclick="window.print()">طباعة</button></div>
