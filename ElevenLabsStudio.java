@@ -1447,8 +1447,7 @@ public class ElevenLabsStudio extends JFrame {
         for (int i = 0; i < items.size(); i++) {
             QuoteItem it = items.get(i);
             File out = ttsAudioFile(i);
-            boolean two = it.voice2 != null && !it.voice2.isEmpty()
-                    && !it.voice2.equalsIgnoreCase(it.voice);
+            boolean two = it.voice2 != null && !it.voice2.trim().isEmpty();
             log("Generating audio " + (i + 1) + " [voice " + voiceLabel(it.voice)
                     + (two ? " + " + voiceLabel(it.voice2) : "") + "]: \"" + preview(it.text) + "\"");
             if (generateLineTts(it.voice, it.voice2, it.text, model, ttsSettings, out)) ok++;
@@ -1575,14 +1574,12 @@ public class ElevenLabsStudio extends JFrame {
      * same text and the two clips are concatenated (voice1 + gap + voice2) into the SAME
      * output file, so every other feature (Listen, Merge, Transcribe, ...) keeps working
      * unchanged. With no 2nd voice it is the original single-voice path, byte-for-byte.
+     * The 2nd voice may be the same as the 1st: the line is then spoken twice by that
+     * voice (two separate API calls, so the takes can differ) and joined the same way.
      */
     private boolean generateLineTts(String voice1, String voice2, String text,
                                     String model, String settings, File out) {
         boolean hasSecond = voice2 != null && !voice2.trim().isEmpty();
-        if (hasSecond && voice2.trim().equalsIgnoreCase(voice1 == null ? "" : voice1.trim())) {
-            log("  (2nd voice equals the 1st -- generating a single voice.)");
-            hasSecond = false;
-        }
         if (!hasSecond) return generateOneTts(voice1, text, model, settings, out);
 
         double gap = dblField(ttsVoice2Gap, 0.5);
@@ -1643,7 +1640,7 @@ public class ElevenLabsStudio extends JFrame {
         if (idx < 0) { log("Regen: could not locate this line."); return; }
         String v1 = comboVal(row.voice);
         String v2 = comboVal(row.voice2);
-        boolean two = !v2.isEmpty() && !v2.equalsIgnoreCase(v1);
+        boolean two = !v2.isEmpty();
         File out = rowAudioFile(row, idx);
         log("Regenerating " + (row.batch != null ? out.getName() : "audio " + (idx + 1))
                 + " [voice " + voiceLabel(v1)
@@ -4008,11 +4005,10 @@ public class ElevenLabsStudio extends JFrame {
     /**
      * True when the batch should speak every cell with BOTH voices and join the two
      * clips into one MP3 — the "Join voice 2 into one clip" box, with a 2nd voice
-     * that is actually different from the 1st.
+     * set. It may be the same voice as the 1st: each cell is then spoken twice by it.
      */
     private boolean xlJoining() {
-        String v1 = comboVal(xlVoice), v2 = comboVal(xlVoice2);
-        return xlJoinVoices.isSelected() && !v2.isEmpty() && !v2.equalsIgnoreCase(v1);
+        return xlJoinVoices.isSelected() && !comboVal(xlVoice2).isEmpty();
     }
 
     /**
