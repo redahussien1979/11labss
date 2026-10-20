@@ -150,12 +150,16 @@ public class ElevenLabsStudio extends JFrame {
         setLocationRelativeTo(null);
         buildUI();
         setupMediaDropTarget();
+        setupExcelFileDrop();
         addWindowListener(new java.awt.event.WindowAdapter() {
             @Override public void windowClosing(java.awt.event.WindowEvent e) { player.stop(); }
         });
     }
 
-    /** Let the user drag & drop a video/audio file anywhere on the window to transcribe it. */
+    /**
+     * Let the user drag & drop files anywhere on the window: video/audio is transcribed,
+     * a spreadsheet (.xlsx / .xlsm / .csv / .tsv) is loaded into the Excel / CSV box.
+     */
     private void setupMediaDropTarget() {
         new java.awt.dnd.DropTarget(this, java.awt.dnd.DnDConstants.ACTION_COPY,
                 new java.awt.dnd.DropTargetAdapter() {
@@ -183,16 +187,21 @@ public class ElevenLabsStudio extends JFrame {
     private void handleDroppedFiles(java.util.List<File> files) {
         if (files == null || files.isEmpty()) return;
         List<File> media = new ArrayList<>();
+        List<File> sheets = new ArrayList<>();
         for (File f : files) {
-            if (f != null && f.isFile() && isMediaFile(f)) media.add(f);
+            if (f == null || !f.isFile()) continue;
+            if (isMediaFile(f)) media.add(f);
+            else if (isSpreadsheetFile(f)) sheets.add(f);
         }
+        if (!sheets.isEmpty()) useDroppedSpreadsheet(sheets);
         if (media.isEmpty()) {
-            log("Drag & drop: no supported video/audio file found "
-                    + "(accepted: mp4, mov, mkv, webm, avi, m4v, mp3, wav, m4a, aac, flac, ogg).");
+            if (sheets.isEmpty())
+                log("Drag & drop: no supported file found (accepted: mp4, mov, mkv, webm, avi, m4v, "
+                        + "mp3, wav, m4a, aac, flac, ogg — or xlsx, xlsm, csv, tsv for the Excel box).");
             return;
         }
         media.sort(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
-        int skipped = files.size() - media.size();
+        int skipped = files.size() - media.size() - sheets.size();
         if (media.size() > 1)
             log("Drag & drop: " + media.size() + " media files — transcribing them in name order…"
                     + (skipped > 0 ? "  (" + skipped + " unsupported file(s) ignored)" : ""));
@@ -200,6 +209,62 @@ public class ElevenLabsStudio extends JFrame {
             log("Drag & drop: \"" + media.get(0).getName() + "\" — transcribing…"
                     + (skipped > 0 ? "  (" + skipped + " unsupported file(s) ignored)" : ""));
         runInBackground(() -> doVideoWordTimestamps(media));
+    }
+
+    /** A file the Excel / CSV batch box can read. */
+    private static boolean isSpreadsheetFile(File f) {
+        String n = f.getName().toLowerCase(Locale.ROOT);
+        return n.endsWith(".xlsx") || n.endsWith(".xlsm") || n.endsWith(".csv") || n.endsWith(".tsv");
+    }
+
+    /** Puts the first dropped spreadsheet into the Excel box's file field. */
+    private void useDroppedSpreadsheet(List<File> sheets) {
+        sheets.sort(Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
+        File f = sheets.get(0);
+        SwingUtilities.invokeLater(() -> {
+            xlFileField.setText(f.getAbsolutePath());
+            xlFileField.setCaretPosition(xlFileField.getText().length());
+        });
+        log("Drag & drop: Excel file set to \"" + f.getName() + "\"."
+                + (sheets.size() > 1 ? "  (" + (sheets.size() - 1)
+                        + " other spreadsheet(s) ignored — the batch reads one file at a time)" : ""));
+    }
+
+    /**
+     * The Excel file field is a text field, whose own Swing drop support rejects files
+     * (so the window-wide drop target never sees them); give it a file drop target too.
+     */
+    private void setupExcelFileDrop() {
+        new java.awt.dnd.DropTarget(xlFileField, java.awt.dnd.DnDConstants.ACTION_COPY,
+                new java.awt.dnd.DropTargetAdapter() {
+                    @Override public void dragEnter(java.awt.dnd.DropTargetDragEvent ev) {
+                        if (ev.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.javaFileListFlavor))
+                            ev.acceptDrag(java.awt.dnd.DnDConstants.ACTION_COPY);
+                        else ev.rejectDrag();
+                    }
+                    @Override public void drop(java.awt.dnd.DropTargetDropEvent ev) {
+                        try {
+                            java.awt.datatransfer.Transferable t = ev.getTransferable();
+                            if (!t.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.javaFileListFlavor)) {
+                                ev.rejectDrop();
+                                return;
+                            }
+                            ev.acceptDrop(java.awt.dnd.DnDConstants.ACTION_COPY);
+                            @SuppressWarnings("unchecked")
+                            java.util.List<File> files = (java.util.List<File>)
+                                    t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
+                            List<File> sheets = new ArrayList<>();
+                            for (File f : files) if (f != null && f.isFile() && isSpreadsheetFile(f)) sheets.add(f);
+                            if (sheets.isEmpty())
+                                log("Drag & drop: not a spreadsheet — the Excel box takes .xlsx, .xlsm, .csv or .tsv.");
+                            else useDroppedSpreadsheet(sheets);
+                            ev.dropComplete(!sheets.isEmpty());
+                        } catch (Exception ex) {
+                            log("Drag & drop failed: " + ex.getMessage());
+                            ev.dropComplete(false);
+                        }
+                    }
+                }, true);
     }
 
     private static boolean isMediaFile(File f) {
@@ -660,13 +725,19 @@ public class ElevenLabsStudio extends JFrame {
         west.add(vidBox);
 
         JPanel xlBox = settingsBox("7 · Excel / CSV batch");
-        xlFileField.setToolTipText("The .xlsx / .xlsm / .csv / .tsv file holding the text to speak.");
+        xlFileField.setToolTipText("<html>The .xlsx / .xlsm / .csv / .tsv file holding the text to speak."
+                + "<br>Browse for it, or drag & drop it here (or anywhere on the window).</html>");
         addRow(xlBox, "Excel file", xlFileField);
         JButton xlBrowse = new JButton("Browse file…");
         xlBrowse.setAlignmentX(Component.LEFT_ALIGNMENT);
         xlBrowse.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
         xlBrowse.addActionListener(e -> chooseExcelFile());
         xlBox.add(xlBrowse);
+        JLabel xlDropHint = new JLabel("…or drag & drop an Excel / CSV file here");
+        xlDropHint.setFont(xlDropHint.getFont().deriveFont(Font.ITALIC, 11f));
+        xlDropHint.setAlignmentX(Component.LEFT_ALIGNMENT);
+        xlBox.add(Box.createVerticalStrut(2));
+        xlBox.add(xlDropHint);
         xlSheetField.setToolTipText("Sheet name or 1-based number. Blank = the first sheet.");
         addRow(xlBox, "Sheet", xlSheetField);
         xlTextCol.setToolTipText("<html>Column(s) the text is read from.<br>"
